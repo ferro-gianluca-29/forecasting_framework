@@ -1,0 +1,71 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Training and Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_code.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_mode", "train_test",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+            ]
+        },
+        {
+            "name": "Training",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_code.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_mode", "train",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+            ]
+        },
+        {
+            "name": "Test",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_code.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_mode", "test",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+                "--model_path", "./data/ARIMA_2024-04-08_10-02-14"
+            ]
+        },
+        {
+            "name": "Fine Tuning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_code.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--run_mode", "fine_tuning",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+                "--model_path", "./ARIMA_2024-04-04_16-52-32"
+            ]
+        }
+    ]
+}

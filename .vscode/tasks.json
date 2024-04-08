@@ -1,0 +1,70 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Training and Test",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "test",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+                "--model_path", "D:/VISUAL STUDIO/Thesis/data/models/ARIMA_2024-04-08_10-33-09"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Training",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Fine Tuning",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "fine_tuning",
+                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
+                "--model_type", "ARIMA",
+                "--forecast_type", "ol-one",
+                "--scaling",
+            ],
+            "problemMatcher": []
+        }        
+    ]
+}
