@@ -38,8 +38,9 @@ class DataLoader():
                 if self.time_column_index != 0:
                    # remove and copy time column
                    time_column = df.pop(df.columns[self.time_column_index])
-                   # make the time column the first of the dataframe
+                   # make the time column the first of the dataframe and rename it "date"
                    df = df.insert(0, df.columns[self.time_column_index], time_column)
+                   df.rename(columns={ df.columns[0]: "date" }, inplace = True)
                    # Sort the dataset by date
                    df = df.sort_values(by=df.columns[0])
             else:

@@ -1,4 +1,4 @@
-#################  LIBRARY IMPORTS ######################
+#  LIBRARY IMPORTS
 
 import argparse
 import pandas as pd
@@ -12,7 +12,7 @@ import datetime
 import json
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
 
-################# END OF LIBRARY IMPORTS ############################
+# END OF LIBRARY IMPORTS #
   
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 
 def main():
     
-################## ARGUMENT PARSING ###################
+    # ARGUMENT PARSING
     parser = argparse.ArgumentParser(description='Time series forecasting')
 
     # General arguments
@@ -53,8 +53,7 @@ def main():
     parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
        
     args = parser.parse_args()
-
-################## END OF ARGUMENT PARSING ###############
+    # END OF ARGUMENT PARSING
 
     verbose = args.verbose 
 
@@ -65,18 +64,18 @@ def main():
         folder_path = f"./data/models/{folder_name}"
         os.makedirs(folder_path)
  
-####################  DATA LOADING ##################
+        #  DATA LOADING
         data_loader = DataLoader(args.dataset_path, args.target_column, args.time_column_index)
         df = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
         
-#################### END OF DATA LOADING ##################
+        # END OF DATA LOADING
         
         # Optional time series analysis
         if args.ts_analysis:
             ts_analysis(df, args.target_column, args.period)        
-
+            
 
 #################### PREPROCESSING  ####################
         
