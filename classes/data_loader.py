@@ -32,17 +32,21 @@ class DataLoader():
         # convert the specified time column
         if self.time_column_index is not None:
             if self.time_column_index < len(df.columns):
-                # conversion into the datetime format
-                time_column = df.columns[self.time_column_index]
-                df[time_column] = pd.to_datetime(df[time_column])
+                time_column_name = df.columns[self.time_column_index]  # Get the correct column name
+                
                 if self.time_column_index != 0:
-                   # remove and copy time column
-                   time_column = df.pop(df.columns[self.time_column_index])
-                   # make the time column the first of the dataframe and rename it "date"
-                   df = df.insert(0, df.columns[self.time_column_index], time_column)
-                   df.rename(columns={ df.columns[0]: "date" }, inplace = True)
-                   # Sort the dataset by date
-                   df = df.sort_values(by=df.columns[0])
+                    # Remove and copy the time column to the first position
+                    time_column_data = df.pop(time_column_name)
+                    df.insert(0, 'date', time_column_data)
+                else:
+                    # Rename if it's already the first column
+                    df.rename(columns={time_column_name: 'date'}, inplace=True)
+
+                # Convert the 'date' column to datetime
+                df['date'] = pd.to_datetime(df['date'], utc=True)
+                # Sort the dataset by date
+                df = df.sort_values(by=df.columns[0])
+               
             else:
                  print("time column not found.")
             return df

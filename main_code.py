@@ -32,6 +32,7 @@ def main():
 
     # Dataset arguments
     parser.add_argument('--dataset_path', type=str, required=True, help='Dataset path')
+    parser.add_argument('--seasonal_split', action='store_true', required=False, default=False, help='If True, makes a split that takes into account seasonality')
     parser.add_argument('--train_size', type=float, required=False, default=0.7, help='Training set size')
     parser.add_argument('--val_size', type=float, required=False, default=0.2, help='Validation set size')
     parser.add_argument('--test_size', type=float, required=False, default=0.1, help='Test set size')
@@ -83,7 +84,7 @@ def main():
         file_ext = os.path.splitext(args.dataset_path)[1]
         
         data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, 
-                                             args.scaling, args.validation, args.train_size, args.val_size, args.test_size, 
+                                             args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
                                              folder_path, args.model_path, verbose)
         
         # preprocessing and split for ARIMA, SARIMAX
@@ -200,7 +201,7 @@ def main():
         if args.run_mode == "train" or args.run_mode == "train_test":
 
                 #################### MODEL TRAINING ####################
-                model_training = ModelTraining(args.model_type, train, args.target_column, verbose = False)
+                model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
                 if (args.model_type == 'ARIMA'):    
                     model = model_training.train_ARIMA_model()

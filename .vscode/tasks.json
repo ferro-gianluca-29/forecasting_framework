@@ -48,6 +48,7 @@
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
+                "--seasonal_split",
             ],
             "problemMatcher": []
         },

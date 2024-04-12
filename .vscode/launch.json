@@ -31,6 +31,7 @@
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
+                "--validation",
             ]
         },
         {

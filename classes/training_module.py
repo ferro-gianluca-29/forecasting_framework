@@ -2,16 +2,18 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from utils.time_series_analysis import ARIMA_optimizer, SARIMAX_optimizer, ljung_box_test
 from prophet import Prophet
+import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 
 class ModelTraining():
-    def __init__(self, model_type: str, train, target_column = None, 
+    def __init__(self, model_type: str, train, valid = None, target_column = None, 
                  verbose = False):
         
         self.verbose = verbose
         self.model_type = model_type
         self.train = train
+        self.valid = valid
         self.target_column = target_column
         self.ARIMA_order = []
         self.SARIMAX_order = []
@@ -19,17 +21,55 @@ class ModelTraining():
     def train_ARIMA_model(self): 
         
         try:
-            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
             # Training the model with the best parameters found
-            model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
-            model_fit = model.fit()
+            if self.valid is None:
 
-            # Running the LJUNG-BOX test for residual correlation
-            ljung_box_test(model_fit)
-            print("Model successfully trained.")
+                model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
+                model_fit = model.fit()
+
+                # Running the LJUNG-BOX test for residual correlation
+                ljung_box_test(model_fit)
+                print("Model successfully trained.")
+            else:
+
+                valid = self.valid[self.target_column]
+                # Number of time steps to forecast
+                nforecasts = 3  
+                # Choose whether to refit the model at each step
+                refit_model = False  
+                model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
+                model_fit = model.fit()
+                # Dictionary to store forecasts
+                forecasts = {}
+                forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
+                # Recursive evaluation through the rest of the sample
+                for t in valid.index:
+                    new_obs = valid.loc[t:t]
+                    model_fit = model_fit.append(new_obs, refit=refit_model)
+                    forecasts[new_obs.index[0]] = model_fit.forecast(steps=nforecasts)
+
+                # Combine all forecasts into a DataFrame
+                forecasts = pd.concat(forecasts, axis=1)
+
+                # Calculate and print forecast errors
+                forecast_errors = forecasts.apply(lambda column: valid - column).reindex(forecasts.index)
+                
+                # Reshape errors by horizon and calculate RMSE
+                def flatten(column):
+                    return column.dropna().reset_index(drop=True)
+
+                flattened = forecast_errors.apply(flatten)
+                flattened.index = (flattened.index + 1).rename('horizon')
+                rmse = (flattened**2).mean(axis=1)**0.5
+                print(rmse)
+                # Running the LJUNG-BOX test for residual correlation
+                ljung_box_test(model_fit)
+                print("Model successfully trained.")
             return model_fit
 
         except Exception as e:

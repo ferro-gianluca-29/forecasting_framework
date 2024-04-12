@@ -8,7 +8,8 @@ import pickle
 class DataPreprocessor():
     
     def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, scaling = False, 
-                 validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, folder_path = None, model_path = None,  verbose = False):
+                 validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
+                 folder_path = None, model_path = None,  verbose = False):
         
         self.file_ext = file_ext
         self.run_mode = run_mode
@@ -21,6 +22,7 @@ class DataPreprocessor():
         self.train_size = train_size
         self.val_size = val_size
         self.test_size = test_size
+        self.seasonal_split = seasonal_split
         self.folder_path = folder_path
         self.model_path = model_path
         self.verbose = verbose
@@ -43,9 +45,9 @@ class DataPreprocessor():
             
             ######## END NaN MANAGEMENT ########
 
-            
-            
+
             ########### REMOVING NON-NUMERIC COLUMNS ############
+            
             # If there are columns containing non-numeric characters (excluding dates) they are removed
             non_numeric_cols = self.df.select_dtypes(include=['object']).columns
             # Remove the target column and the time column from the list of columns to be deleted, if it is of object type
@@ -59,7 +61,12 @@ class DataPreprocessor():
                 test = self.df.iloc[:int(len(self.df) * self.test_size)]
             else:
                 ############## SPLIT DATASET ##############
-                train, test, valid = self.split_data(self.df)
+
+                if self.seasonal_split:
+                    train, test, valid = self.seasonal_split_data(self.df)
+                else:
+                    train, test, valid = self.split_data(self.df)
+
                 #######################
 
                 ######### OUTLIER MANAGEMENT #########
@@ -94,6 +101,7 @@ class DataPreprocessor():
                         train[train.columns[1:]] = scaler.transform(train[train.columns[1:]])
                         if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:]])
                     test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])    
+
             ############ END DATA SCALING ###########
 
             print("Data preprocessing complete")
@@ -241,19 +249,6 @@ class DataPreprocessor():
         print(stats_train)
         print('\n')
 
-    def split_data(self, df):
-        
-        n = len(df)
-        if  self.validation:
-            train = df.iloc[:int(n * self.train_size)]
-            valid = df.iloc[int(n * self.train_size):int(n * (self.train_size + self.val_size))]
-            test = df.iloc[int(n * (self.train_size + self.val_size)):]
-            return train, test, valid
-        else:
-            train = df[:int(n * self.train_size)]
-            test = df[int(n * self.train_size):]
-            return train, test, None 
-        
     def scale_data(df):
 
         scaler = MinMaxScaler()
@@ -261,4 +256,72 @@ class DataPreprocessor():
         df[df.columns[1:]] = scaler.transform(df[df.columns[1:]])
 
         return df
+
+    def split_data(self, df):
         
+        n = len(df)
+        if  self.validation:
+            train_end = int(n * self.train_size)
+            valid_end = int(n * (self.train_size + self.val_size))
+
+            train = df.iloc[:train_end]
+            valid = df.iloc[train.index[-1] + 1:valid_end]  # +1 per iniziare subito dopo l'ultimo indice di train
+            test = df.iloc[valid.index[-1] + 1:]  # +1 per iniziare subito dopo l'ultimo indice di valid
+            print(f"training: {(train.index[0],train.index[-1])} \t valid: {valid.index[0],valid.index[-1]} \t test: {test.index[0],test.index[-1]}")
+
+            return train, test, valid
+        else:
+            train = df[:int(n * self.train_size)]
+            test = df[int(n * self.train_size):]
+            return train, test, None 
+        
+
+    def seasonal_split_data(self,df):
+        # Define masks for selecting different subsets of data
+
+        # Mask for even days
+        even_mask = df['date'].dt.day % 2 == 0
+
+        # Mask for odd days that are multiples of 3
+        odd_mult_3_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 3 == 0)
+
+        # Update condition to include odd days that are multiples of 5, excluding multiples of 15
+        odd_mult_5_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 5 == 0) & (df['date'].dt.day % 15 != 0)
+
+        # Combine the updated conditions for the training set
+        train_valid_mask = even_mask | odd_mult_3_mask | odd_mult_5_mask
+
+        # Data that doesn't meet the training set condition goes into the test set
+        test_mask = ~train_valid_mask
+
+        # Split the data using the new conditions
+        train_valid_df = df[train_valid_mask]
+
+        if  self.validation:
+            train = train_valid_df[:int(len(train_valid_df) * 0.8)]
+            valid = train_valid_df[int(len(train_valid_df) * 0.8):]
+            test = df[test_mask]
+            valid_dim = valid.shape[0]
+            perc_val = (valid_dim / (train_valid_df.shape[0] + test_dim)) * 100
+        else:
+            train = train_valid_df
+            test = df[test_mask]
+            valid = None
+
+        # Calculate the updated sizes of the training set and test set
+        train_dim = train.shape[0]
+        test_dim = test.shape[0]
+        
+
+        # Calculate the updated percentages
+        perc_train = (train_dim / (train_valid_df.shape[0] + test_dim)) * 100
+        perc_test = (test_dim / (train_valid_df.shape[0] + test_dim)) * 100
+        
+        if  self.validation:
+            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n validation set: {perc_val:.2f}% \n")
+        else:
+            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n")
+        return train, test, valid
+
+
+    
