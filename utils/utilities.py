@@ -118,7 +118,7 @@ def ts_analysis(df, target_column, seasonal_period):
     plt.suptitle('Time Series Decomposition')
     plt.show()
   
-def save_data(path, model_type, model, dataset, performance = None, best_order=None, end_index=None):
+def save_data(path, model_type, model, dataset, performance = None, best_order=None, end_index=None, valid_rmse = None):
     
     try:
         os.makedirs(path, exist_ok=True)
@@ -133,6 +133,7 @@ def save_data(path, model_type, model, dataset, performance = None, best_order=N
             file.write(f"Best Order: {best_order}\n")
             file.write(f"End Index: {end_index}\n")
             file.write(f"Dataset: {dataset}\n")
+            file.write(f"Validation RMSE:\n {valid_rmse}\n")
             file.write(f"Performance: {performance}\n") 
             file.write(f"Launch Command Used:{sys.argv[1:]}\n")
 

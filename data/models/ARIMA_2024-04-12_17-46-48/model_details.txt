@@ -1,6 +1,0 @@
-Model Type: ARIMA
-Best Order: (1, 1, 1)
-End Index: 14121
-Dataset: D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv
-Performance: None
-Launch Command Used:['--run_mode', 'train', '--dataset_path', 'D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv', '--target_column', 'open', '--model_type', 'ARIMA', '--forecast_type', 'ol-one', '--scaling', '--validation']

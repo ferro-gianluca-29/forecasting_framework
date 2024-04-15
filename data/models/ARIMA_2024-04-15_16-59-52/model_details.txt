@@ -1,0 +1,11 @@
+Model Type: ARIMA
+Best Order: (4, 0, 4)
+End Index: 14121
+Dataset: D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv
+Validation RMSE: horizon
+1    0.005526
+2    0.007555
+3    0.009161
+dtype: float64
+Performance: None
+Launch Command Used:['--run_mode', 'train', '--dataset_path', 'D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv', '--target_column', 'open', '--model_type', 'ARIMA', '--forecast_type', 'ol-one', '--scaling', '--validation']

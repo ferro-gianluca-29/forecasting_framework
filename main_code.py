@@ -97,6 +97,7 @@ def main():
                     raise ValueError("Unable to preprocess dataset.")
             else:
                 train, test, exit = data_preprocessor.preprocess_data()
+                valid = None
                 if exit:
                     raise ValueError("Unable to preprocess dataset.")
         
@@ -104,6 +105,8 @@ def main():
         if args.model_type == 'SARIMAX':
             target_train = train[[args.target_column]]
             exog_train = train[args.exog]
+            target_valid = valid[[args.target_column]]
+            exog_valid = valid[args.exog]
             target_test = test[[args.target_column]]
             exog_test = test[args.exog]
 
@@ -204,22 +207,24 @@ def main():
                 model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
                 if (args.model_type == 'ARIMA'):    
-                    model = model_training.train_ARIMA_model()
+                    model, valid_rmse = model_training.train_ARIMA_model()
                     best_order = model_training.ARIMA_order
                     # Save a buffer containing the last elements of the training set for further test
-                    save_buffer(folder_path, train, args.target_column, size = 20, file_name = 'buffer.json')
+                    buffer_size = 20
+                    save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data 
                     save_data(folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train))
+                              best_order = best_order, end_index = len(train), valid_rmse = valid_rmse)
 
                 elif (args.model_type == 'SARIMAX'):    
-                    model = model_training.train_SARIMAX_model(target_train, exog_train, args.period)
+                    model, valid_rmse = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
                     best_order = model_training.SARIMAX_order
                     # Save a buffer containing the last elements of the training set for further test
-                    save_buffer(folder_path, train, args.target_column, size = 20, file_name = 'buffer.json')
+                    buffer_size = 20
+                    save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data
                     save_data(folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train))
+                              best_order = best_order, end_index = len(train),  valid_rmse = valid_rmse)
 
                 #################### END OF MODEL TRAINING ####################
                     
