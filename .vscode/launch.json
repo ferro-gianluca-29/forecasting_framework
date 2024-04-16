@@ -10,11 +10,12 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./Energy_Data.csv",
+                "--target_column", "value",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
+                "--validation",
             ]
         },
         {
@@ -26,8 +27,8 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./Energy_Data.csv",
+                "--target_column", "value",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",

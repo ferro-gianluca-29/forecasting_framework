@@ -43,12 +43,12 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./Energy_Data.csv",
+                "--target_column", "total-consumption",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
-                "--seasonal_split",
+                "--validation",
             ],
             "problemMatcher": []
         },

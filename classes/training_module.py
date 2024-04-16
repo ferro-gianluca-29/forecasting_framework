@@ -79,8 +79,7 @@ class ModelTraining():
     def train_SARIMAX_model(self, target_train, exog_train, exog_valid = None, period = 24): 
         try:        
             target_train = self.train[[self.target_column]]
-            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, exog_train, self.verbose)
-            best_order = (0, 0, 1, 0, 0, 0)
+            best_order = SARIMAX_optimizer(target_train, self.target_column, period, exog_train, self.verbose)
             self.SARIMAX_order = best_order
             print("\nTraining the SARIMAX model...")
 

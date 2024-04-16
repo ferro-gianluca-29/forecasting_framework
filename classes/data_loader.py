@@ -46,7 +46,7 @@ class DataLoader():
                 df['date'] = pd.to_datetime(df['date'], utc=True)
                 # Sort the dataset by date
                 df = df.sort_values(by=df.columns[0])
-               
+                df.reset_index(drop=True, inplace = True)
             else:
                  print("time column not found.")
             return df
