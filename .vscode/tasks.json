@@ -8,7 +8,7 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
+                "--dataset_path", "C:/VISUAL STUDIO/forecasting_framework/data/Dataset/BATS_AAPL.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
@@ -43,8 +43,8 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train",
-                "--dataset_path", "./Energy_Data.csv",
-                "--target_column", "total-consumption",
+                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
+                "--target_column", "open",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",

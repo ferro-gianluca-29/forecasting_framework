@@ -66,7 +66,7 @@ class ModelTraining():
                 flattened = forecast_errors.apply(flatten)
                 flattened.index = (flattened.index + 1).rename('horizon')
                 valid_rmse = (flattened**2).mean(axis=1)**0.5
-
+                valid_mse = (flattened**2).mean(axis=1)
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")

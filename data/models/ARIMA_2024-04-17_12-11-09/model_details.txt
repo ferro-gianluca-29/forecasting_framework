@@ -1,0 +1,3 @@
+Test Info:
+Performance: {'MSE': 4.1135316254983185e-05, 'RMSE': 0.006413681957735602, 'MAPE': 0.1131716956129136, 'MAE': 0.004289735667471495}
+Launch Command Used:['--run_mode', 'train_test', '--dataset_path', 'C:/VISUAL STUDIO/forecasting_framework/data/Dataset/BATS_AAPL.csv', '--target_column', 'open', '--model_type', 'ARIMA', '--forecast_type', 'ol-one', '--scaling']

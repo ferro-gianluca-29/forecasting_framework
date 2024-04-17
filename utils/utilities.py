@@ -5,10 +5,8 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.seasonal import STL
 import os
-import datetime
 import pickle
 import numpy as np
-from prophet.serialize import model_to_json, model_from_json
 import pandas as pd
 import sys
 
@@ -118,27 +116,40 @@ def ts_analysis(df, target_column, seasonal_period):
     plt.suptitle('Time Series Decomposition')
     plt.show()
   
-def save_data(path, model_type, model, dataset, performance = None, best_order=None, end_index=None, valid_rmse = None):
+def save_data(save_mode, path, model_type, model, dataset, performance = None, 
+              best_order=None, end_index=None, valid_rmse = None):
     
     try:
         os.makedirs(path, exist_ok=True)
     except OSError as error:
         print(f"Error creating the save directory: {error}")
         return
+    
+    file_mode = "a" if os.path.exists(f"{path}/model_details.txt") else "w"
 
     try:
-        with open(f"{path}/model_details.txt", "w") as file:
+        with open(f"{path}/model_details.txt", file_mode) as file:
 
-            file.write(f"Model Type: {model_type}\n")
-            file.write(f"Best Order: {best_order}\n")
-            file.write(f"End Index: {end_index}\n")
-            file.write(f"Dataset: {dataset}\n")
-            file.write(f"Validation RMSE:\n {valid_rmse}\n")
-            file.write(f"Performance: {performance}\n") 
-            file.write(f"Launch Command Used:{sys.argv[1:]}\n")
+            if save_mode == "training":
+                # Training Info
+                file.write(f"Training Info:\n")
+                file.write(f"Model Type: {model_type}\n")
+                file.write(f"Best Order: {best_order}\n")
+                file.write(f"End Index: {end_index}\n")
+                file.write(f"Dataset: {dataset}\n")
+                file.write(f"Validation RMSE:\n {valid_rmse}\n")
+                file.write(f"Launch Command Used:{sys.argv[1:]}\n")
 
-            with open(f"{path}/model.pkl", "wb") as file:
-                pickle.dump(model, file)
+                with open(f"{path}/model.pkl", "wb") as file:
+                    pickle.dump(model, file)
+
+            elif save_mode == "test":
+                # Test Info
+                file.write(f"Test Info:\n")
+                file.write(f"Performance: {performance}\n") 
+                file.write(f"Launch Command Used:{sys.argv[1:]}\n")
+            
+            
         
     except IOError as error:
         print(f"Error during saving: {error}")

@@ -213,7 +213,7 @@ def main():
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data 
-                    save_data(folder_path, args.model_type, model, args.dataset_path, 
+                    save_data("training", folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train), valid_rmse = valid_rmse)
 
                 elif (args.model_type == 'SARIMAX'):    
@@ -223,7 +223,7 @@ def main():
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data
-                    save_data(folder_path, args.model_type, model, args.dataset_path, 
+                    save_data("training", folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train),  valid_rmse = valid_rmse)
 
                 #################### END OF MODEL TRAINING ####################
@@ -276,7 +276,7 @@ def main():
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
-                    save_data(folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
+                    save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
 
                 elif(args.model_type == 'SARIMAX'):
                     # Compute performance metrics
@@ -286,7 +286,7 @@ def main():
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
-                    save_data(folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
+                    save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
                         
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
