@@ -67,11 +67,17 @@ class ModelTraining():
                 flattened.index = (flattened.index + 1).rename('horizon')
                 valid_rmse = (flattened**2).mean(axis=1)**0.5
                 valid_mse = (flattened**2).mean(axis=1)
+                valid_mae = ((flattened).abs()).mean(axis=1)
+                perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
+                valid_mape = ((perc_forecast_errors).abs()).mean(axis=1)
+                valid_metrics = [valid_rmse, valid_mse, valid_mae, valid_mape]
+
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")
-            return model_fit, valid_rmse
 
+            return model_fit, valid_metrics
+ 
         except Exception as e:
             print(f"An error occurred during the model training: {e}")
             return None       
@@ -132,9 +138,17 @@ class ModelTraining():
                 flattened = forecast_errors.apply(flatten)
                 flattened.index = (flattened.index + 1).rename('horizon')
                 valid_rmse = (flattened**2).mean(axis=1)**0.5
+                valid_mse = (flattened**2).mean(axis=1)
+                valid_mae = ((flattened).abs()).mean(axis=1)
+                perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
+                valid_mape = ((perc_forecast_errors).abs()).mean(axis=1)
+                valid_metrics = [valid_rmse, valid_mse, valid_mae, valid_mape]
                 
+                # Running the LJUNG-BOX test for residual correlation
+                ljung_box_test(model_fit)
+                print("Model successfully trained.")
 
-            return model_fit, valid_rmse
+            return model_fit, valid_metrics
 
 
         except Exception as e:

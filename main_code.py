@@ -207,24 +207,24 @@ def main():
                 model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
                 if (args.model_type == 'ARIMA'):    
-                    model, valid_rmse = model_training.train_ARIMA_model()
+                    model, valid_metrics = model_training.train_ARIMA_model()
                     best_order = model_training.ARIMA_order
                     # Save a buffer containing the last elements of the training set for further test
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data 
                     save_data("training", folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train), valid_rmse = valid_rmse)
+                              best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
 
                 elif (args.model_type == 'SARIMAX'):    
-                    model, valid_rmse = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
+                    model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
                     best_order = model_training.SARIMAX_order
                     # Save a buffer containing the last elements of the training set for further test
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data
                     save_data("training", folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train),  valid_rmse = valid_rmse)
+                              best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
 
                 #################### END OF MODEL TRAINING ####################
                     
