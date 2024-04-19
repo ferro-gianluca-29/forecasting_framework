@@ -9,8 +9,8 @@ from classes.training_module import ModelTraining
 from classes.model_testing import ModelTest
 from classes.performance_measurement import PerfMeasure
 import datetime
-import json
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
+from utils.time_series_analysis import multiple_STL
 
 # END OF LIBRARY IMPORTS #
   
@@ -73,9 +73,7 @@ def main():
         
         # END OF DATA LOADING
         
-        # Optional time series analysis
-        if args.ts_analysis:
-            ts_analysis(df, args.target_column, args.period)        
+                
             
 
 #################### PREPROCESSING  ####################
@@ -112,6 +110,12 @@ def main():
 
 #################### FINE PREPROCESSING E SPLIT DEL DATSET ####################
         
+        ############### Optional time series analysis ############
+        if args.ts_analysis:
+            ts_analysis(df, args.target_column, args.period)
+            multiple_STL(train, args.target_column)
+
+        ############## End of time series analysis ###########
 
 ######### PRINT INFO
         if verbose:

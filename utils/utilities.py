@@ -113,7 +113,7 @@ def ts_analysis(df, target_column, seasonal_period):
     fig.autofmt_xdate()
     plt.tight_layout()
     # Add title
-    plt.suptitle('Time Series Decomposition')
+    plt.suptitle(f"Time Series Decomposition with period {seasonal_period}")
     plt.show()
   
 def save_data(save_mode, path, model_type, model, dataset, performance = None, 

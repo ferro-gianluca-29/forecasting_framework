@@ -8,6 +8,7 @@ from tqdm import tqdm
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.stats.diagnostic import acorr_ljungbox
+from statsmodels.tsa.seasonal import MSTL
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -115,3 +116,31 @@ def ljung_box_test(model):
             return 'Ljung-Box test result:\nNull hypothesis valid: Residuals are uncorrelated\n'
         else:
             return 'Ljung-Box test result:\nNull hypothesis invalid: Residuals are correlated\n'
+
+def multiple_STL(dataframe,target_column):
+    mstl = MSTL(dataframe[target_column], periods=[24, 24 * 7, 24 * 7 * 4])
+    res = mstl.fit()
+
+    fig, ax = plt.subplots(nrows=2, figsize=[10,10])
+    res.seasonal["seasonal_24"].iloc[:24*3].plot(ax=ax[0])
+    ax[0].set_ylabel(target_column)
+    ax[0].set_title("Daily seasonality")
+
+    res.seasonal["seasonal_168"].iloc[:24*7*3].plot(ax=ax[1])
+    ax[1].set_ylabel(target_column)
+    ax[1].set_title("Weekly seasonality")
+
+    plt.tight_layout()
+    plt.show()
+
+    fig, ax = plt.subplots(nrows=2, figsize=[10,10])
+    res.seasonal["seasonal_168"].iloc[:24*7*3].plot(ax=ax[0])
+    ax[0].set_ylabel(target_column)
+    ax[0].set_title("Weekly seasonality")
+
+    res.seasonal["seasonal_672"].iloc[:24*7*4*3].plot(ax=ax[1])
+    ax[1].set_ylabel(target_column)
+    ax[1].set_title("Monthly seasonality")
+
+    plt.tight_layout()
+    plt.show()
