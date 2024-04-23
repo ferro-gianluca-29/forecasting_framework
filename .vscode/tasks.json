@@ -8,12 +8,12 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "C:/VISUAL STUDIO/forecasting_framework/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
+                "--target_column", "hourly_demand",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
-                "--scaling",
-            ],
+                "--train_size", "0.3",
+             ],
             "group": {
                 "kind": "build",
                 "isDefault": true

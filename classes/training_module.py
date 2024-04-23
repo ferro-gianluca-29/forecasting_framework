@@ -21,7 +21,8 @@ class ModelTraining():
     def train_ARIMA_model(self): 
         
         try:
-            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -30,11 +31,12 @@ class ModelTraining():
 
                 model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
                 model_fit = model.fit()
-                valid_rmse = None
 
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")
+                valid_metrics = None
+
             else:
 
                 valid = self.valid[self.target_column]

@@ -116,7 +116,7 @@ def ts_analysis(df, target_column, seasonal_period):
     plt.suptitle(f"Time Series Decomposition with period {seasonal_period}")
     plt.show()
   
-def save_data(save_mode, path, model_type, model, dataset, performance = None, 
+def save_data(save_mode, validation, path, model_type, model, dataset, performance = None, 
               best_order=None, end_index=None, valid_metrics = None):
     
     try:
@@ -137,10 +137,11 @@ def save_data(save_mode, path, model_type, model, dataset, performance = None,
                 file.write(f"Best Order: {best_order}\n")
                 file.write(f"End Index: {end_index}\n")
                 file.write(f"Dataset: {dataset}\n")
-                file.write(f"Validation RMSE:\n {valid_metrics[0]}\n")
-                file.write(f"Validation MSE:\n {valid_metrics[1]}\n")
-                file.write(f"Validation MAE:\n {valid_metrics[2]}\n")
-                file.write(f"Validation MAPE:\n {valid_metrics[3]}\n")
+                if validation:
+                    file.write(f"Validation RMSE:\n {valid_metrics[0]}\n")
+                    file.write(f"Validation MSE:\n {valid_metrics[1]}\n")
+                    file.write(f"Validation MAE:\n {valid_metrics[2]}\n")
+                    file.write(f"Validation MAPE:\n {valid_metrics[3]}\n")
                 file.write(f"Launch Command Used:{sys.argv[1:]}\n")
 
                 with open(f"{path}/model.pkl", "wb") as file:

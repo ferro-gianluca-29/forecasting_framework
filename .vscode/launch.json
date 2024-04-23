@@ -10,12 +10,11 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "value",
+                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
+                "--target_column", "hourly_demand",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
-                "--scaling",
-                "--validation",
+                "--train_size", "0.3",
             ]
         },
         {

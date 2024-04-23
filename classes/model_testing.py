@@ -40,6 +40,7 @@ class ModelTest():
                         self.model = self.model.append([y], refit = True)
                     else:
                         self.model = self.model.append([y], refit = False)
+                self.predictions = pd.Series(self.predictions, index=self.test.index[:self.steps_ahead])
                 print("Model testing successful.")        
                 return self.predictions
 
@@ -58,6 +59,7 @@ class ModelTest():
                         self.model = self.model.append([y], refit=True)
                     else:
                         self.model = self.model.append([y], refit=False)
+                        
                 print("Model testing successful.")
                 return self.predictions
             

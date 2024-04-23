@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error, r2_score
+from sktime.performance_metrics.forecasting import mean_squared_percentage_error
 from classes.model_testing import ModelTest
 
 class PerfMeasure(ModelTest):
@@ -14,8 +15,9 @@ class PerfMeasure(ModelTest):
             performance_metrics['MSE'] = mse
             performance_metrics['RMSE'] = rmse
             performance_metrics['MAPE'] = mean_absolute_percentage_error(test, predictions)
+            performance_metrics['MSPE'] = mean_squared_percentage_error(test,predictions)
             performance_metrics['MAE'] = mean_absolute_error(test, predictions)
-            
+            performance_metrics['R_2'] = r2_score(test, predictions)
             return performance_metrics
         
         except Exception as e:

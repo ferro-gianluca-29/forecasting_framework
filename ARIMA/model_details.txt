@@ -1,0 +1,3 @@
+Test Info:
+Performance: (1, 1, 1)
+Launch Command Used:['--run_mode', 'train_test', '--dataset_path', './data/Dataset/energy_demand_hourly_brazil.csv', '--target_column', 'hourly_demand', '--model_type', 'ARIMA', '--forecast_type', 'ol-one', '--train_size', '0.3']

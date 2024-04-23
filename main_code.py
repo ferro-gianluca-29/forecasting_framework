@@ -44,7 +44,7 @@ def main():
     # Model arguments
     parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMAX, PROPHET, CONV, LSTM, CNN_LSTM)')
     parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
-    parser.add_argument('--steps_ahead', type=int, required=False, default=100, help='Number of time steps ahead to forecast')
+    parser.add_argument('--steps_ahead', type=int, required=False, default=10, help='Number of time steps ahead to forecast')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')    
@@ -217,7 +217,7 @@ def main():
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data 
-                    save_data("training", folder_path, args.model_type, model, args.dataset_path, 
+                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
 
                 elif (args.model_type == 'SARIMAX'):    
@@ -227,7 +227,7 @@ def main():
                     buffer_size = 20
                     save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                     # Save training data
-                    save_data("training", folder_path, args.model_type, model, args.dataset_path, 
+                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
 
                 #################### END OF MODEL TRAINING ####################
@@ -280,7 +280,7 @@ def main():
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
-                    save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
 
                 elif(args.model_type == 'SARIMAX'):
                     # Compute performance metrics
@@ -290,7 +290,7 @@ def main():
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
-                    save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
                         
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
