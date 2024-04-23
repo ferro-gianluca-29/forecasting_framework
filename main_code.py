@@ -100,13 +100,19 @@ def main():
                     raise ValueError("Unable to preprocess dataset.")
         
         # Splitting target and exogenous variable in training and test sets for the SARIMAX model
-        if args.model_type == 'SARIMAX':
+        if (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
+            if args.exog is  None:
+                exog = args.target_column
+            else: 
+                exog = args.exog
             target_train = train[[args.target_column]]
-            exog_train = train[args.exog]
-            target_valid = valid[[args.target_column]]
-            exog_valid = valid[args.exog]
+            exog_train = train[exog]
+            if args.validation:
+                target_valid = valid[[args.target_column]]
+                exog_valid = valid[exog]
+            else: exog_valid = None
             target_test = test[[args.target_column]]
-            exog_test = test[args.exog]
+            exog_test = test[exog]
 
 #################### FINE PREPROCESSING E SPLIT DEL DATSET ####################
         
@@ -181,7 +187,7 @@ def main():
                     # Load the model 
                     model = pre_trained_model   
  
-            elif (args.model_type == 'SARIMAX'):
+            elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
 
                 # Load a pre-trained model
                 pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path) 
@@ -193,7 +199,7 @@ def main():
                 test.index = range(test_start_index, test_end_index)
                 target_test.index = range(test_start_index, test_end_index)
                 exog_test.index = range(test_start_index, test_end_index)
-                    
+                     
                 if args.run_mode == "fine_tuning":  
                     # Update the model with the new data
                     train.index = range(prev_train_end_index, prev_train_end_index + len(train)) 
@@ -220,7 +226,7 @@ def main():
                     save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
 
-                elif (args.model_type == 'SARIMAX'):    
+                elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):  
                     model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
                     best_order = model_training.SARIMAX_order
                     # Save a buffer containing the last elements of the training set for further test
@@ -241,7 +247,7 @@ def main():
 
             #################### MODEL TESTING ####################
 
-            model_test = ModelTest(model, test, args.target_column, args.forecast_type, args.steps_ahead)
+            model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
             
             if(args.model_type == 'ARIMA'):
                 # Model testing
@@ -249,7 +255,7 @@ def main():
                 # Create the naive model
                 naive_predictions = model_test.naive_forecast(train)
                 
-            elif(args.model_type == 'SARIMAX'):
+            elif(args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
                 # Model testing
                 predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
                 # Create the naive model
@@ -264,14 +270,14 @@ def main():
             if(args.model_type == 'ARIMA'):
                 model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
             
-            elif(args.model_type == 'SARIMAX'):
-                model_test.SARIMAX_plot_pred(best_order, predictions, naive_predictions)
+            elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
+                model_test.SARIMAX_plot_pred(best_order, naive_predictions)
 
             #################### END OF PLOT PREDICTIONS ####################        
          
             #################### PERFORMANCE MEASUREMENT AND SAVING #################
             if predictions is not None:
-                perf_measure = PerfMeasure(model, test, args.target_column, args.forecast_type, args.steps_ahead)
+                perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
                 if(args.model_type == 'ARIMA'):
                     # Compute performance metrics
                     metrics = perf_measure.get_performance_metrics(test, predictions) 
@@ -282,7 +288,7 @@ def main():
                     # Save model data
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
 
-                elif(args.model_type == 'SARIMAX'):
+                elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
                     # Compute performance metrics
                     metrics = perf_measure.get_performance_metrics(target_test, predictions)
                     # Compute naive seasonal performance metrics

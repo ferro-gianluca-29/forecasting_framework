@@ -10,11 +10,11 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
-                "--model_type", "ARIMA",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_type", "SARIMA",
                 "--forecast_type", "ol-one",
-                "--train_size", "0.3",
+                "--train_size", "0.1",
             ]
         },
         {

@@ -21,8 +21,7 @@ class ModelTraining():
     def train_ARIMA_model(self): 
         
         try:
-            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
-            best_order = (1,1,1)
+            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -87,18 +86,23 @@ class ModelTraining():
     def train_SARIMAX_model(self, target_train, exog_train, exog_valid = None, period = 24): 
         try:        
             target_train = self.train[[self.target_column]]
-            best_order = SARIMAX_optimizer(target_train, self.target_column, period, exog_train, self.verbose)
+            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, exog_train, self.verbose)
+            best_order = (1,1,1,1,1,1)
             self.SARIMAX_order = best_order
             print("\nTraining the SARIMAX model...")
 
             # Training the model with the best parameters found
             if self.valid is None:
-                model = SARIMAX(target_train, exog_train, order = (best_order[0], best_order[1], best_order[2]),
+                if self.model_type == 'SARIMAX':
+                    exog = exog_train
+                else:
+                    exog = None
+                model = SARIMAX(target_train, exog = exog, order = (best_order[0], best_order[1], best_order[2]),
                                     seasonal_order=(best_order[3], best_order[4], best_order[5], period),
                                     simple_differencing=False
                                     )
                 model_fit = model.fit()
-                valid_rmse = None
+                valid_metrics = None
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")
@@ -151,9 +155,9 @@ class ModelTraining():
                 print("Model successfully trained.")
 
             return model_fit, valid_metrics
-
-
+        
         except Exception as e:
             print(f"An error occurred during the model training: {e}")
             return None           
-
+        
+    

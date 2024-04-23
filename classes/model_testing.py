@@ -3,8 +3,9 @@ from matplotlib import pyplot as plt
 
 class ModelTest():
 
-    def __init__(self, model, test, target_column, forecast_type, steps_ahead):
+    def __init__(self, model_type, model, test, target_column, forecast_type, steps_ahead):
 
+        self.model_type = model_type
         self.model = model
         self.test = test
         self.target_column = target_column
@@ -84,18 +85,28 @@ class ModelTest():
 
                     for t in range(0, self.steps_ahead):
                         # Forecast one step at a time
-                        y_hat = self.model.forecast(exog = exog_test.iloc[t:t+1])
+                        if self.model_type == 'SARIMAX':
+                            y_hat = self.model.forecast(exog = exog_test.iloc[t:t+1])
+                        elif self.model_type == 'SARIMA':
+                            y_hat = self.model.forecast()
                         # Insert the forecast into the list
                         self.predictions.append(y_hat)
                         # Take the actual value from the test set to predict the next
                         y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
-                        # Take the exogenous values from the test set to predict the next
-                        new_exog = exog_test.iloc[t:t+1]
+                        if self.model_type == 'SARIMAX':
+                            # Take the exogenous values from the test set to predict the next
+                            new_exog = exog_test.iloc[t:t+1]
                         # Update the model with the actual value and exogenous
                         if ol_refit:
-                            self.model = self.model.append([y], exog = new_exog, refit=True)
+                            if self.model_type == 'SARIMAX':
+                                self.model = self.model.append([y], exog = new_exog, refit=True)
+                            elif self.model_type == 'SARIMA':
+                                self.model = self.model.append([y], refit=True)
                         else:
-                            self.model = self.model.append([y], exog = new_exog, refit=False) 
+                            if self.model_type == 'SARIMAX':
+                                self.model = self.model.append([y], exog = new_exog, refit=False) 
+                            elif self.model_type == 'SARIMA':
+                                self.model = self.model.append([y], refit=False)
                     print("Model testing successful.")
                     return self.predictions
    
