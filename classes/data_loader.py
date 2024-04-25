@@ -17,7 +17,7 @@ class DataLoader():
         elif self.format == '.txt':
             df = pd.read_csv(self.file_path, delimiter='\t')
         elif self.format == '.xlsx' or self.format == '.xls':
-            df = pd.read_excel(self.file_path)
+            df = pd.read_excel(self.file_path, engine='openpyxl')
         elif self.format ==  '.json':
             df = pd.read_json(self.file_path)
         else:
