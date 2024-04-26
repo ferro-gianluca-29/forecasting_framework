@@ -1,6 +1,7 @@
 #  LIBRARY IMPORTS
 
 import argparse
+import json
 import pandas as pd
 from matplotlib import pyplot as plt
 from classes.data_preprocessing import DataPreprocessor
@@ -32,6 +33,7 @@ def main():
 
     # Dataset arguments
     parser.add_argument('--dataset_path', type=str, required=True, help='Dataset path')
+    parser.add_argument('--date_list', type=str, nargs='+', help='List with start and end of dates for training, validation and test set')
     parser.add_argument('--seasonal_split', action='store_true', required=False, default=False, help='If True, makes a split that takes into account seasonality')
     parser.add_argument('--train_size', type=float, required=False, default=0.7, help='Training set size')
     parser.add_argument('--val_size', type=float, required=False, default=0.2, help='Validation set size')
@@ -43,11 +45,14 @@ def main():
 
     # Model arguments
     parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMAX, PROPHET, CONV, LSTM, CNN_LSTM)')
+    # Statistical models
     parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
     parser.add_argument('--steps_ahead', type=int, required=False, default=10, help='Number of time steps ahead to forecast')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')    
+    # Neural network models
+    #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
     # Fine tuning arguments    
     parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
@@ -64,9 +69,12 @@ def main():
         folder_name = args.model_type + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         folder_path = f"./data/models/{folder_name}"
         os.makedirs(folder_path)
- 
+  
+        # Analizza la stringa JSON in una lista Python
+        #date_list = ["2022-04-18T15:30:00+02:00","2022-04-18T18:25:00+02:00","2022-04-18T20:10:00+02:00","2022-04-19T16:35:00+02:00","2022-04-20T19:15:00+02:00","2022-04-22T17:05:00+02:00"]
+
         #  DATA LOADING
-        data_loader = DataLoader(args.dataset_path, args.target_column, args.time_column_index)
+        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index)
         df = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
@@ -81,23 +89,27 @@ def main():
         # Extract the file extension from the path 
         file_ext = os.path.splitext(args.dataset_path)[1]
         
-        data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, 
+        data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, args.date_list, 
                                              args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
                                              folder_path, args.model_path, verbose)
         
-        # preprocessing and split for ARIMA, SARIMAX
-        if args.run_mode == "test":
-            test, exit = data_preprocessor.preprocess_data()
+        if args.model_type == 'LSTM':
+            X_train, y_train, X_test, y_test = data_preprocessor.preprocess_data()
         else:
-            if args.validation:
-                train, test, valid, exit = data_preprocessor.preprocess_data()
-                if exit:
-                    raise ValueError("Unable to preprocess dataset.")
+            # preprocessing and split for statistical models (ARIMA, SARIMA)
+            if args.run_mode == "test":
+                test, exit = data_preprocessor.preprocess_data()
             else:
-                train, test, exit = data_preprocessor.preprocess_data()
-                valid = None
-                if exit:
-                    raise ValueError("Unable to preprocess dataset.")
+                if args.validation:
+                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
+                else:
+                    train, test, exit = data_preprocessor.preprocess_data()
+                    valid = None
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
+                
         
         # Splitting target and exogenous variable in training and test sets for the SARIMAX model
         if (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
@@ -114,7 +126,7 @@ def main():
             target_test = test[[args.target_column]]
             exog_test = test[exog]
 
-#################### FINE PREPROCESSING E SPLIT DEL DATSET ####################
+#################### END OF PREPROCESSING AND DATASET SPLIT ####################
         
         ############### Optional time series analysis ############
         if args.ts_analysis:

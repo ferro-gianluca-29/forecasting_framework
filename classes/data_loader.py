@@ -3,8 +3,9 @@ import os
 
 class DataLoader(): 
 
-    def __init__(self,file_path, target_column, time_column_index = 0):
+    def __init__(self,file_path, model_type, target_column, time_column_index = 0):
         self.file_path = file_path
+        self.model_type = model_type
         self.format = os.path.splitext(file_path)[1] 
         self.target_column = target_column
         self.time_column_index = time_column_index 
@@ -43,10 +44,15 @@ class DataLoader():
                     df.rename(columns={time_column_name: 'date'}, inplace=True)
 
                 # Convert the 'date' column to datetime
-                df['date'] = pd.to_datetime(df['date'], utc=True)
+                df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S', utc=True)
                 # Sort the dataset by date
-                df = df.sort_values(by=df.columns[0])
-                df.reset_index(drop=True, inplace = True)
+                df = df.sort_values(by='date')
+                # Set the date column as index for neural network models 
+                # (in the case of statistical models it may cause index errors during forecasting)
+                if self.model_type == 'LSTM':
+                    df.set_index('date', inplace=True)
+                else:
+                    df.reset_index(drop=True, inplace = True)
             else:
                  print("time column not found.")
             return df

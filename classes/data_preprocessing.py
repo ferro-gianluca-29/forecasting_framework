@@ -7,12 +7,13 @@ import pickle
 
 class DataPreprocessor():
     
-    def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, scaling = False, 
-                 validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
+    def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, date_list = None, 
+                 scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
                  folder_path = None, model_path = None,  verbose = False):
         
         self.file_ext = file_ext
         self.run_mode = run_mode
+        self.date_list = date_list 
         self.model_type = model_type
         self.df = df
         self.target_column = target_column
@@ -50,9 +51,8 @@ class DataPreprocessor():
             
             # If there are columns containing non-numeric characters (excluding dates) they are removed
             non_numeric_cols = self.df.select_dtypes(include=['object']).columns
-            # Remove the target column and the time column from the list of columns to be deleted, if it is of object type
-            time_column = self.df.columns[0]
-            non_numeric_cols = non_numeric_cols.drop([self.target_column,time_column], errors='ignore')
+            # Remove the target column from the list of columns to be deleted, if it is of object type
+            non_numeric_cols = non_numeric_cols.drop(self.target_column, errors='ignore')
             # Deletes the non-numeric columns from the DataFrame
             self.df.drop(columns=non_numeric_cols, inplace=True)      
             #############################
@@ -103,6 +103,34 @@ class DataPreprocessor():
                     test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])    
 
             ############ END DATA SCALING ###########
+
+            # Data windowing for neural network models
+            if self.model_type == 'LSTM':
+                seq_len = 20
+                X_train = []
+                y_train = []    
+                X_test = []
+                y_test = [] 
+                # If run mode requires training create training windows
+                if self.run_mode == "train" or self.run_mode == "train_test":
+                    for i in range(seq_len, len(train)):
+                        X_train.append(train[self.target_column].iloc[i-seq_len : i, 0])
+                        y_train.append(train[self.target_column].iloc[i, 0])
+                    # convert to numpy array
+                    X_train = np.array(X_train)
+                    y_train = np.array(y_train)
+                    # reshape data to input into RNN models
+                    X_train = np.reshape(X_train, (17521, seq_len, 1))
+                for i in range(seq_len, len(test)):
+                    X_test.append(test[self.target_column].iloc[i-seq_len : i, 0])
+                    y_test.append(test[self.target_column].iloc[i, 0])
+                # convert to numpy array
+                X_test = np.array(X_test)
+                y_test = np.array(y_test)
+                # reshape data to input into RNN models
+                X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
+
+                return [X_train, y_train, X_test, y_test]
 
             print("Data preprocessing complete")
             if self.run_mode == "test":
@@ -258,15 +286,23 @@ class DataPreprocessor():
         return df
 
     def split_data(self, df):
-        
         n = len(df)
+        if self.validation:
+            train = df[df['date'].between(self.date_list[0], self.date_list[1])]
+            valid = df[df['date'].between(self.date_list[2], self.date_list[3])]
+            test = df[df['date'].between(self.date_list[4], self.date_list[5])]
+            return train, test, valid
+        else:
+            train = df[self.date_list[0]:self.date_list[1]]
+            test = df[self.date_list[2]:self.date_list[3]]
+            return train, test, None 
         if  self.validation:
             train_end = int(n * self.train_size)
             valid_end = int(n * (self.train_size + self.val_size))
-
+                                                                    
             train = df.iloc[:train_end]
-            valid = df.iloc[train.index[-1] + 1:valid_end]  # +1 per iniziare subito dopo l'ultimo indice di train
-            test = df.iloc[valid.index[-1] + 1:]  # +1 per iniziare subito dopo l'ultimo indice di valid
+            valid = df.iloc[train_end:valid_end] 
+            test = df.iloc[valid_end:] 
             print(f"training: {(train.index[0],train.index[-1])} \t valid: {valid.index[0],valid.index[-1]} \t test: {test.index[0],test.index[-1]}")
 
             return train, test, valid
@@ -274,6 +310,7 @@ class DataPreprocessor():
             train = df[:int(n * self.train_size)]
             test = df[int(n * self.train_size):]
             return train, test, None 
+        
         
 
     def seasonal_split_data(self,df):

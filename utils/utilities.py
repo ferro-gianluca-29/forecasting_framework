@@ -162,13 +162,12 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
 
 def save_buffer(folder_path, df, target_column, size = 20, file_name = 'buffer.json'):
 
-    # Select the last rows with the specified columns using iloc
-    time_column_index = 0
+    # Select the last rows with the specified columns 
     target_col_index = df.columns.get_loc(target_column)
-    buffer_df = df.iloc[-size:, [time_column_index, target_col_index]]
+    buffer_df = df.iloc[-size:, target_col_index]
     
-    # Convert timestamp column to string format
-    buffer_df.iloc[:, 0] = buffer_df.iloc[:, 0].astype(str)
+    # Convert the index timestamp column to string format
+    buffer_df.index = buffer_df.index.astype(str)
 
     # Serialize the dataframe to a JSON string
     try:

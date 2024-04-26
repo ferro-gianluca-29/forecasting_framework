@@ -21,7 +21,8 @@ class ModelTraining():
     def train_ARIMA_model(self): 
         
         try:
-            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -49,10 +50,11 @@ class ModelTraining():
                 forecasts = {}
                 forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
                 # Recursive evaluation through the rest of the sample
-                for t in valid.index:
+                for t in range(valid.index[0],valid.index[0] + 10):
                     new_obs = valid.loc[t:t]
                     model_fit = model_fit.append(new_obs, refit=refit_model)
                     forecasts[new_obs.index[0]] = model_fit.forecast(steps=nforecasts)
+                    
 
                 # Combine all forecasts into a DataFrame
                 forecasts = pd.concat(forecasts, axis=1)
