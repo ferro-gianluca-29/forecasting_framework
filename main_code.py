@@ -11,7 +11,7 @@ from classes.model_testing import ModelTest
 from classes.performance_measurement import PerfMeasure
 import datetime
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
-from utils.time_series_analysis import multiple_STL
+from utils.time_series_analysis import multiple_STL, moving_average_ST
 
 # END OF LIBRARY IMPORTS #
   
@@ -132,7 +132,7 @@ def main():
         if args.ts_analysis:
             ts_analysis(df, args.target_column, args.period)
             multiple_STL(train, args.target_column)
-
+            moving_average_ST(train,args.target_column)
         ############## End of time series analysis ###########
 
 ######### PRINT INFO

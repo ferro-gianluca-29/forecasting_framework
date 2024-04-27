@@ -8,7 +8,7 @@ from tqdm import tqdm
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.stats.diagnostic import acorr_ljungbox
-from statsmodels.tsa.seasonal import MSTL
+from statsmodels.tsa.seasonal import MSTL, seasonal_decompose
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -144,3 +144,41 @@ def multiple_STL(dataframe,target_column):
 
     plt.tight_layout()
     plt.show()
+
+def moving_average_ST(dataframe,target_column):
+    "Seasonal-Trend decomposition using moving averages"
+
+    result = seasonal_decompose(dataframe[target_column], model='additive', period=24) # Assuming daily seasonality
+    seasonal = result.seasonal
+    trend = result.trend
+    residual = result.resid
+    # Plot the original time series data
+    plt.figure(figsize=(16, 8))
+    plt.subplot(4, 1, 1)
+    plt.plot(dataframe[target_column], label='Original')
+    plt.legend(loc='best')
+    plt.title('Original Time Series Data')
+
+    # Plot the trend component
+    plt.subplot(4, 1, 2)
+    plt.plot(result.trend, label='Trend')
+    plt.legend(loc='best')
+    plt.title('Trend Component')
+
+    # Plot the seasonal component
+    plt.subplot(4, 1, 3)
+    plt.plot(result.seasonal, label='Seasonal')
+    plt.legend(loc='best')
+    plt.title('Seasonal Component')
+
+    # Plot the residual component
+    plt.subplot(4, 1, 4)
+    plt.plot(result.resid, label='Residual')
+    plt.legend(loc='best')
+    plt.title('Residual Component')
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
+
+
