@@ -50,7 +50,14 @@ class DataLoader():
                 # Set the date column as index for neural network models 
                 # (in the case of statistical models it may cause index errors during forecasting)
                 if self.model_type == 'LSTM':
+                    # Make a copy of date column as set it as last column of the dataframe
+                    df['temp_date'] = df['date']
+                    date = df.pop('temp_date')
+                    df = pd.concat([df, date], 1)
+                    # set the date column as index
                     df.set_index('date', inplace=True)
+                    # Keep the date column (so the code can use the split_data() method of DataPreprocessor without errors)
+                    df.rename(columns={'temp_date': 'date'}, inplace=True)
                 else:
                     df.reset_index(drop=True, inplace = True)
             else:

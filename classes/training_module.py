@@ -1,8 +1,12 @@
+import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from utils.time_series_analysis import ARIMA_optimizer, SARIMAX_optimizer, ljung_box_test
-from prophet import Prophet
-import pandas as pd
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
+from keras.layers import Dense,Dropout,SimpleRNN,LSTM
+from keras.models import Sequential
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -160,6 +164,45 @@ class ModelTraining():
         
         except Exception as e:
             print(f"An error occurred during the model training: {e}")
-            return None           
+            return None
         
+    def train_LSTM_model(self, X_train, y_train, X_test, y_test):
+        try:
+            lstm_model = Sequential()
+
+            lstm_model.add(LSTM(40,activation="tanh",return_sequences=True, input_shape=(X_train.shape[1],1)))
+            lstm_model.add(Dropout(0.15))
+
+            lstm_model.add(LSTM(40,activation="tanh",return_sequences=True))
+            lstm_model.add(Dropout(0.15))
+
+            lstm_model.add(LSTM(40,activation="tanh",return_sequences=False))
+            lstm_model.add(Dropout(0.15))
+
+            lstm_model.add(Dense(1))
+
+            if self.verbose: lstm_model.summary()
+            lstm_model.compile(optimizer="adam",loss="MSE")
+            history= lstm_model.fit(X_train, y_train, epochs=200, validation_data=(X_test, y_test),batch_size=1000)
+            my_loss= lstm_model.history.history['loss']
+            valid_loss = history.history['val_loss']
+
+            if self.verbose:
+                # plot train and validation loss
+                plt.plot(my_loss)
+                plt.plot(valid_loss)
+                plt.title('model train vs validation loss')
+                plt.ylabel('loss')
+                plt.xlabel('epoch')
+                plt.legend(['train', 'validation'], loc='upper right')
+                plt.show()
+            
+            return lstm_model, valid_loss
+        
+        except Exception as e:
+            print(f"An error occurred during the model training: {e}")
+            return None
+        
+                   
     
+

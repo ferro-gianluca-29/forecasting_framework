@@ -197,3 +197,18 @@ class ModelTest():
         plt.legend(loc='best')
         plt.tight_layout()
         plt.show()
+
+
+    def LSTM_plot_pred(self, test, predictions, time_values):
+        title = "Predictions made by simple LSTM model"
+        plt.figure(figsize=(16,4))
+        plt.plot(time_values, test, color='blue',label='Actual power consumption data')
+        plt.plot(time_values, predictions, alpha=0.7, color='orange',label='Predicted power consumption data')
+        plt.title(title)
+        plt.xlabel('Date and Time')
+        plt.ylabel('Normalized power consumption scale')
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.show()
+
+   

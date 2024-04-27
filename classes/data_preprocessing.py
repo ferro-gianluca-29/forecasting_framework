@@ -77,20 +77,20 @@ class DataPreprocessor():
             
             ############## DATA SCALING ##############
             if self.scaling:
-                
+
                 if self.run_mode == "train" or self.run_mode == "train_test":
                     scaler = MinMaxScaler()
                     # fit the scaler on the training set
-                    scaler.fit(train[train.columns[1:]])
+                    scaler.fit(train[train.columns[0:train.columns.shape[0] - 1]])
                     # save training scaling data with pickle
                     with open(f"{self.folder_path}/scaler.pkl", "wb") as file:
                         pickle.dump(scaler, file)
                     # scale training data    
-                    train[train.columns[1:]] = scaler.transform(train[train.columns[1:]])
-                    if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:]])
+                    train[train.columns[0:train.columns.shape[0] - 1]] = scaler.transform(train[train.columns[0:train.columns.shape[0] - 1]])
+                    if self.validation: valid[valid.columns[0:valid.columns.shape[0] - 1]] = scaler.transform(valid[valid.columns[0:valid.columns.shape[0] - 1]])
                     if self.run_mode == "train_test":    
                         # scale test data
-                        test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])
+                        test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
                         
 
                 elif self.run_mode == "test" or self.run_mode == "fine_tuning":
@@ -98,39 +98,11 @@ class DataPreprocessor():
                     with open(f"{self.model_path}/scaler.pkl", "rb") as file:
                         scaler = pickle.load(file)
                     if self.run_mode == "fine_tuning":    
-                        train[train.columns[1:]] = scaler.transform(train[train.columns[1:]])
-                        if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:]])
-                    test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])    
+                        train[train.columns[1:]] = scaler.transform(train[train.columns[1:] - 1])
+                        if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:] - 1])
+                    test[test.columns[1:]] = scaler.transform(test[test.columns[1:] - 1])    
 
             ############ END DATA SCALING ###########
-
-            # Data windowing for neural network models
-            if self.model_type == 'LSTM':
-                seq_len = 20
-                X_train = []
-                y_train = []    
-                X_test = []
-                y_test = [] 
-                # If run mode requires training create training windows
-                if self.run_mode == "train" or self.run_mode == "train_test":
-                    for i in range(seq_len, len(train)):
-                        X_train.append(train[self.target_column].iloc[i-seq_len : i, 0])
-                        y_train.append(train[self.target_column].iloc[i, 0])
-                    # convert to numpy array
-                    X_train = np.array(X_train)
-                    y_train = np.array(y_train)
-                    # reshape data to input into RNN models
-                    X_train = np.reshape(X_train, (17521, seq_len, 1))
-                for i in range(seq_len, len(test)):
-                    X_test.append(test[self.target_column].iloc[i-seq_len : i, 0])
-                    y_test.append(test[self.target_column].iloc[i, 0])
-                # convert to numpy array
-                X_test = np.array(X_test)
-                y_test = np.array(y_test)
-                # reshape data to input into RNN models
-                X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
-
-                return [X_train, y_train, X_test, y_test]
 
             print("Data preprocessing complete")
             if self.run_mode == "test":
@@ -313,7 +285,34 @@ class DataPreprocessor():
                 test = df[int(n * self.train_size):]
                 return train, test, None 
         
-        
+    def data_windowing(self, train, test):
+        # Data windowing for neural network models
+        seq_len = 20
+        X_train = []
+        y_train = []    
+        X_test = []
+        y_test = [] 
+        # If run mode requires training create training windows
+        if self.run_mode == "train" or self.run_mode == "train_test":
+            for i in range(seq_len, len(train)):
+                X_train.append(train[self.target_column].iloc[i-seq_len : i])
+                y_train.append(train[self.target_column].iloc[i])
+            # convert to numpy array
+            X_train = np.array(X_train)
+            y_train = np.array(y_train)
+            # reshape data to input into RNN models
+            X_train = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
+        for i in range(seq_len, len(test)):
+            X_test.append(test[self.target_column].iloc[i-seq_len : i])
+            y_test.append(test[self.target_column].iloc[i])
+        # convert to numpy array
+        X_test = np.array(X_test)
+        y_test = np.array(y_test)
+        # reshape data to input into RNN models
+        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
+
+        print("Data windowing complete")
+        return [X_train, y_train, X_test, y_test]    
 
     def seasonal_split_data(self,df):
         # Define masks for selecting different subsets of data

@@ -8,14 +8,20 @@ class PerfMeasure(ModelTest):
     
     def get_performance_metrics(self, test, predictions):
         try:
-            test = test[:self.steps_ahead][self.target_column]
+            if self.model_type == 'ARIMA' or self.model_type == 'SARIMA':
+                test = test[:self.steps_ahead][self.target_column]
+            # Handle zero values in test_data for MAPE and MSPE calculations
+            non_zero_indices = np.where(test != 0)
+            test_data_non_zero = test[non_zero_indices]
+            predictions_non_zero = predictions[non_zero_indices]
+
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)
             rmse = np.sqrt(mse)
             performance_metrics['MSE'] = mse
             performance_metrics['RMSE'] = rmse
-            performance_metrics['MAPE'] = mean_absolute_percentage_error(test, predictions)
-            performance_metrics['MSPE'] = mean_squared_percentage_error(test,predictions)
+            performance_metrics['MAPE'] = mean_absolute_percentage_error(test_data_non_zero, predictions_non_zero)
+            performance_metrics['MSPE'] = mean_squared_percentage_error(test_data_non_zero, predictions_non_zero)
             performance_metrics['MAE'] = mean_absolute_error(test, predictions)
             performance_metrics['R_2'] = r2_score(test, predictions)
             return performance_metrics

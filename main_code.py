@@ -81,7 +81,7 @@ def main():
         
         # END OF DATA LOADING
         
-                
+          
             
 
 #################### PREPROCESSING  ####################
@@ -93,22 +93,22 @@ def main():
                                              args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
                                              folder_path, args.model_path, verbose)
         
-        if args.model_type == 'LSTM':
-            X_train, y_train, X_test, y_test = data_preprocessor.preprocess_data()
+        # preprocessing and split 
+        if args.run_mode == "test":
+            test, exit = data_preprocessor.preprocess_data()
         else:
-            # preprocessing and split for statistical models (ARIMA, SARIMA)
-            if args.run_mode == "test":
-                test, exit = data_preprocessor.preprocess_data()
+            if args.validation:
+                train, test, valid, exit = data_preprocessor.preprocess_data()
+                if exit:
+                    raise ValueError("Unable to preprocess dataset.")
             else:
-                if args.validation:
-                    train, test, valid, exit = data_preprocessor.preprocess_data()
-                    if exit:
-                        raise ValueError("Unable to preprocess dataset.")
-                else:
-                    train, test, exit = data_preprocessor.preprocess_data()
-                    valid = None
-                    if exit:
-                        raise ValueError("Unable to preprocess dataset.")
+                train, test, exit = data_preprocessor.preprocess_data()
+                valid = None
+                # Data windowing for neural network models
+                if args.model_type == 'LSTM':
+                    X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train,test)
+                if exit:
+                    raise ValueError("Unable to preprocess dataset.")
                 
         
         # Splitting target and exogenous variable in training and test sets for the SARIMAX model
@@ -247,6 +247,13 @@ def main():
                     # Save training data
                     save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
+                    
+                elif (args.model_type == 'LSTM'):
+                    model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_test, y_test)
+                    # Save training data
+                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                               end_index = len(train),  valid_metrics = valid_metrics)
+                    
 
                 #################### END OF MODEL TRAINING ####################
                     
@@ -272,7 +279,12 @@ def main():
                 predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
                 # Create the naive model
                 naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
-            
+
+            elif(args.model_type == 'LSTM'):
+                # Model testing
+                predictions = model.predict(X_test)
+
+
             #################### END OF MODEL TESTING ####################        
         
         if args.run_mode != "train":
@@ -285,11 +297,17 @@ def main():
             elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
                 model_test.SARIMAX_plot_pred(best_order, naive_predictions)
 
+            elif (args.model_type == 'LSTM'):
+                time_values = df.index[len(df.index) - len(y_test):]
+                model_test.LSTM_plot_pred(y_test, predictions, time_values)
+
             #################### END OF PLOT PREDICTIONS ####################        
          
             #################### PERFORMANCE MEASUREMENT AND SAVING #################
             if predictions is not None:
+
                 perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
+                
                 if(args.model_type == 'ARIMA'):
                     # Compute performance metrics
                     metrics = perf_measure.get_performance_metrics(test, predictions) 
@@ -309,7 +327,14 @@ def main():
                     end_index = len(train)
                     # Save model data
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
-                        
+
+                elif (args.model_type == 'LSTM'):
+                     # Compute performance metrics
+                     metrics = perf_measure.get_performance_metrics(y_test, predictions)
+                     # Save the index of the last element of the training set
+                     end_index = len(train)
+                     # Save model data
+                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
 
