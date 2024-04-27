@@ -50,8 +50,10 @@ def main():
     parser.add_argument('--steps_ahead', type=int, required=False, default=10, help='Number of time steps ahead to forecast')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
-    parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')    
+    parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')  
+
     # Neural network models
+    parser.add_argument('--seasonal_model', action='store_true', help='If True, seasonal decomposition is made, and the seasonal component is fed into the LSTM model')
     #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
     # Fine tuning arguments    
@@ -106,7 +108,12 @@ def main():
                 valid = None
                 # Data windowing for neural network models
                 if args.model_type == 'LSTM':
-                    X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train,test)
+                    if args.seasonal_model:
+                        # Take the seasonal component of the training set
+                        train_seasonal = moving_average_ST(train,args.target_column).seasonal
+                        X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train_seasonal,test)
+                    else:
+                        X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train,test)
                 if exit:
                     raise ValueError("Unable to preprocess dataset.")
                 
@@ -130,53 +137,11 @@ def main():
         
         ############### Optional time series analysis ############
         if args.ts_analysis:
-            ts_analysis(df, args.target_column, args.period)
+            ts_analysis(train, args.target_column, args.period)
             multiple_STL(train, args.target_column)
-            moving_average_ST(train,args.target_column)
+            
         ############## End of time series analysis ###########
 
-######### PRINT INFO
-        if verbose:
-            print('\nThe preprocess_data function returned the following sets:\n')
-            print('Train Set:\n')
-            print(train.head())
-            print('\nTrain set size: ', len(train))
-            print('Test Set:\n')
-            print(test.head())
-            print('\nTest set size: ', len(test))
-            if args.validation:
-                print('Validation Set:\n')
-                print(valid.head())
-                print('\nValidation set size: ', len(valid))
-            # Plot the series
-            if args.model_type == 'PROPHET':
-                plt.figure(figsize=(15, 5))
-                plt.plot(df['ds'], df['y'])
-                plt.title('Time series')
-                plt.show()
-            else:
-                plt.figure(figsize=(15, 5))
-                plt.plot(train[train.columns[0]], train[args.target_column])
-                plt.xlabel(train.columns[0])
-                plt.ylabel(args.target_column)
-                plt.title('Training set')
-                plt.show()
-        
-            if args.model_type == 'SARIMAX':
-                print('\nTarget Train Set:')
-                print(target_train.head())
-                print('Target training set size: ', len(target_train))
-                print('\nExog Train Set:')
-                print(exog_train.head())
-                print('Exog training set size: ', len(exog_train))
-                print('\nTarget Test Set:')
-                print(target_test.head())
-                print('Target test set size: ', len(target_test))
-                print('\nExog Test Set:')
-                print(exog_test.head())
-                print('Exog test set size: ', len(exog_test))
-
-########## END OF PRINT INFO
 
         if args.run_mode == "fine_tuning" or args.run_mode == "test":
 
@@ -228,31 +193,33 @@ def main():
                 #################### MODEL TRAINING ####################
                 model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
-                if (args.model_type == 'ARIMA'):    
-                    model, valid_metrics = model_training.train_ARIMA_model()
-                    best_order = model_training.ARIMA_order
-                    # Save a buffer containing the last elements of the training set for further test
-                    buffer_size = 20
-                    save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
-                    # Save training data 
-                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
+                match args.model_type:
 
-                elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):  
-                    model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
-                    best_order = model_training.SARIMAX_order
-                    # Save a buffer containing the last elements of the training set for further test
-                    buffer_size = 20
-                    save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
-                    # Save training data
-                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                              best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
+                    case 'ARIMA':    
+                        model, valid_metrics = model_training.train_ARIMA_model()
+                        best_order = model_training.ARIMA_order
+                        # Save a buffer containing the last elements of the training set for further test
+                        buffer_size = 20
+                        save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
+                        # Save training data 
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
+
+                    case 'SARIMAX'|'SARIMA':  
+                        model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
+                        best_order = model_training.SARIMAX_order
+                        # Save a buffer containing the last elements of the training set for further test
+                        buffer_size = 20
+                        save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
+                        # Save training data
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
                     
-                elif (args.model_type == 'LSTM'):
-                    model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_test, y_test)
-                    # Save training data
-                    save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                               end_index = len(train),  valid_metrics = valid_metrics)
+                    case 'LSTM':
+                        model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_test, y_test)
+                        # Save training data
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                end_index = len(train),  valid_metrics = valid_metrics)
                     
 
                 #################### END OF MODEL TRAINING ####################

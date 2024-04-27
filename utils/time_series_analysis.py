@@ -181,4 +181,4 @@ def moving_average_ST(dataframe,target_column):
     plt.tight_layout()
     plt.show()
 
-
+    return result
