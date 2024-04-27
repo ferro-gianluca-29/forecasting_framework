@@ -71,9 +71,6 @@ def main():
         folder_name = args.model_type + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         folder_path = f"./data/models/{folder_name}"
         os.makedirs(folder_path)
-  
-        # Analizza la stringa JSON in una lista Python
-        #date_list = ["2022-04-18T15:30:00+02:00","2022-04-18T18:25:00+02:00","2022-04-18T20:10:00+02:00","2022-04-19T16:35:00+02:00","2022-04-20T19:15:00+02:00","2022-04-22T17:05:00+02:00"]
 
         #  DATA LOADING
         data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index)
@@ -235,21 +232,20 @@ def main():
 
             model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
             
-            if(args.model_type == 'ARIMA'):
-                # Model testing
-                predictions = model_test.test_ARIMA_model(args.steps_jump, args.ol_refit)    
-                # Create the naive model
-                naive_predictions = model_test.naive_forecast(train)
-                
-            elif(args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
-                # Model testing
-                predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
-                # Create the naive model
-                naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
-
-            elif(args.model_type == 'LSTM'):
-                # Model testing
-                predictions = model.predict(X_test)
+            match args.model_type:
+                case 'ARIMA':
+                        # Model testing
+                        predictions = model_test.test_ARIMA_model(args.steps_jump, args.ol_refit)    
+                        # Create the naive model
+                        naive_predictions = model_test.naive_forecast(train)
+                case 'SARIMAX'|'SARIMA':
+                    # Model testing
+                    predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
+                    # Create the naive model
+                    naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
+                case 'LSTM':
+                    # Model testing
+                    predictions = model.predict(X_test)
 
 
             #################### END OF MODEL TESTING ####################        
@@ -258,15 +254,17 @@ def main():
 
             #################### PLOT PREDICTIONS ####################
 
-            if(args.model_type == 'ARIMA'):
-                model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
-            
-            elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
-                model_test.SARIMAX_plot_pred(best_order, naive_predictions)
+            match args.model_type:
 
-            elif (args.model_type == 'LSTM'):
-                time_values = df.index[len(df.index) - len(y_test):]
-                model_test.LSTM_plot_pred(y_test, predictions, time_values)
+                case 'ARIMA':
+                    model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
+            
+                case 'SARIMAX'|'SARIMA':
+                    model_test.SARIMAX_plot_pred(best_order, naive_predictions)
+
+                case 'LSTM':
+                    time_values = df.index[len(df.index) - len(y_test):]
+                    model_test.LSTM_plot_pred(y_test, predictions, time_values)
 
             #################### END OF PLOT PREDICTIONS ####################        
          
@@ -275,47 +273,51 @@ def main():
 
                 perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
                 
-                if(args.model_type == 'ARIMA'):
-                    # Compute performance metrics
-                    metrics = perf_measure.get_performance_metrics(test, predictions) 
-                    # Compute naive performance metrics
-                    metrics_naive = perf_measure.get_performance_metrics(test, naive_predictions)
-                    # Save the index of the last element of the training set
-                    end_index = len(train)
-                    # Save model data
-                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
+                match args.model_type:
+                
+                    case 'ARIMA':
+                        # Compute performance metrics
+                        metrics = perf_measure.get_performance_metrics(test, predictions) 
+                        # Compute naive performance metrics
+                        metrics_naive = perf_measure.get_performance_metrics(test, naive_predictions)
+                        # Save the index of the last element of the training set
+                        end_index = len(train)
+                        # Save model data
+                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
 
-                elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
-                    # Compute performance metrics
-                    metrics = perf_measure.get_performance_metrics(target_test, predictions)
-                    # Compute naive seasonal performance metrics
-                    metrics_seasonal_naive = perf_measure.get_performance_metrics(target_test, naive_predictions) 
-                    # Save the index of the last element of the training set
-                    end_index = len(train)
-                    # Save model data
-                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
+                    case 'SARIMAX'|'SARIMA':
+                        # Compute performance metrics
+                        metrics = perf_measure.get_performance_metrics(target_test, predictions)
+                        # Compute naive seasonal performance metrics
+                        metrics_seasonal_naive = perf_measure.get_performance_metrics(target_test, naive_predictions) 
+                        # Save the index of the last element of the training set
+                        end_index = len(train)
+                        # Save model data
+                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
 
-                elif (args.model_type == 'LSTM'):
-                     # Compute performance metrics
-                     metrics = perf_measure.get_performance_metrics(y_test, predictions)
-                     # Save the index of the last element of the training set
-                     end_index = len(train)
-                     # Save model data
-                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
+                    case 'LSTM':
+                        # Compute performance metrics
+                        metrics = perf_measure.get_performance_metrics(y_test, predictions)
+                        # Save the index of the last element of the training set
+                        end_index = len(train)
+                        # Save model data
+                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
 
 
             #################### PRINT AND PLOT PERFORMANCE ####################
             if verbose:
-                # Statistic Models
-                if args.model_type == 'ARIMA':
-                    perf_measure.print_stats_performance(args.model_type, metrics, metrics_naive)
-                    perf_measure.plot_stats_performance(args.model_type, metrics, metrics_naive)
+                # Statistical Models
+                match args.model_type:
                 
-                elif args.model_type == 'SARIMAX':
-                    perf_measure.print_stats_performance(args.model_type, metrics, metrics_seasonal_naive)
-                    perf_measure.plot_stats_performance(args.model_type, metrics, metrics_seasonal_naive)             
+                    case 'ARIMA':
+                        perf_measure.print_stats_performance(args.model_type, metrics, metrics_naive)
+                        perf_measure.plot_stats_performance(args.model_type, metrics, metrics_naive)
+                
+                    case 'SARIMAX'|'SARIMA':
+                        perf_measure.print_stats_performance(args.model_type, metrics, metrics_seasonal_naive)
+                        perf_measure.plot_stats_performance(args.model_type, metrics, metrics_seasonal_naive)             
 
             #################### END OF PRINT AND PLOT PERFORMANCE ####################
         
