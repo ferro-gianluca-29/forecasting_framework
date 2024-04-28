@@ -12,6 +12,7 @@ from classes.performance_measurement import PerfMeasure
 import datetime
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
 from utils.time_series_analysis import multiple_STL, moving_average_ST
+from xgboost import plot_importance, plot_tree
 
 # END OF LIBRARY IMPORTS #
   
@@ -52,7 +53,7 @@ def main():
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')  
 
-    # Neural network models
+    # Other models
     parser.add_argument('--seasonal_model', action='store_true', help='If True, seasonal decomposition is made, and the seasonal component is fed into the LSTM model')
     #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
@@ -80,10 +81,7 @@ def main():
         
         # END OF DATA LOADING
         
-          
-            
-
-#################### PREPROCESSING  ####################
+#################### PREPROCESSING AND DATASET SPLIT  ####################
         
         # Extract the file extension from the path 
         file_ext = os.path.splitext(args.dataset_path)[1]
@@ -111,6 +109,9 @@ def main():
                         X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train_seasonal,test)
                     else:
                         X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train,test)
+                elif args.model_type == 'XGB':
+                    X_train, y_train = data_preprocessor.create_time_features(train, label=args.target_column, seasonal_model = args.seasonal_model)
+                    X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
                 if exit:
                     raise ValueError("Unable to preprocess dataset.")
                 
@@ -144,50 +145,54 @@ def main():
 
             #################### LOAD MODEL FOR TEST OR FINE TUNING ####################
             # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
-            if (args.model_type == 'ARIMA'):
 
-                # Load a pre-trained model
-                pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path)
-                
-                # Update the indices so that the the indices are contiguous to those of the pre-trained model
-                test_start_index = test.index[0] + prev_train_end_index
-                test_end_index = test_start_index + len(test)
-                test.index = range(test_start_index, test_end_index)
-                
-                if args.run_mode == "fine_tuning":
-                     train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
-                     model = pre_trained_model.append(train[args.target_column], refit = True)          
-                elif args.run_mode == "test":
-                    # Load the model 
-                    model = pre_trained_model   
+            match args.model_type:
+
+                    case 'ARIMA':
+
+                        # Load a pre-trained model
+                        pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path)
+                        
+                        # Update the indices so that the the indices are contiguous to those of the pre-trained model
+                        test_start_index = test.index[0] + prev_train_end_index
+                        test_end_index = test_start_index + len(test)
+                        test.index = range(test_start_index, test_end_index)
+                        
+                        if args.run_mode == "fine_tuning":
+                            train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
+                            model = pre_trained_model.append(train[args.target_column], refit = True)          
+                        elif args.run_mode == "test":
+                            # Load the model 
+                            model = pre_trained_model   
  
-            elif (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
+                    case 'SARIMAX'|'SARIMA': 
 
-                # Load a pre-trained model
-                pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path) 
+                        # Load a pre-trained model
+                        pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path) 
 
-                # Update the indices so that the the indices are contiguous to those of the pre-trained model
-                
-                test_start_index = test.index[0] + prev_train_end_index
-                test_end_index = test_start_index + len(test)
-                test.index = range(test_start_index, test_end_index)
-                target_test.index = range(test_start_index, test_end_index)
-                exog_test.index = range(test_start_index, test_end_index)
-                     
-                if args.run_mode == "fine_tuning":  
-                    # Update the model with the new data
-                    train.index = range(prev_train_end_index, prev_train_end_index + len(train)) 
-                    exog_train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
-                    model = pre_trained_model.append(train[args.target_column], exog =  exog_train, refit = True)
-                elif args.run_mode == "test":
-                    # Load the model 
-                    model = pre_trained_model
+                        # Update the indices so that the the indices are contiguous to those of the pre-trained model
+                        
+                        test_start_index = test.index[0] + prev_train_end_index
+                        test_end_index = test_start_index + len(test)
+                        test.index = range(test_start_index, test_end_index)
+                        target_test.index = range(test_start_index, test_end_index)
+                        exog_test.index = range(test_start_index, test_end_index)
+                            
+                        if args.run_mode == "fine_tuning":  
+                            # Update the model with the new data
+                            train.index = range(prev_train_end_index, prev_train_end_index + len(train)) 
+                            exog_train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
+                            model = pre_trained_model.append(train[args.target_column], exog =  exog_train, refit = True)
+                        elif args.run_mode == "test":
+                            # Load the model 
+                            model = pre_trained_model
 
             ######################## # END OF LOAD MODEL ####################
     
         if args.run_mode == "train" or args.run_mode == "train_test":
 
                 #################### MODEL TRAINING ####################
+
                 model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
                 match args.model_type:
@@ -218,6 +223,11 @@ def main():
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
                     
+                    case 'XGB':
+                        model, valid_metrics = model_training.train_XGB_model(X_train, y_train, X_test, y_test)
+                        # Save training data
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                end_index = len(train),  valid_metrics = valid_metrics)
 
                 #################### END OF MODEL TRAINING ####################
                     
@@ -233,17 +243,20 @@ def main():
             model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
             
             match args.model_type:
+
                 case 'ARIMA':
-                        # Model testing
-                        predictions = model_test.test_ARIMA_model(args.steps_jump, args.ol_refit)    
-                        # Create the naive model
-                        naive_predictions = model_test.naive_forecast(train)
+                    # Model testing
+                    predictions = model_test.test_ARIMA_model(args.steps_jump, args.ol_refit)    
+                    # Create the naive model
+                    naive_predictions = model_test.naive_forecast(train)
+
                 case 'SARIMAX'|'SARIMA':
                     # Model testing
                     predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
                     # Create the naive model
                     naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
-                case 'LSTM':
+
+                case 'LSTM'|'XGB':
                     # Model testing
                     predictions = model.predict(X_test)
 
@@ -265,6 +278,10 @@ def main():
                 case 'LSTM':
                     time_values = df.index[len(df.index) - len(y_test):]
                     model_test.LSTM_plot_pred(y_test, predictions, time_values)
+
+                case 'XGB':
+                    _ = plot_importance(model, height=0.9)    
+                    model_test.XGB_plot_pred(predictions, train)    
 
             #################### END OF PLOT PREDICTIONS ####################        
          
@@ -295,7 +312,7 @@ def main():
                         # Save model data
                         save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
 
-                    case 'LSTM':
+                    case 'LSTM'|'XGB':
                         # Compute performance metrics
                         metrics = perf_measure.get_performance_metrics(y_test, predictions)
                         # Save the index of the last element of the training set

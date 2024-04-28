@@ -11,9 +11,8 @@ class PerfMeasure(ModelTest):
             if self.model_type == 'ARIMA' or self.model_type == 'SARIMA':
                 test = test[:self.steps_ahead][self.target_column]
             # Handle zero values in test_data for MAPE and MSPE calculations
-            non_zero_indices = np.where(test != 0)
-            test_data_non_zero = test[non_zero_indices]
-            predictions_non_zero = predictions[non_zero_indices]
+            test_data_non_zero = test[test != 0]
+            predictions_non_zero = predictions[ predictions != 0]
 
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)

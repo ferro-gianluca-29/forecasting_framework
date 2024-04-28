@@ -313,6 +313,44 @@ class DataPreprocessor():
 
         print("Data windowing complete")
         return [X_train, y_train, X_test, y_test]    
+    
+    def create_time_features(self, df, label=None, seasonal_model = None, lags = [1, 2, 3, 24], rolling_window = 24):
+        """
+        Creates time series features from datetime index
+        """
+        df['date'] = df.index
+        df['hour'] = df['date'].dt.hour
+        df['dayofweek'] = df['date'].dt.dayofweek
+        df['quarter'] = df['date'].dt.quarter
+        df['month'] = df['date'].dt.month
+        df['year'] = df['date'].dt.year
+        df['dayofyear'] = df['date'].dt.dayofyear
+        df['dayofmonth'] = df['date'].dt.day
+        df['weekofyear'] = df['date'].dt.isocalendar().week  # Changed liner
+
+        if seasonal_model:
+            # Fourier features for daily, weekly, and yearly seasonality
+            for period in [24, 7, 365]:
+                df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
+                df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
+
+            # Lagged features
+            for lag in lags:
+                df[f'lag_{lag}'] = df[label].shift(lag)
+
+            # Rolling window features
+            df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
+            df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
+
+            df = df.dropna()  # Drop rows with NaN values resulting from lag/rolling operations
+            X = df.drop(['date', label], axis=1, errors='ignore')
+        else:
+            X = df[['hour','dayofweek','quarter','month','year',
+                'dayofyear','dayofmonth','weekofyear']]
+        if label:
+            y = df[label]
+            return X, y
+        return X
 
     def seasonal_split_data(self,df):
         # Define masks for selecting different subsets of data

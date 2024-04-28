@@ -1,6 +1,8 @@
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+import xgboost as xgb
+from xgboost import plot_importance, plot_tree
 from utils.time_series_analysis import ARIMA_optimizer, SARIMAX_optimizer, ljung_box_test
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -204,6 +206,38 @@ class ModelTraining():
             print(f"An error occurred during the model training: {e}")
             return None
         
-                   
+    def train_XGB_model(self, X_train, y_train, X_test, y_test):
+        try:
+            # Define the XGBoost Regressor with improved parameters
+            reg = xgb.XGBRegressor(
+                n_estimators=100000,  # Number of boosting rounds (you can tune this)
+                learning_rate=0.05,   # Learning rate (you can tune this)
+                max_depth=5,          # Maximum depth of the trees (you can tune this)
+                min_child_weight=1,   # Minimum sum of instance weight needed in a child
+                gamma=0,              # Minimum loss reduction required to make a further partition
+                subsample=0.8,        # Fraction of samples used for training
+                colsample_bytree=0.8, # Fraction of features used for training
+                reg_alpha=0,          # L1 regularization term on weights
+                reg_lambda=1,         # L2 regularization term on weights
+                objective='reg:squarederror',  # Objective function for regression
+                random_state=42       # Seed for reproducibility
+                                   )
+            # Train the model with early stopping and verbose mode
+            XGB_model = reg.fit(
+                X_train,
+                y_train,
+                eval_set=[(X_train, y_train), (X_test, y_test)],
+                eval_metric=['rmse', 'mae'],
+                early_stopping_rounds=100,
+                verbose=True  # Set to True to see training progress
+            )
+
+            valid_metrics = XGB_model.evals_result()
+
+            return XGB_model, valid_metrics
+        
+        except Exception as e:
+            print(f"An error occurred during the model training: {e}")
+            return None               
     
 

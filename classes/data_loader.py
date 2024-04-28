@@ -49,7 +49,7 @@ class DataLoader():
                 df = df.sort_values(by='date')
                 
                 match self.model_type:
-                    case 'LSTM':
+                    case 'LSTM'|'XGB':
                         # Set the date column as index for neural network models 
                         # (in case of statistical models it may cause index errors during forecasting)
                         # Make a copy of date column as set it as last column of the dataframe
