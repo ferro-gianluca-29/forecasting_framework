@@ -60,8 +60,10 @@ class DataLoader():
                         df.set_index('date', inplace=True)
                         # Keep the date column (so the code can use the split_data() method of DataPreprocessor without errors)
                         df.rename(columns={'temp_date': 'date'}, inplace=True)
-                    case 'ARIMA|SARIMA|SARIMAX':
+                    case 'ARIMA'|'SARIMA'|'SARIMAX':
                         df.reset_index(drop=True, inplace = True)
+                        # Set date as the last column of the dataframe
+                        df.insert(df.columns.shape[0] - 1, 'date', df.pop('date'))
             else:
                  print("time column not found.")
             return df
