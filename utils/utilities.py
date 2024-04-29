@@ -183,19 +183,16 @@ def save_buffer(folder_path, df, target_column, size = 20, file_name = 'buffer.j
 
 def load_trained_model(model_type, folder_name):
     model = None
-    end_index = None
     best_order = None
 
     try:
-        if model_type in ['ARIMA', 'SARIMAX']:
+        if model_type in ['ARIMA', 'SARIMAX', 'SARIMA']:
             with open(f"{folder_name}/model.pkl", "rb") as file:
                 model = pickle.load(file)
 
             with open(f"{folder_name}/model_details.txt", "r") as file:
                 for line in file:
-                    if "End Index" in line:
-                        end_index = int(line.split(":")[1].strip())
-                    elif "Best Order" in line:
+                    if "Best Order" in line:
                         best_order_values = line.split(":")[1].strip().strip("()").split(", ")
                         best_order = tuple(map(int, best_order_values)) if best_order_values != [''] else None
 
@@ -204,5 +201,5 @@ def load_trained_model(model_type, folder_name):
     except Exception as error:
         print(f"Error during model loading: {error}")
 
-    return model, end_index, best_order
+    return model, best_order
 

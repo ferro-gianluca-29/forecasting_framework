@@ -97,10 +97,12 @@ class DataPreprocessor():
                     # load scaling data from pkl file
                     with open(f"{self.model_path}/scaler.pkl", "rb") as file:
                         scaler = pickle.load(file)
-                    if self.run_mode == "fine_tuning":    
-                        train[train.columns[1:]] = scaler.transform(train[train.columns[1:] - 1])
-                        if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:] - 1])
-                    test[test.columns[1:]] = scaler.transform(test[test.columns[1:] - 1])    
+
+                    if self.run_mode == "fine_tuning": 
+                        num_features = train.columns.shape[0] - 1    
+                        train[train.columns[0:num_features]] = scaler.transform(train[train.columns[0:num_features]])
+                        if self.validation: valid[valid.columns[0:num_features]] = scaler.transform(valid[valid.columns[0:num_features]])
+                    test[test.columns[0:num_features]] = scaler.transform(test[test.columns[0:num_features]])   
 
             ############ END DATA SCALING ###########
 

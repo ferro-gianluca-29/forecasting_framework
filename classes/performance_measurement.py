@@ -9,7 +9,7 @@ class PerfMeasure(ModelTest):
     
     def get_performance_metrics(self, test, predictions, naive = False):
         try:
-            if self.model_type == 'ARIMA' or self.model_type == 'SARIMA':
+            if self.model_type in ['ARIMA','SARIMA','SARIMAX']:
                 test = test[:self.steps_ahead][self.target_column]
                 non_zero_indices = np.where(test != 0)
                 # Handle zero values in test_data for MAPE and MSPE calculations

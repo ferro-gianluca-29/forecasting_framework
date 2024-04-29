@@ -146,20 +146,24 @@ def main():
             #################### LOAD MODEL FOR TEST OR FINE TUNING ####################
             # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
 
+            # Load a pre-trained model
+            pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
+            last_train_index = pre_trained_model.data.row_labels[-1] + 1
+            train_start_index = last_train_index
+
             match args.model_type:
 
                     case 'ARIMA':
 
-                        # Load a pre-trained model
-                        pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path)
-                        
                         # Update the indices so that the the indices are contiguous to those of the pre-trained model
-                        test_start_index = test.index[0] + prev_train_end_index
+
+                        test_start_index = test.index[0] + last_train_index
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
                         
                         if args.run_mode == "fine_tuning":
-                            train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
+                            
+                            train.index = range(train_start_index, train_start_index + len(train))  
                             model = pre_trained_model.append(train[args.target_column], refit = True)          
                         elif args.run_mode == "test":
                             # Load the model 
@@ -167,12 +171,9 @@ def main():
  
                     case 'SARIMAX'|'SARIMA': 
 
-                        # Load a pre-trained model
-                        pre_trained_model, prev_train_end_index, best_order = load_trained_model(args.model_type, args.model_path) 
-
                         # Update the indices so that the the indices are contiguous to those of the pre-trained model
                         
-                        test_start_index = test.index[0] + prev_train_end_index
+                        test_start_index = test.index[0] + last_train_index
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
                         target_test.index = range(test_start_index, test_end_index)
@@ -180,8 +181,8 @@ def main():
                             
                         if args.run_mode == "fine_tuning":  
                             # Update the model with the new data
-                            train.index = range(prev_train_end_index, prev_train_end_index + len(train)) 
-                            exog_train.index = range(prev_train_end_index, prev_train_end_index + len(train))  
+                            train.index = range(train_start_index, train_start_index + len(train)) 
+                            exog_train.index = range(train_start_index, train_start_index + len(train))  
                             model = pre_trained_model.append(train[args.target_column], exog =  exog_train, refit = True)
                         elif args.run_mode == "test":
                             # Load the model 
@@ -205,7 +206,7 @@ def main():
                         save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                         # Save training data 
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                best_order = best_order, end_index = len(train), valid_metrics = valid_metrics)
+                                best_order = best_order, end_index = model.data.row_labels[-1] + 1, valid_metrics = valid_metrics)
 
                     case 'SARIMAX'|'SARIMA':  
                         model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
@@ -306,7 +307,7 @@ def main():
                         # Compute performance metrics
                         metrics = perf_measure.get_performance_metrics(target_test, predictions)
                         # Compute naive seasonal performance metrics
-                        metrics_seasonal_naive = perf_measure.get_performance_metrics(target_test, naive_predictions) 
+                        metrics_seasonal_naive = perf_measure.get_performance_metrics(target_test, naive_predictions, naive = True) 
                         # Save the index of the last element of the training set
                         end_index = len(train)
                         # Save model data

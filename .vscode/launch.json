@@ -10,14 +10,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
-                "--model_type", "XGB",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_type", "SARIMAX",
                 "--forecast_type", "ol-one",
                 "--scaling", 
+                "--train_size","0.1",
                 "--steps_ahead", "10",
-                "--test_size", "0.1",
-                "--date_list", "2020-01-01T00:00:00.000Z", "2021-12-31T00:00:00.000Z", "2022-01-01T00:00:00.000Z", "2022-12-31T00:00:00.000Z"
+              //  "--date_list", "2020-01-01T00:00:00.000Z", "2021-12-31T00:00:00.000Z", "2022-01-01T00:00:00.000Z", "2022-12-31T00:00:00.000Z"
             ]
         },
         {
@@ -61,15 +61,16 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
-                "--model_type", "ARIMA",
+                "--run_mode", "fine_tuning",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_path", "./data/models/SARIMAX_2024-04-29_15-56-58",
+                "--model_type", "SARIMAX",
                 "--forecast_type", "ol-one",
                 "--scaling", 
+                "--train_size","0.1",
                 "--steps_ahead", "10",
-                "--test_size", "0.1",
-                "--date_list", "2020-01-01T00:00:00.000Z", "2021-12-31T00:00:00.000Z", "2022-01-01T00:00:00.000Z", "2022-12-31T00:00:00.000Z"
+                //  "--date_list", "2020-01-01T00:00:00.000Z", "2021-12-31T00:00:00.000Z", "2022-01-01T00:00:00.000Z", "2022-12-31T00:00:00.000Z"
             ]
         }
     ]

@@ -17,53 +17,26 @@ class ModelTest():
 
         try:
             print("\nTesting ARIMA model...\n")
-    
-            # MULTI STEP-AHEAD FORECASTS (CLOSED LOOP)
-            if self.forecast_type == 'cl-multi':
-
-                # Make the forecast
-                self.predictions = self.model.forecast(steps=self.steps_ahead)
-                print("Model testing successful.")
-                return self.predictions
             
             # ROLLING FORECASTS (ONE STEP-AHEAD, OPEN LOOP)
-            elif self.forecast_type == 'ol-one':
 
-                for t in range(0, self.steps_ahead):
-                    # Forecast one step at a time
-                    y_hat = self.model.forecast()
-                    # Append the forecast to the list
-                    self.predictions.append(y_hat)
-                    # Take the actual value from the test set to predict the next
-                    y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
-                    # Update the model with the actual value
-                    if ol_refit:
-                        self.model = self.model.append([y], refit = True)
-                    else:
-                        self.model = self.model.append([y], refit = False)
-                        
-                predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])
-                print("Model testing successful.")        
-                return predictions
+            for t in range(0, self.steps_ahead):
+                # Forecast one step at a time
+                y_hat = self.model.forecast()
+                # Append the forecast to the list
+                self.predictions.append(y_hat)
+                # Take the actual value from the test set to predict the next
+                y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
+                # Update the model with the actual value
+                if ol_refit:
+                    self.model = self.model.append([y], refit = True)
+                else:
+                    self.model = self.model.append([y], refit = False)
+                    
+            predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])
+            print("Model testing successful.")        
+            return predictions
 
-            # ROLLING FORECASTS (MULTI STEP-AHEAD, OPEN LOOP)
-            elif self.forecast_type == 'ol-multi':
-
-                for t in range(0, self.steps_ahead, steps_jump):
-                    # Forecast 'steps_jump' steps at a time
-                    y_hat = self.model.forecast(steps=steps_jump)
-                    # Append the forecasts to the list
-                    self.predictions.extend(y_hat)
-                    # Take the actual value from the test set to predict the 'step_jump' next
-                    y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
-                    # Update the model with the actual value
-                    if ol_refit:
-                        self.model = self.model.append([y], refit=True)
-                    else:
-                        self.model = self.model.append([y], refit=False)
-                        
-                print("Model testing successful.")
-                return self.predictions
             
         except Exception as e:
             print(f"An error occurred during the model test: {e}")
@@ -72,14 +45,6 @@ class ModelTest():
     def test_SARIMAX_model(self, steps_jump = None, exog_test = None, ol_refit = False): 
             try:    
                 print("\nTesting SARIMAX model...\n")
-
-                # MULTI STEP-AHEAD FORECASTS (CLOSED LOOP)
-                if self.forecast_type == 'cl-multi':
-
-                    # Make the forecast
-                    self.predictions = self.model.forecast(steps=self.steps_ahead, exog=exog_test[:self.steps_ahead])
-                    print("Model testing successful.")
-                    return self.predictions
                 
                 # ROLLING FORECASTS (ONE STEP-AHEAD OPEN LOOP)
                 if self.forecast_type == 'ol-one':
@@ -108,28 +73,11 @@ class ModelTest():
                                 self.model = self.model.append([y], exog = new_exog, refit=False) 
                             elif self.model_type == 'SARIMA':
                                 self.model = self.model.append([y], refit=False)
-                    print("Model testing successful.")
-                    return self.predictions
-   
-                # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
-                elif self.forecast_type == 'ol-multi':
 
-                    for t in range(0, int(self.steps_ahead/steps_jump)):
-                        # Forecast 'period' steps at a time
-                        y_hat = self.model.forecast(steps=steps_jump, exog=exog_test.iloc[t*steps_jump:(t+1)*steps_jump])
-                        # Append the forecasts to the list
-                        self.predictions.extend(y_hat)
-                        # Take the actual value from the test set to predict the 'period' next
-                        y = self.test.iloc[t*steps_jump:(t+1)*steps_jump, self.test.columns.get_loc(self.target_column)]
-                        # Take the exogenous values from the test set to predict the 'period' next
-                        new_exog = exog_test.iloc[t*steps_jump:(t+1)*steps_jump]
-                        # Update the model with the actual value and exogenous
-                        if ol_refit:
-                            self.model = self.model.append(y, exog=new_exog, refit=True)
-                        else:
-                            self.model = self.model.append(y, exog=new_exog, refit=False) 
-                    print("Model testing successful.")        
-                    return self.predictions
+                    predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])            
+                    print("Model testing successful.")
+
+                    return predictions
                 
             except Exception as e:
                 print(f"An error occurred during the model test: {e}")
