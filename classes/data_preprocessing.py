@@ -295,7 +295,7 @@ class DataPreprocessor():
         X_test = []
         y_test = [] 
         # If run mode requires training create training windows
-        if self.run_mode == "train" or self.run_mode == "train_test":
+        if self.run_mode in ["train","train_test","fine_tuning"]:
             for i in range(seq_len, len(train)):
                 X_train.append(train[self.target_column].iloc[i-seq_len : i])
                 y_train.append(train[self.target_column].iloc[i])

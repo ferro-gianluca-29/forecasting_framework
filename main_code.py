@@ -12,6 +12,7 @@ from classes.performance_measurement import PerfMeasure
 import datetime
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
 from utils.time_series_analysis import multiple_STL, moving_average_ST
+from keras.models import load_model
 from xgboost import plot_importance, plot_tree
 
 # END OF LIBRARY IMPORTS #
@@ -146,14 +147,15 @@ def main():
             #################### LOAD MODEL FOR TEST OR FINE TUNING ####################
             # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
 
-            # Load a pre-trained model
-            pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
-            last_train_index = pre_trained_model.data.row_labels[-1] + 1
-            train_start_index = last_train_index
 
             match args.model_type:
 
                     case 'ARIMA':
+
+                        # Load a pre-trained model
+                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
+                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
+                        train_start_index = last_train_index
 
                         # Update the indices so that the the indices are contiguous to those of the pre-trained model
 
@@ -171,6 +173,11 @@ def main():
  
                     case 'SARIMAX'|'SARIMA': 
 
+                        # Load a pre-trained model
+                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
+                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
+                        train_start_index = last_train_index
+
                         # Update the indices so that the the indices are contiguous to those of the pre-trained model
                         
                         test_start_index = test.index[0] + last_train_index
@@ -187,8 +194,16 @@ def main():
                         elif args.run_mode == "test":
                             # Load the model 
                             model = pre_trained_model
+                    
+                    case 'LSTM':
+                        model = load_model(f"{args.model_path}/model.h5")
+                        history = model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test),batch_size=1000)
+                        valid_metrics = history.history['val_loss']
+                        # Save training data
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                end_index = len(train),  valid_metrics = valid_metrics)
 
-            ######################## # END OF LOAD MODEL ####################
+            ######################## # END OF LOAD MODEL AND FINE TUNING ####################
     
         if args.run_mode == "train" or args.run_mode == "train_test":
 
