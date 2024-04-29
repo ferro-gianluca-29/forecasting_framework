@@ -296,7 +296,7 @@ def main():
                         # Compute performance metrics
                         metrics = perf_measure.get_performance_metrics(test, predictions) 
                         # Compute naive performance metrics
-                        metrics_naive = perf_measure.get_performance_metrics(test, naive_predictions)
+                        metrics_naive = perf_measure.get_performance_metrics(test, naive_predictions, naive = True)
                         # Save the index of the last element of the training set
                         end_index = len(train)
                         # Save model data

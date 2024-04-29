@@ -1,26 +1,35 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error, r2_score
 from sktime.performance_metrics.forecasting import mean_squared_percentage_error
 from classes.model_testing import ModelTest
 
 class PerfMeasure(ModelTest):
     
-    def get_performance_metrics(self, test, predictions):
+    def get_performance_metrics(self, test, predictions, naive = False):
         try:
             if self.model_type == 'ARIMA' or self.model_type == 'SARIMA':
                 test = test[:self.steps_ahead][self.target_column]
-            # Handle zero values in test_data for MAPE and MSPE calculations
-            test_data_non_zero = test[test != 0]
-            predictions_non_zero = predictions[ predictions != 0]
-
+                non_zero_indices = np.where(test != 0)
+                # Handle zero values in test_data for MAPE and MSPE calculations
+                if naive == False:
+                    predictions_non_zero = pd.Series({index: item.iloc[0] for index, item in predictions.iteritems()})
+                else: 
+                    predictions_non_zero = predictions.iloc[non_zero_indices]
+            else:
+                non_zero_indices = np.where(test != 0)
+                predictions_non_zero = predictions.iloc[non_zero_indices]
+                
+            test_non_zero = test.iloc[non_zero_indices]
+        
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)
             rmse = np.sqrt(mse)
             performance_metrics['MSE'] = mse
             performance_metrics['RMSE'] = rmse
-            performance_metrics['MAPE'] = mean_absolute_percentage_error(test_data_non_zero, predictions_non_zero)
-            performance_metrics['MSPE'] = mean_squared_percentage_error(test_data_non_zero, predictions_non_zero)
+            performance_metrics['MAPE'] = mean_absolute_percentage_error(test_non_zero, predictions_non_zero)
+            performance_metrics['MSPE'] = mean_squared_percentage_error(test_non_zero, predictions_non_zero)
             performance_metrics['MAE'] = mean_absolute_error(test, predictions)
             performance_metrics['R_2'] = r2_score(test, predictions)
             return performance_metrics

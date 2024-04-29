@@ -41,9 +41,10 @@ class ModelTest():
                         self.model = self.model.append([y], refit = True)
                     else:
                         self.model = self.model.append([y], refit = False)
-                self.predictions = pd.Series(self.predictions, index=self.test.index[:self.steps_ahead])
+                        
+                predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])
                 print("Model testing successful.")        
-                return self.predictions
+                return predictions
 
             # ROLLING FORECASTS (MULTI STEP-AHEAD, OPEN LOOP)
             elif self.forecast_type == 'ol-multi':
