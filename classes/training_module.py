@@ -186,7 +186,7 @@ class ModelTraining():
             if self.verbose: lstm_model.summary()
             
             lstm_model.compile(optimizer="adam",loss="MSE")
-            history= lstm_model.fit(X_train, y_train, epochs=200, validation_data=(X_test, y_test),batch_size=1000)
+            history= lstm_model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test),batch_size=1000)
             my_loss= lstm_model.history.history['loss']
             valid_loss = history.history['val_loss']
 
