@@ -9,23 +9,27 @@ class PerfMeasure(ModelTest):
     
     def get_performance_metrics(self, test, predictions, naive = False):
         try:
-            if self.model_type in ['ARIMA','SARIMA','SARIMAX']:
-                test = test[:self.steps_ahead][self.target_column]
-                non_zero_indices = np.where(test != 0)
-                # Handle zero values in test_data for MAPE and MSPE calculations
-                if naive == False:
-                    # predictions is a series containing a series in each element, so it must be trasformed to a simple series of values, keeping the original index
-                    predictions_non_zero = pd.Series({index: item.iloc[0] for index, item in predictions.iteritems()})
-                else: 
-                    predictions_non_zero = predictions.iloc[non_zero_indices]
-                test_non_zero = test.iloc[non_zero_indices]
-            else:
-                non_zero_indices = np.where(test != 0)
-                predictions_non_zero = predictions[non_zero_indices]
-                test_non_zero = test[non_zero_indices]
+            match self.model_type:
                 
-            
-        
+                case 'ARIMA'|'SARIMA'|'SARIMAX':
+                    test = test[:self.steps_ahead][self.target_column]
+                    non_zero_indices = np.where(test != 0)
+                    # Handle zero values in test_data for MAPE and MSPE calculations
+                    if naive == False:
+                        # predictions is a series containing a series in each element, so it must be trasformed to a simple series of values, keeping the original index
+                        predictions_non_zero = pd.Series({index: item.iloc[0] for index, item in predictions.iteritems()})
+                    else: 
+                        predictions_non_zero = predictions.iloc[non_zero_indices]
+                    test_non_zero = test.iloc[non_zero_indices]
+                case 'LSTM':
+                    non_zero_indices = np.where(test != 0)
+                    predictions_non_zero = predictions[non_zero_indices]
+                    test_non_zero = test[non_zero_indices]
+                case 'XGB':
+                    non_zero_indices = np.where(test != 0)
+                    predictions_non_zero = predictions[non_zero_indices]
+                    test_non_zero = test.iloc[non_zero_indices]
+
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)
             rmse = np.sqrt(mse)

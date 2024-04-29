@@ -13,6 +13,7 @@ import datetime
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
 from utils.time_series_analysis import multiple_STL, moving_average_ST
 from keras.models import load_model
+import xgboost as xgb
 from xgboost import plot_importance, plot_tree
 
 # END OF LIBRARY IMPORTS #
@@ -199,6 +200,22 @@ def main():
                         model = load_model(f"{args.model_path}/model.h5")
                         history = model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test),batch_size=1000)
                         valid_metrics = history.history['val_loss']
+                        # Save training data
+                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                end_index = len(train),  valid_metrics = valid_metrics)
+                    
+                    case 'XGB':
+                        model = xgb.XGBRegressor()
+                        model.load_model(f"{args.model_path}/model.json")
+                        model = model.fit(
+                        X_train,
+                        y_train,
+                        eval_set=[(X_train, y_train), (X_test, y_test)],
+                        eval_metric=['rmse', 'mae'],
+                        early_stopping_rounds=100,
+                        verbose=True  # Set to True to see training progress
+                    )
+                        valid_metrics = model.evals_result()
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)

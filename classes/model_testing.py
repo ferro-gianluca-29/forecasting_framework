@@ -163,9 +163,9 @@ class ModelTest():
     def XGB_plot_pred(self, predictions, train):
         try:
             #Forecast on Test Set
-            self.test['MW_Prediction'] = predictions
+            self.test['Prediction'] = predictions
             full_data = pd.concat([self.test, train], sort=False)
-            _ = full_data[['hourly_demand','MW_Prediction']].plot(figsize=(15, 5))
+            _ = full_data[[self.target_column,'Prediction']].plot(figsize=(15, 5))
             plt.show()
         except Exception as e:
             print(f"An error occurred during plot of predictions: {e}")

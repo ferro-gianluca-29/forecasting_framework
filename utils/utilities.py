@@ -144,11 +144,14 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
                     file.write(f"Validation MAPE:\n {valid_metrics[3]}\n")
                 file.write(f"Launch Command Used:{sys.argv[1:]}\n")
                 # Save the model
-                if model_type == 'LSTM':
-                    model.save(f"{path}/model.h5")
-                else:
-                    with open(f"{path}/model.pkl", "wb") as file:
-                        pickle.dump(model, file)
+                match model_type:
+                    case 'LSTM':
+                        model.save(f"{path}/model.h5")
+                    case 'ARIMA'|'SARIMA'|'SARIMAX':
+                        with open(f"{path}/model.pkl", "wb") as file:
+                            pickle.dump(model, file)
+                    case 'XGB':
+                        model.save_model(f"{path}/model.json")
 
             elif save_mode == "test":
                 # Test Info
