@@ -45,14 +45,17 @@ class DataLoader():
                     df.rename(columns={time_column_name: 'date'}, inplace=True)
 
                 # Get the indexes of the sets given by the argument --date_list
-                dates = []
-                for date in self.date_list:     
-                    dates.append(df[df['date'] == date].index)
-                # Convert the 'date' column to datetime
-                df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S', utc=True)
-                # Sort the dataset by date
-                df = df.sort_values(by='date')
-                
+                if self.date_list is not None:
+                    dates = []
+                    for date in self.date_list:     
+                        dates.append(df[df['date'] == date].index)
+                    # Convert the 'date' column to datetime
+                    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S', utc=True)
+                    # Sort the dataset by date
+                    df = df.sort_values(by='date')
+                else:
+                    dates = None
+
                 match self.model_type:
                     case 'LSTM'|'XGB':
                         # Set the date column as index for neural network models 

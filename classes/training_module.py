@@ -59,11 +59,10 @@ class ModelTraining():
                 forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
                 # Recursive evaluation through the rest of the sample
                 for t in range(valid.index[0], valid.index[0] + nsteps_ahead):
-                    new_obs = valid.iloc[t:t]
+                    new_obs = valid.loc[[t]]
                     model_fit = model_fit.append(new_obs, refit=refit_model)
                     forecasts[new_obs.index[0]] = model_fit.forecast(steps=nforecasts)
                     
-
                 # Combine all forecasts into a DataFrame
                 forecasts = pd.concat(forecasts, axis=1)
 

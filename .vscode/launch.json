@@ -12,7 +12,7 @@
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/SP_SPX.csv",
                 "--target_column", "open",
-                "--model_type", "XGB",
+                "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling", 
                 "--validation",
