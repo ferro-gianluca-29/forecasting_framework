@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 from keras.layers import Dense,Dropout,SimpleRNN,LSTM
 from keras.models import Sequential
+from keras.metrics import MeanAbsoluteError, MeanAbsolutePercentageError, RootMeanSquaredError
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -48,6 +49,7 @@ class ModelTraining():
                 valid = self.valid[self.target_column]
                 # Number of time steps to forecast
                 nforecasts = 3  
+                nsteps_ahead = 10
                 # Choose whether to refit the model at each step
                 refit_model = False  
                 model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
@@ -56,8 +58,8 @@ class ModelTraining():
                 forecasts = {}
                 forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
                 # Recursive evaluation through the rest of the sample
-                for t in range(valid.index[0],valid.index[0] + 10):
-                    new_obs = valid.loc[t:t]
+                for t in range(valid.index[0], valid.index[0] + nsteps_ahead):
+                    new_obs = valid.iloc[t:t]
                     model_fit = model_fit.append(new_obs, refit=refit_model)
                     forecasts[new_obs.index[0]] = model_fit.forecast(steps=nforecasts)
                     
@@ -74,12 +76,12 @@ class ModelTraining():
 
                 flattened = forecast_errors.apply(flatten)
                 flattened.index = (flattened.index + 1).rename('horizon')
-                valid_rmse = (flattened**2).mean(axis=1)**0.5
-                valid_mse = (flattened**2).mean(axis=1)
-                valid_mae = ((flattened).abs()).mean(axis=1)
                 perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
-                valid_mape = ((perc_forecast_errors).abs()).mean(axis=1)
-                valid_metrics = [valid_rmse, valid_mse, valid_mae, valid_mape]
+                valid_metrics = {}
+                valid_metrics['valid_rmse'] = (flattened**2).mean(axis=1)**0.5
+                valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
+                valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
+                valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
 
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
@@ -151,12 +153,12 @@ class ModelTraining():
 
                 flattened = forecast_errors.apply(flatten)
                 flattened.index = (flattened.index + 1).rename('horizon')
-                valid_rmse = (flattened**2).mean(axis=1)**0.5
-                valid_mse = (flattened**2).mean(axis=1)
-                valid_mae = ((flattened).abs()).mean(axis=1)
                 perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
-                valid_mape = ((perc_forecast_errors).abs()).mean(axis=1)
-                valid_metrics = [valid_rmse, valid_mse, valid_mae, valid_mape]
+                valid_metrics = {}
+                valid_metrics['valid_rmse'] = (flattened**2).mean(axis=1)**0.5
+                valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
+                valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
+                valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
                 
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
@@ -168,7 +170,7 @@ class ModelTraining():
             print(f"An error occurred during the model training: {e}")
             return None
         
-    def train_LSTM_model(self, X_train, y_train, X_test, y_test):
+    def train_LSTM_model(self, X_train, y_train, X_valid, y_valid):
         try:
             lstm_model = Sequential()
 
@@ -185,28 +187,35 @@ class ModelTraining():
 
             if self.verbose: lstm_model.summary()
             
-            lstm_model.compile(optimizer="adam",loss="MSE")
-            history= lstm_model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test),batch_size=1000)
+            lstm_model.compile(optimizer="adam",
+                               loss="MSE",
+                               metrics=[MeanAbsoluteError(), MeanAbsolutePercentageError(), RootMeanSquaredError()])
+            
+            history= lstm_model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
             my_loss= lstm_model.history.history['loss']
-            valid_loss = history.history['val_loss']
+            valid_metrics = {}
+            valid_metrics['valid_loss'] = history.history['val_loss']
+            valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
+            valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
+                        
 
             if self.verbose:
                 # plot train and validation loss
                 plt.plot(my_loss)
-                plt.plot(valid_loss)
+                plt.plot(history.history['val_loss'])
                 plt.title('model train vs validation loss')
                 plt.ylabel('loss')
                 plt.xlabel('epoch')
                 plt.legend(['train', 'validation'], loc='upper right')
                 plt.show()
             
-            return lstm_model, valid_loss
+            return lstm_model, valid_metrics
         
         except Exception as e:
             print(f"An error occurred during the model training: {e}")
             return None
         
-    def train_XGB_model(self, X_train, y_train, X_test, y_test):
+    def train_XGB_model(self, X_train, y_train, X_valid, y_valid):
         try:
             # Define the XGBoost Regressor with improved parameters
             reg = xgb.XGBRegressor(
@@ -226,14 +235,13 @@ class ModelTraining():
             XGB_model = reg.fit(
                 X_train,
                 y_train,
-                eval_set=[(X_train, y_train), (X_test, y_test)],
+                eval_set=[(X_train, y_train), (X_valid, y_valid)],
                 eval_metric=['rmse', 'mae'],
                 early_stopping_rounds=100,
                 verbose=True  # Set to True to see training progress
             )
-
+            
             valid_metrics = XGB_model.evals_result()
-
             return XGB_model, valid_metrics
         
         except Exception as e:

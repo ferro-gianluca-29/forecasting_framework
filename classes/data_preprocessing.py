@@ -7,13 +7,13 @@ import pickle
 
 class DataPreprocessor():
     
-    def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, date_list = None, 
+    def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, dates = None, 
                  scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
                  folder_path = None, model_path = None,  verbose = False):
         
         self.file_ext = file_ext
         self.run_mode = run_mode
-        self.date_list = date_list 
+        self.dates = dates
         self.model_type = model_type
         self.df = df
         self.target_column = target_column
@@ -261,15 +261,17 @@ class DataPreprocessor():
 
     def split_data(self, df):
         n = len(df)
-        if self.date_list is not None:
+        if self.dates is not None:
+            # Convert into int values the list containing Int64Index elements
+            self.dates = [index[0] for index in self.dates]
             if self.validation:
-                train = df[df['date'].between(self.date_list[0], self.date_list[1])]
-                valid = df[df['date'].between(self.date_list[2], self.date_list[3])]
-                test = df[df['date'].between(self.date_list[4], self.date_list[5])]
+                train = df[self.dates[0]:self.dates[1]]
+                valid = df[self.dates[2]:self.dates[3]]
+                test = df[self.dates[4]:self.dates[5]]
                 return train, test, valid
             else:
-                train = df[df['date'].between(self.date_list[0], self.date_list[1])]
-                test = df[df['date'].between(self.date_list[2], self.date_list[3])]
+                train = df[self.dates[0]:self.dates[1]]
+                test = df[self.dates[2]:self.dates[3]]
                 return train, test, None 
         else:
             if  self.validation:
@@ -287,23 +289,34 @@ class DataPreprocessor():
                 test = df[int(n * self.train_size):]
                 return train, test, None 
         
-    def data_windowing(self, train, test):
+    def data_windowing(self, train, valid, test):
         # Data windowing for neural network models
         seq_len = 20
         X_train = []
         y_train = []    
+        X_valid = []
+        y_valid = [] 
         X_test = []
         y_test = [] 
-        # If run mode requires training create training windows
+
+        # If run mode requires training create training and validation windows
         if self.run_mode in ["train","train_test","fine_tuning"]:
             for i in range(seq_len, len(train)):
                 X_train.append(train[self.target_column].iloc[i-seq_len : i])
                 y_train.append(train[self.target_column].iloc[i])
+            for i in range(seq_len, len(valid)):
+                X_valid.append(valid[self.target_column].iloc[i-seq_len : i])
+                y_valid.append(valid[self.target_column].iloc[i])
             # convert to numpy array
             X_train = np.array(X_train)
             y_train = np.array(y_train)
+            X_valid = np.array(X_train)
+            y_valid = np.array(y_train)
             # reshape data to input into RNN models
             X_train = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
+            X_valid = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
+
+        # Create test windows    
         for i in range(seq_len, len(test)):
             X_test.append(test[self.target_column].iloc[i-seq_len : i])
             y_test.append(test[self.target_column].iloc[i])
@@ -314,7 +327,7 @@ class DataPreprocessor():
         X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
 
         print("Data windowing complete")
-        return [X_train, y_train, X_test, y_test]    
+        return [X_train, y_train, X_valid, y_valid, X_test, y_test]    
     
     def create_time_features(self, df, label=None, seasonal_model = None, lags = [1, 2, 3, 24], rolling_window = 24):
         """

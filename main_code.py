@@ -76,8 +76,8 @@ def main():
         os.makedirs(folder_path)
 
         #  DATA LOADING
-        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index)
-        df = data_loader.load_data()
+        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index, args.date_list)
+        df, dates = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
         
@@ -88,50 +88,77 @@ def main():
         # Extract the file extension from the path 
         file_ext = os.path.splitext(args.dataset_path)[1]
         
-        data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, args.date_list, 
+        data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, dates, 
                                              args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
                                              folder_path, args.model_path, verbose)
-        
-        # preprocessing and split 
+
+        # Preprocessing and split 
         if args.run_mode == "test":
+            # If you need to just test the model, you must give the "--test_size" argument
+            # the test set will be a percentage part of the whole dataset
             test, exit = data_preprocessor.preprocess_data()
-        else:
-            if args.validation:
-                train, test, valid, exit = data_preprocessor.preprocess_data()
-                if exit:
+            if exit:
                     raise ValueError("Unable to preprocess dataset.")
-            else:
-                train, test, exit = data_preprocessor.preprocess_data()
-                valid = None
-                # Data windowing for neural network models
-                if args.model_type == 'LSTM':
+        else:
+            # Preprocessing for training and testing
+            match args.model_type:
+
+                case 'ARIMA':
+                    if args.validation:
+                        train, test, valid, exit = data_preprocessor.preprocess_data()
+                        if exit:
+                            raise ValueError("Unable to preprocess dataset.")
+
+                    else:
+                        train, test, exit = data_preprocessor.preprocess_data()
+                        valid = None      
+                        if exit:
+                            raise ValueError("Unable to preprocess dataset.")
+
+                case 'SARIMA'|'SARIMAX':
+                    # Set the exogenous variable column
+                    if args.exog is  None:
+                        exog = args.target_column
+                    else: 
+                        exog = args.exog
+
+                    if args.validation:
+                        train, test, valid, exit = data_preprocessor.preprocess_data()
+                        if exit:
+                            raise ValueError("Unable to preprocess dataset.")
+                        target_valid = valid[[args.target_column]]
+                        exog_valid = valid[exog]
+                    else:
+                        train, test, exit = data_preprocessor.preprocess_data()
+                        if exit:
+                            raise ValueError("Unable to preprocess dataset.")
+                        valid = None   
+                        exog_valid = None   
+                            
+                    target_train = train[[args.target_column]]
+                    exog_train = train[exog]    
+                    target_test = test[[args.target_column]]
+                    exog_test = test[exog]
+
+                case 'LSTM':
+                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
                     if args.seasonal_model:
                         # Take the seasonal component of the training set
                         train_seasonal = moving_average_ST(train,args.target_column).seasonal
-                        X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train_seasonal,test)
+                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_seasonal, valid, test)
                     else:
-                        X_train, y_train, X_test, y_test = data_preprocessor.data_windowing(train,test)
-                elif args.model_type == 'XGB':
+                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, valid, test)
+
+                case 'XGB':
+                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
                     X_train, y_train = data_preprocessor.create_time_features(train, label=args.target_column, seasonal_model = args.seasonal_model)
+                    X_valid, y_valid = data_preprocessor.create_time_features(valid, label=args.target_column, seasonal_model = args.seasonal_model)
                     X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
-                if exit:
-                    raise ValueError("Unable to preprocess dataset.")
-                
-        
-        # Splitting target and exogenous variable in training and test sets for the SARIMAX model
-        if (args.model_type == 'SARIMAX') or (args.model_type == 'SARIMA'):
-            if args.exog is  None:
-                exog = args.target_column
-            else: 
-                exog = args.exog
-            target_train = train[[args.target_column]]
-            exog_train = train[exog]
-            if args.validation:
-                target_valid = valid[[args.target_column]]
-                exog_valid = valid[exog]
-            else: exog_valid = None
-            target_test = test[[args.target_column]]
-            exog_test = test[exog]
+
 
 #################### END OF PREPROCESSING AND DATASET SPLIT ####################
         
@@ -198,7 +225,7 @@ def main():
                     
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
-                        history = model.fit(X_train, y_train, epochs=1, validation_data=(X_test, y_test),batch_size=1000)
+                        history = model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
                         valid_metrics = history.history['val_loss']
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
@@ -210,7 +237,7 @@ def main():
                         model = model.fit(
                         X_train,
                         y_train,
-                        eval_set=[(X_train, y_train), (X_test, y_test)],
+                        eval_set=[(X_train, y_train), (X_valid, y_valid)],
                         eval_metric=['rmse', 'mae'],
                         early_stopping_rounds=100,
                         verbose=True  # Set to True to see training progress
@@ -251,13 +278,13 @@ def main():
                                 best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
                     
                     case 'LSTM':
-                        model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_test, y_test)
+                        model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_valid, y_valid)
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
                     
                     case 'XGB':
-                        model, valid_metrics = model_training.train_XGB_model(X_train, y_train, X_test, y_test)
+                        model, valid_metrics = model_training.train_XGB_model(X_train, y_train, X_valid, y_valid)
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
@@ -319,6 +346,7 @@ def main():
             #################### END OF PLOT PREDICTIONS ####################        
          
             #################### PERFORMANCE MEASUREMENT AND SAVING #################
+
             if predictions is not None:
 
                 perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
@@ -352,6 +380,7 @@ def main():
                         end_index = len(train)
                         # Save model data
                         save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
+
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
 

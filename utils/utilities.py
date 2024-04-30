@@ -137,11 +137,9 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
                 file.write(f"Best Order: {best_order}\n")
                 file.write(f"End Index: {end_index}\n")
                 file.write(f"Dataset: {dataset}\n")
-                if validation:
-                    file.write(f"Validation RMSE:\n {valid_metrics[0]}\n")
-                    file.write(f"Validation MSE:\n {valid_metrics[1]}\n")
-                    file.write(f"Validation MAE:\n {valid_metrics[2]}\n")
-                    file.write(f"Validation MAPE:\n {valid_metrics[3]}\n")
+               #if validation:
+                for metric in valid_metrics.keys():
+                    file.write(f"{metric}:\n {valid_metrics[metric]}\n")
                 file.write(f"Launch Command Used:{sys.argv[1:]}\n")
                 # Save the model
                 match model_type:

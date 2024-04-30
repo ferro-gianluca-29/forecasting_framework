@@ -3,12 +3,13 @@ import os
 
 class DataLoader(): 
 
-    def __init__(self,file_path, model_type, target_column, time_column_index = 0):
+    def __init__(self,file_path, model_type, target_column, time_column_index = 0, date_list = None):
         self.file_path = file_path
         self.model_type = model_type
         self.format = os.path.splitext(file_path)[1] 
         self.target_column = target_column
         self.time_column_index = time_column_index 
+        self.date_list = date_list
 
     def load_data(self):
 
@@ -18,7 +19,7 @@ class DataLoader():
         elif self.format == '.txt':
             df = pd.read_csv(self.file_path, delimiter='\t')
         elif self.format == '.xlsx' or self.format == '.xls':
-            df = pd.read_excel(self.file_path)
+            df = pd.read_excel(self.file_path, engine='openpyxl')
         elif self.format ==  '.json':
             df = pd.read_json(self.file_path)
         else:
@@ -43,6 +44,10 @@ class DataLoader():
                     # Rename if it's already the first column
                     df.rename(columns={time_column_name: 'date'}, inplace=True)
 
+                # Get the indexes of the sets given by the argument --date_list
+                dates = []
+                for date in self.date_list:     
+                    dates.append(df[df['date'] == date].index)
                 # Convert the 'date' column to datetime
                 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S', utc=True)
                 # Sort the dataset by date
@@ -66,6 +71,6 @@ class DataLoader():
                         df.insert(df.columns.shape[0] - 1, 'date', df.pop('date'))
             else:
                  print("time column not found.")
-            return df
+            return df, dates
 
     
