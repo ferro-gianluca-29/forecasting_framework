@@ -218,7 +218,10 @@ def main():
                             # Update the model with the new data
                             train.index = range(train_start_index, train_start_index + len(train)) 
                             exog_train.index = range(train_start_index, train_start_index + len(train))  
-                            model = pre_trained_model.append(train[args.target_column], exog =  exog_train, refit = True)
+                            if args.model_type == 'SARIMA':
+                                model = pre_trained_model.append(train[args.target_column], refit = True)
+                            elif args.model_type == 'SARIMAX':
+                                model = pre_trained_model.append(train[args.target_column], exog = exog_train, refit = True)
                         elif args.run_mode == "test":
                             # Load the model 
                             model = pre_trained_model
@@ -226,7 +229,10 @@ def main():
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
                         history = model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
-                        valid_metrics = history.history['val_loss']
+                        valid_metrics = {}
+                        valid_metrics['valid_loss'] = history.history['val_loss']
+                        valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
+                        valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)

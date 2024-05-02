@@ -6,8 +6,20 @@ from sktime.performance_metrics.forecasting import mean_squared_percentage_error
 from classes.model_testing import ModelTest
 
 class PerfMeasure(ModelTest):
+    """
+    Class that extends ModelTest to provide additional functionality for measuring and plotting performance
+    metrics of forecasting models.
+    """
     
     def get_performance_metrics(self, test, predictions, naive = False):
+        """
+        Calculates a suite of performance metrics for model evaluation.
+
+        :param test: The actual test data.
+        :param predictions: Predicted values by the model.
+        :param naive: Boolean flag to indicate if the naive predictions should be considered for zero-handling.
+        :return: A dictionary of performance metrics including MSE, RMSE, MAPE, MSPE, MAE, and R-squared.
+        """
         try:
             match self.model_type:
                 
@@ -46,6 +58,13 @@ class PerfMeasure(ModelTest):
             return None
 
     def plot_stats_performance(self, model_type, metrics, metrics_naive):
+        """
+        Plots a bar graph comparing the performance metrics of a given model against naive predictions.
+
+        :param model_type: The type of model tested.
+        :param metrics: Performance metrics of the model.
+        :param metrics_naive: Performance metrics of the naive model.
+        """
         try:
             metric_names = list(metrics.keys())
             metric_values = list(metrics.values())
@@ -71,6 +90,13 @@ class PerfMeasure(ModelTest):
             print(f"An error occurred during chart creation: {e}")
             
     def print_stats_performance(self, model_type, metrics, metrics_naive):
+        """
+        Prints a detailed comparison of performance metrics for the model and naive predictions.
+
+        :param model_type: The type of model tested.
+        :param metrics: Performance metrics of the model.
+        :param metrics_naive: Performance metrics of the naive model.
+        """
         try:
             print(f'\n===== Model Performance: {model_type} =====')
             for key, value in metrics.items():

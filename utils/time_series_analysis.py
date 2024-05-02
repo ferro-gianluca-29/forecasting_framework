@@ -75,7 +75,7 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose
 
         p = q = P = Q = range(0, 2)
         griglia_param_SARIMAX = list(product(p, [d], q, P, [D], Q))
-        result_df = optimize_SARIMAX(train, exog, griglia_param_SARIMAX, period)
+        result_df = optimize_SARIMAX(train, griglia_param_SARIMAX, period, exog)
         conditional_print(verbose, result_df)
         best_order = result_df.iloc[0]['(p, d, q, P, D, Q)']
         print(f"\nThe optimal parameters for the SARIMAX model are: {best_order}\n")
@@ -95,12 +95,15 @@ def optimize_ARIMA(endog, order_list):
     result_df = pd.DataFrame(results, columns=['(p, d, q)', 'AIC']).sort_values(by='AIC', ascending=True).reset_index(drop=True)
     return result_df
 
-def optimize_SARIMAX(endog, exog, order_list, s):
+def optimize_SARIMAX(endog, order_list, s, exog = None):
     print("\nOptimizing SARIMAX parameters in progress...\n")
     results = []
     for order in tqdm(order_list):
         try: 
-            model = SARIMAX(endog, exog=exog, order=(order[0], order[1], order[2]), seasonal_order=(order[3], order[4], order[5], s)).fit(disp=False)
+            if exog is not None:
+                model = SARIMAX(endog, exog=exog, order=(order[0], order[1], order[2]), seasonal_order=(order[3], order[4], order[5], s)).fit(disp=False)
+            else:
+                model = SARIMAX(endog, order=(order[0], order[1], order[2]), seasonal_order=(order[3], order[4], order[5], s)).fit(disp=False)
             aic = model.aic
             results.append([order, aic])    
         except:

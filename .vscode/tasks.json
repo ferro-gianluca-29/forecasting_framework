@@ -2,17 +2,107 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Training and Test",
+            "label": "Training and Test - ARIMA",
             "type": "shell",
             "command": "python",
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
                 "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--train_size", "0.3",
+                "--scaling", 
+                "--validation",
+                "--steps_ahead", "10",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Training and Test - SARIMA",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_type", "SARIMA",
+                "--scaling", 
+                "--validation",
+                "--steps_ahead", "10",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Training and Test - SARIMAX",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--exog", "close",
+                "--model_type", "SARIMAX",
+                "--scaling", 
+                "--validation",
+                "--steps_ahead", "10",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Training and Test - LSTM",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_type", "LSTM",
+                "--scaling", 
+                "--validation",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Training and Test - XGB",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
+                "--model_type", "XGB",
+                "--scaling", 
+                "--validation",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",

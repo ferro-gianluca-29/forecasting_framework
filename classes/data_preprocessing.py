@@ -6,7 +6,26 @@ import datetime as datetime
 import pickle
 
 class DataPreprocessor():
-    
+    """
+    A class to handle preprocessing of datasets for machine learning tasks, handling tasks such as managing NaN values,
+    removing non-numeric columns, splitting datasets, managing outliers, scaling data, and more.
+
+    :param file_ext: File extension for saving datasets
+    :param run_mode: Mode of operation ('train', 'test', 'train_test', 'fine_tuning')
+    :param model_type: Type of machine learning model to prepare data for
+    :param df: DataFrame containing the data
+    :param target_column: Name of the target column in the DataFrame
+    :param dates: Specific dates for splitting data, if applicable
+    :param scaling: Boolean flag to determine if scaling should be applied
+    :param validation: Boolean flag to determine if a validation set should be created
+    :param train_size: Proportion of data to be used for training
+    :param val_size: Proportion of data to be used for validation
+    :param test_size: Proportion of data to be used for testing
+    :param seasonal_split: Boolean flag to use seasonal data splitting logic
+    :param folder_path: Path to folder for saving data-related files
+    :param model_path: Path to model file for loading or saving the model
+    :param verbose: Boolean flag for verbose output
+    """    
     def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, dates = None, 
                  scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
                  folder_path = None, model_path = None,  verbose = False):
@@ -29,10 +48,21 @@ class DataPreprocessor():
         self.verbose = verbose
 
     def conditional_print(self, *args, **kwargs):
+        """
+        Print messages conditionally based on the verbose attribute.
+
+        :param args: Non-keyword arguments to be printed
+        :param kwargs: Keyword arguments to be printed
+        """
         if self.verbose:
             print(*args, **kwargs)
 
     def preprocess_data(self):
+        """
+        Main method to preprocess the dataset according to specified configurations.
+
+        :return: Depending on the mode, returns the appropriate datasets along with an exit flag.
+        """
         exit = False
         try:
             print('\nData preprocessing in progress...\n')
@@ -50,11 +80,11 @@ class DataPreprocessor():
             ########### REMOVING NON-NUMERIC COLUMNS ############
             
             # If there are columns containing non-numeric characters (excluding dates) they are removed
-            non_numeric_cols = self.df.select_dtypes(include=['object']).columns
+            #non_numeric_cols = self.df.select_dtypes(include=['object']).columns
             # Remove the target column from the list of columns to be deleted, if it is of object type
-            non_numeric_cols = non_numeric_cols.drop(self.target_column, errors='ignore')
+            #non_numeric_cols = non_numeric_cols.drop(self.target_column, errors='ignore')
             # Deletes the non-numeric columns from the DataFrame
-            self.df.drop(columns=non_numeric_cols, inplace=True)      
+            #self.df.drop(columns=non_numeric_cols, inplace=True)      
             #############################
             
             if self.run_mode == "test":
@@ -120,6 +150,14 @@ class DataPreprocessor():
             return None
          
     def manage_nan(self, max_nan_percentage=50, min_nan_percentage=10, percent_threshold = 40):
+        """
+        Manage NaN values in the dataset based on defined percentage thresholds and interpolation strategies.
+
+        :param max_nan_percentage: Maximum percentage of NaNs allowed in a column before it is considered for deletion or special treatment
+        :param min_nan_percentage: Minimum percentage of NaNs required to consider a column for linear interpolation
+        :param percent_threshold: Percentage threshold of NaNs in the target column to trigger file splitting
+        :return: A tuple containing the possibly modified DataFrame and an exit flag indicating if the file needs reloading
+        """
         # percent_threshold is the percentage threshold of NaNs in the target column to split the file
         df = self.df.copy()
         exit = False
@@ -161,6 +199,12 @@ class DataPreprocessor():
         return df, exit
         
     def detect_nan_hole(self, df):
+        """
+        Detects the largest contiguous NaN hole in the target column.
+
+        :param df: DataFrame in which to find the NaN hole
+        :return: A dictionary with the start and end indices of the largest NaN hole in the target column
+        """
         target_column = self.target_column
         # Dictionary to store the start and end indices of the consecutive NaN group for the target column
         nan_hole = {}
@@ -189,6 +233,11 @@ class DataPreprocessor():
     
     # TO BE MODIFIED: HANDLE OTHER EXTENSIONS AS WELL
     def split_file_at_nanhole(self, nan_hole):
+        """
+        Splits the dataset at a significant NaN hole into two separate files.
+
+        :param nan_hole: Dictionary containing start and end indices of the NaN hole in the target column
+        """
         target_column = self.target_column
         # Extract the start and end indices from the target column within nan_hole
         start, end = nan_hole[target_column]
@@ -204,6 +253,12 @@ class DataPreprocessor():
         csv2.to_csv(second_file_name, index=False)
     
     def replace_outliers(self,df):
+        """
+        Replaces outliers in the DataFrame using a rolling window and IQR method.
+
+        :param df: DataFrame from which to remove and replace outliers
+        :return: DataFrame with outliers replaced
+        """
         # Set the window size and k factor
         window_size = 7  # Increase if execution is slow
         k = 1.5  # standard factor for IQR
@@ -234,6 +289,11 @@ class DataPreprocessor():
         return df
 
     def print_stats(self, train):
+        """
+        Print statistics for the selected feature in the training dataset.
+
+        :param train: DataFrame containing the training data
+        """
         # Print on the standard output the statistics of the dataset (for the selected feature)
         max_value = train[self.target_column].max()
         min_value = train[self.target_column].min()
@@ -252,7 +312,12 @@ class DataPreprocessor():
         print('\n')
 
     def scale_data(df):
+        """
+        Scale data in a DataFrame using MinMaxScaler, excluding the first column.
 
+        :param df: DataFrame to scale
+        :return: Scaled DataFrame
+        """
         scaler = MinMaxScaler()
         scaler.fit(df[df.columns[1:]])
         df[df.columns[1:]] = scaler.transform(df[df.columns[1:]])
@@ -260,6 +325,12 @@ class DataPreprocessor():
         return df
 
     def split_data(self, df):
+        """
+        Split the dataset into training, validation, and testing sets based on predefined proportions.
+
+        :param df: DataFrame to split
+        :return: Tuple of DataFrames for training, testing, and validation
+        """
         n = len(df)
         if self.dates is not None:
             # Convert into int values the list containing Int64Index elements
@@ -290,6 +361,14 @@ class DataPreprocessor():
                 return train, test, None 
         
     def data_windowing(self, train, valid, test):
+        """
+        Prepare data windows for training, validation, and testing datasets, suitable for neural network models.
+
+        :param train: Training DataFrame
+        :param valid: Validation DataFrame
+        :param test: Testing DataFrame
+        :return: Lists of input and target data arrays for training, validation, and testing phases
+        """
         # Data windowing for neural network models
         seq_len = 20
         X_train = []
@@ -331,7 +410,14 @@ class DataPreprocessor():
     
     def create_time_features(self, df, label=None, seasonal_model = None, lags = [1, 2, 3, 24], rolling_window = 24):
         """
-        Creates time series features from datetime index
+        Create time-based features for a DataFrame, potentially including Fourier features and rolling window statistics.
+
+        :param df: DataFrame to enhance with time-based features
+        :param label: Label column name for generating lagged features
+        :param seasonal_model: Boolean indicating whether to add Fourier features for seasonal models
+        :param lags: List of integers representing lag periods to generate features for
+        :param rolling_window: Window size for generating rolling mean and standard deviation
+        :return: Enhanced DataFrame with new features, optionally including target column labels
         """
         df['date'] = df.index
         df['hour'] = df['date'].dt.hour
@@ -368,6 +454,12 @@ class DataPreprocessor():
         return X
 
     def seasonal_split_data(self,df):
+        """
+        Split the dataset into seasonal parts based on day conditions to form the training, validation, and testing datasets.
+
+        :param df: DataFrame to be split
+        :return: DataFrames for training, testing, and validation, based on the seasonal conditions applied
+        """
         # Define masks for selecting different subsets of data
 
         # Mask for even days
@@ -413,6 +505,3 @@ class DataPreprocessor():
         else:
             print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n")
         return train, test, valid
-
-
-    

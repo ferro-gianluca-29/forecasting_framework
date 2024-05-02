@@ -12,12 +12,10 @@
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/SP_SPX.csv",
                 "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
+                "--model_type", "XGB",
                 "--scaling", 
                 "--validation",
-                "--steps_ahead", "10",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:55:00+02:00", 
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
                 "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
             ]
         },
@@ -64,14 +62,15 @@
             "args": [
                 "--run_mode", "fine_tuning",
                 "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--model_path", "./data/models/XGB_2024-05-02_08-55-20",
                 "--target_column", "open",
-                "--model_path", "./data/models/XGB_2024-04-29_18-18-50",
                 "--model_type", "XGB",
-                "--forecast_type", "ol-one",
+                "--exog", "close",
                 "--scaling", 
-                "--train_size","0.1",
+                "--validation",
                 "--steps_ahead", "10",
-                //  "--date_list", "2020-01-01T00:00:00.000Z", "2021-12-31T00:00:00.000Z", "2022-01-01T00:00:00.000Z", "2022-12-31T00:00:00.000Z"
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T19:55:00+02:00","2022-05-11T17:40:00+02:00",
             ]
         }
     ]

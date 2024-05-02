@@ -2,8 +2,20 @@ import pandas as pd
 import os
 
 class DataLoader(): 
+    """
+    A class for loading datasets from various file formats and preparing them for machine learning models.
+
+    :param file_path: Path to the dataset file
+    :param model_type: Type of the machine learning model ('LSTM', 'XGB', 'ARIMA', 'SARIMA', 'SARIMAX')
+    :param target_column: Name of the target column in the dataset
+    :param time_column_index: Index of the time column in the dataset (default is 0)
+    :param date_list: List of specific dates to be filtered (default is None)
+    """
 
     def __init__(self,file_path, model_type, target_column, time_column_index = 0, date_list = None):
+        """
+        Initialize the DataLoader with the specified parameters.
+        """
         self.file_path = file_path
         self.model_type = model_type
         self.format = os.path.splitext(file_path)[1] 
@@ -12,7 +24,13 @@ class DataLoader():
         self.date_list = date_list
 
     def load_data(self):
+        """
+        Load data from a file and preprocess it according to the model type and other specified parameters.
 
+        :returns: 
+            - A tuple containing the dataframe and the indices of the dates if provided in `date_list`.
+            - None if the file format is not supported or if the target column/time column is not found.
+        """
         # load the dataframe with all the columns
         if self.format == '.csv':
             df = pd.read_csv(self.file_path)
@@ -75,5 +93,3 @@ class DataLoader():
             else:
                  print("time column not found.")
             return df, dates
-
-    
