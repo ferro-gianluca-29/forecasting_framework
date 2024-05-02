@@ -3,7 +3,7 @@ import os
 
 class DataLoader(): 
     """
-    A class for loading datasets from various file formats and preparing them for machine learning models.
+    Class for loading datasets from various file formats and preparing them for machine learning models.
 
     :param file_path: Path to the dataset file
     :param model_type: Type of the machine learning model ('LSTM', 'XGB', 'ARIMA', 'SARIMA', 'SARIMAX')

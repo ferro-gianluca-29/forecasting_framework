@@ -87,19 +87,18 @@ class DataPreprocessor():
             #self.df.drop(columns=non_numeric_cols, inplace=True)      
             #############################
             
-            if self.run_mode == "test":
-                test = self.df.iloc[:int(len(self.df) * self.test_size)]
+            
+            ############## SPLIT DATASET ##############
+
+            if self.seasonal_split:
+                train, test, valid = self.seasonal_split_data(self.df)
             else:
-                ############## SPLIT DATASET ##############
+                train, test, valid = self.split_data(self.df)
 
-                if self.seasonal_split:
-                    train, test, valid = self.seasonal_split_data(self.df)
-                else:
-                    train, test, valid = self.split_data(self.df)
+            #######################
 
-                #######################
-
-                ######### OUTLIER MANAGEMENT #########
+            ######### OUTLIER MANAGEMENT #########
+            if self.run_mode != "test":
                 # Removing outliers from the training set
                 train = self.replace_outliers(train)
 
@@ -123,15 +122,21 @@ class DataPreprocessor():
                         test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
                         
 
-                elif self.run_mode == "test" or self.run_mode == "fine_tuning":
+                if self.run_mode == "test":
                     # load scaling data from pkl file
                     with open(f"{self.model_path}/scaler.pkl", "rb") as file:
                         scaler = pickle.load(file)
-
-                    if self.run_mode == "fine_tuning": 
-                        num_features = train.columns.shape[0] - 1    
-                        train[train.columns[0:num_features]] = scaler.transform(train[train.columns[0:num_features]])
-                        if self.validation: valid[valid.columns[0:num_features]] = scaler.transform(valid[valid.columns[0:num_features]])
+                    # The last column is the date column, so it is not considered
+                    num_features = test.columns.shape[0] - 1
+                    test[test.columns[0:num_features]] = scaler.transform(test[test.columns[0:num_features]]) 
+                
+                if self.run_mode == "fine_tuning": 
+                    # load scaling data from pkl file
+                    with open(f"{self.model_path}/scaler.pkl", "rb") as file:
+                        scaler = pickle.load(file)
+                    num_features = train.columns.shape[0] - 1
+                    train[train.columns[0:num_features]] = scaler.transform(train[train.columns[0:num_features]])
+                    if self.validation: valid[valid.columns[0:num_features]] = scaler.transform(valid[valid.columns[0:num_features]])
                     test[test.columns[0:num_features]] = scaler.transform(test[test.columns[0:num_features]])   
 
             ############ END DATA SCALING ###########
@@ -331,34 +336,48 @@ class DataPreprocessor():
         :param df: DataFrame to split
         :return: Tuple of DataFrames for training, testing, and validation
         """
-        n = len(df)
-        if self.dates is not None:
-            # Convert into int values the list containing Int64Index elements
-            self.dates = [index[0] for index in self.dates]
-            if self.validation:
-                train = df[self.dates[0]:self.dates[1]]
-                valid = df[self.dates[2]:self.dates[3]]
-                test = df[self.dates[4]:self.dates[5]]
-                return train, test, valid
+        # Data splitting for test mode
+        if self.run_mode == "test":
+            
+            if self.dates is not None:
+                # Convert into int values the list containing Int64Index elements
+                self.dates = [index[0] for index in self.dates]
+                test = df[self.dates[0]:self.dates[1]]
             else:
-                train = df[self.dates[0]:self.dates[1]]
-                test = df[self.dates[2]:self.dates[3]]
-                return train, test, None 
+                test = self.df.iloc[:int(len(self.df) * self.test_size)]
+            return None, test, None
+        
         else:
-            if  self.validation:
-                train_end = int(n * self.train_size)
-                valid_end = int(n * (self.train_size + self.val_size))
-                                                                        
-                train = df.iloc[:train_end]
-                valid = df.iloc[train_end:valid_end] 
-                test = df.iloc[valid_end:] 
-                print(f"training: {(train.index[0],train.index[-1])} \t valid: {valid.index[0],valid.index[-1]} \t test: {test.index[0],test.index[-1]}")
+            # Data splitting for all other run modes
+            n = len(df)
+            if self.dates is not None:
+                # Convert into int values the list containing Int64Index elements
+                self.dates = [index[0] for index in self.dates]
 
-                return train, test, valid
+                if self.validation:
+                    train = df[self.dates[0]:self.dates[1]]
+                    valid = df[self.dates[2]:self.dates[3]]
+                    test = df[self.dates[4]:self.dates[5]]
+                    return train, test, valid
+                else:
+                    train = df[self.dates[0]:self.dates[1]]
+                    test = df[self.dates[2]:self.dates[3]]
+                    return train, test, None 
             else:
-                train = df[:int(n * self.train_size)]
-                test = df[int(n * self.train_size):]
-                return train, test, None 
+                if  self.validation:
+                    train_end = int(n * self.train_size)
+                    valid_end = int(n * (self.train_size + self.val_size))
+                                                                            
+                    train = df.iloc[:train_end]
+                    valid = df.iloc[train_end:valid_end] 
+                    test = df.iloc[valid_end:] 
+                    print(f"training: {(train.index[0],train.index[-1])} \t valid: {valid.index[0],valid.index[-1]} \t test: {test.index[0],test.index[-1]}")
+
+                    return train, test, valid
+                else:
+                    train = df[:int(n * self.train_size)]
+                    test = df[int(n * self.train_size):]
+                    return train, test, None 
         
     def data_windowing(self, train, valid, test):
         """

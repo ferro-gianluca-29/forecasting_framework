@@ -12,7 +12,8 @@
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/SP_SPX.csv",
                 "--target_column", "open",
-                "--model_type", "XGB",
+                "--model_type", "SARIMAX",
+                "--exog","close",
                 "--scaling", 
                 "--validation",
                 "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
@@ -28,11 +29,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
                 "--target_column", "open",
-                "--model_type", "ARIMA",
+                "--model_type", "XGB",
                 "--forecast_type", "ol-one",
                 "--scaling",
+                "--validation",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
             ]
         },
         {
@@ -44,12 +48,15 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--model_path", "./data/models/XGB_2024-05-02_11-48-44",                
                 "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--model_path", "./data/ARIMA_2024-04-08_10-02-14"
+                "--model_type", "XGB",
+                "--period", "7",
+                "--scaling", 
+                "--validation",
+                "--test_size", "0.01",
+                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00"
             ]
         },
         {

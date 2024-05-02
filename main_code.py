@@ -93,14 +93,30 @@ def main():
                                              folder_path, args.model_path, verbose)
 
         # Preprocessing and split 
+
+        ####### Preprocessing for test-only mode
         if args.run_mode == "test":
             # If you need to just test the model, you must give the "--test_size" argument
             # the test set will be a percentage part of the whole dataset
             test, exit = data_preprocessor.preprocess_data()
+            if args.model_type in ['SARIMA','SARIMAX']:
+                target_test = test[[args.target_column]]
+                if args.exog is not None:
+                    exog_test = test[args.exog]
+                else: exog_test = None
             if exit:
                     raise ValueError("Unable to preprocess dataset.")
+            if args.model_type == 'LSTM':
+                train = []
+                valid = []
+                X_test, y_test = data_preprocessor.data_windowing(train, valid, test)[4:6]
+            if args.model_type == 'XGB':
+                train = []
+                valid = []
+                X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
+
         else:
-            # Preprocessing for training and testing
+            ####### Preprocessing for training and testing
             match args.model_type:
 
                 case 'ARIMA':
@@ -212,7 +228,8 @@ def main():
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
                         target_test.index = range(test_start_index, test_end_index)
-                        exog_test.index = range(test_start_index, test_end_index)
+                        if args.model_type == 'SARIMAX':
+                            exog_test.index = range(test_start_index, test_end_index)
                             
                         if args.run_mode == "fine_tuning":  
                             # Update the model with the new data
@@ -228,30 +245,34 @@ def main():
                     
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
-                        history = model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
-                        valid_metrics = {}
-                        valid_metrics['valid_loss'] = history.history['val_loss']
-                        valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
-                        valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
-                        # Save training data
-                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                        if args.run_mode == 'fine_tuning':
+                            history = model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
+                            valid_metrics = {}
+                            valid_metrics['valid_loss'] = history.history['val_loss']
+                            valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
+                            valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
+                            # Save training data
+                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
+
+                        
                     
                     case 'XGB':
                         model = xgb.XGBRegressor()
                         model.load_model(f"{args.model_path}/model.json")
-                        model = model.fit(
-                        X_train,
-                        y_train,
-                        eval_set=[(X_train, y_train), (X_valid, y_valid)],
-                        eval_metric=['rmse', 'mae'],
-                        early_stopping_rounds=100,
-                        verbose=True  # Set to True to see training progress
-                    )
-                        valid_metrics = model.evals_result()
-                        # Save training data
-                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                end_index = len(train),  valid_metrics = valid_metrics)
+                        if args.run_mode == 'fine_tuning':
+                            model = model.fit(
+                            X_train,
+                            y_train,
+                            eval_set=[(X_train, y_train), (X_valid, y_valid)],
+                            eval_metric=['rmse', 'mae'],
+                            early_stopping_rounds=100,
+                            verbose=False  # Set to True to see training progress
+                        )
+                            valid_metrics = model.evals_result()
+                            # Save training data
+                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                    end_index = len(train),  valid_metrics = valid_metrics)
 
             ######################## # END OF LOAD MODEL AND FINE TUNING ####################
     
@@ -298,12 +319,20 @@ def main():
                 #################### END OF MODEL TRAINING ####################
                     
         if args.run_mode == "train_test" or args.run_mode == "fine_tuning" or args.run_mode == "test":
-                
-            if args.run_mode == "test":
 
+
+            ##### Manage buffer for statistical models    
+            if args.run_mode == "test" and args.model_type in ['ARIMA','SARIMA','SARIMAX']:
+                # Create a training set from the loaded buffer, that will be used for the naive models
+                # for ARIMA: train; for SARIMAX: target_train
                 # Load buffer from JSON file
-                train = pd.read_json(f"{args.model_path}/buffer.json", orient='records') 
-
+                train = pd.DataFrame()
+                train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records') 
+                target_train = pd.DataFrame()
+                target_train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records')
+            ##### End of manage buffer
+           
+           
             #################### MODEL TESTING ####################
 
             model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
@@ -346,8 +375,9 @@ def main():
                     model_test.LSTM_plot_pred(y_test, predictions, time_values)
 
                 case 'XGB':
-                    _ = plot_importance(model, height=0.9)    
-                    model_test.XGB_plot_pred(predictions, train)    
+                    _ = plot_importance(model, height=0.9)
+                    if args.run_mode != 'test':    
+                        model_test.XGB_plot_pred(predictions, train)    
 
             #################### END OF PLOT PREDICTIONS ####################        
          

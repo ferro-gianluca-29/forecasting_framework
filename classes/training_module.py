@@ -41,8 +41,9 @@ class ModelTraining():
         :return: A tuple containing the trained model and validation metrics if applicable.
         """
         try:
-            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
-            # for debug: best_order = (1,1,1)
+            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            # for debug: 
+            best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -119,8 +120,9 @@ class ModelTraining():
             match self.model_type:
                 case 'SARIMA':
                     target_train = self.train[[self.target_column]]
-                    best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
-                    # for debug: best_order = (1,1,1,1,1,1)
+                    #best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
+                    # for debug: 
+                    best_order = (1,1,1,1,1,1)
                     self.SARIMAX_order = best_order
                     print("\nTraining the SARIMAX model...")
                     if self.valid is None:
