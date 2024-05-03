@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 
 class ModelTraining():
     """
-    Class for training various types of machine learning models based on the provided data.
+    Class for training various types of machine learning models based on the --model_type argument.
 
     :param model_type: Specifies the type of model to train (e.g., 'ARIMA', 'SARIMAX', 'LSTM', 'XGB').
     :param train: Training dataset.
@@ -36,14 +36,13 @@ class ModelTraining():
         
     def train_ARIMA_model(self): 
         """
-        Trains an ARIMA model using the training dataset.
+        Trains an ARIMA model using the training dataset. 
 
-        :return: A tuple containing the trained model and validation metrics if applicable.
+        :return: A tuple containing the trained model and validation metrics.
         """
         try:
-            #best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
-            # for debug: 
-            best_order = (1,1,1)
+            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            # for debug: #best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -114,15 +113,14 @@ class ModelTraining():
         :param exog_train: Training dataset containing the exogenous variables.
         :param exog_valid: Optional validation dataset containing the exogenous variables for model evaluation.
         :param period: Seasonal period of the SARIMAX model.
-        :return: A tuple containing the trained model and validation metrics if applicable.
+        :return: A tuple containing the trained model and validation metrics.
         """
         try:        
             match self.model_type:
                 case 'SARIMA':
                     target_train = self.train[[self.target_column]]
-                    #best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
-                    # for debug: 
-                    best_order = (1,1,1,1,1,1)
+                    best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
+                    # for debug: # best_order = (1,1,1,1,1,1)
                     self.SARIMAX_order = best_order
                     print("\nTraining the SARIMAX model...")
                     if self.valid is None:
@@ -231,9 +229,9 @@ class ModelTraining():
         """
         Trains an LSTM model using the training and validation datasets.
 
-        :param X_train: Input features for training.
+        :param X_train: Input data for training.
         :param y_train: Target variable for training.
-        :param X_valid: Input features for validation.
+        :param X_valid: Input data for validation.
         :param y_valid: Target variable for validation.
         :return: A tuple containing the trained LSTM model and validation metrics.
         """
@@ -257,7 +255,7 @@ class ModelTraining():
                                loss="MSE",
                                metrics=[MeanAbsoluteError(), MeanAbsolutePercentageError(), RootMeanSquaredError()])
             
-            history= lstm_model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
+            history= lstm_model.fit(X_train, y_train, epochs=200, validation_data=(X_valid, y_valid),batch_size=1000)
             my_loss= lstm_model.history.history['loss']
             valid_metrics = {}
             valid_metrics['valid_loss'] = history.history['val_loss']
@@ -285,9 +283,9 @@ class ModelTraining():
         """
         Trains an XGBoost model using the training and validation datasets.
 
-        :param X_train: Input features for training.
+        :param X_train: Input data for training.
         :param y_train: Target variable for training.
-        :param X_valid: Input features for validation.
+        :param X_valid: Input data for validation.
         :param y_valid: Target variable for validation.
         :return: A tuple containing the trained XGBoost model and validation metrics.
         """

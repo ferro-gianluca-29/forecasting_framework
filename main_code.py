@@ -10,8 +10,8 @@ from classes.training_module import ModelTraining
 from classes.model_testing import ModelTest
 from classes.performance_measurement import PerfMeasure
 import datetime
-from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
-from utils.time_series_analysis import multiple_STL, moving_average_ST
+from utils.utilities import save_data, save_buffer, load_trained_model
+from utils.time_series_analysis import time_s_analysis, multiple_STL, moving_average_ST
 from keras.models import load_model
 import xgboost as xgb
 from xgboost import plot_importance, plot_tree
@@ -25,8 +25,16 @@ import warnings
 warnings.filterwarnings('ignore') 
 
 def main():
+    """
+    Main function to execute time series forecasting tasks based on user-specified arguments.
+    This function handles the entire workflow from data loading, preprocessing, model training, testing,
+    and evaluation, based on the configuration provided via command-line arguments.
+    """
     
     # ARGUMENT PARSING
+    """
+    Parsing of command-line arguments to set up the environment and specify model training, testing, and evaluation parameters.
+    """
     parser = argparse.ArgumentParser(description='Time series forecasting')
 
     # General arguments
@@ -75,15 +83,16 @@ def main():
         folder_path = f"./data/models/{folder_name}"
         os.makedirs(folder_path)
 
-        #  DATA LOADING
+        #######  DATA LOADING
+
         data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index, args.date_list)
         df, dates = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
         
-        # END OF DATA LOADING
+        ####### END OF DATA LOADING
         
-#################### PREPROCESSING AND DATASET SPLIT  ####################
+        ####### PREPROCESSING AND DATASET SPLIT  ########
         
         # Extract the file extension from the path 
         file_ext = os.path.splitext(args.dataset_path)[1]
@@ -94,7 +103,7 @@ def main():
 
         # Preprocessing and split 
 
-        ####### Preprocessing for test-only mode
+        ### Preprocessing for test-only mode
         if args.run_mode == "test":
             # If you need to just test the model, you must give the "--test_size" argument
             # the test set will be a percentage part of the whole dataset
@@ -114,6 +123,7 @@ def main():
                 train = []
                 valid = []
                 X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
+        ### End of preprocessing for test-only mode
 
         else:
             ####### Preprocessing for training and testing
@@ -176,11 +186,11 @@ def main():
                     X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
 
 
-#################### END OF PREPROCESSING AND DATASET SPLIT ####################
+        ########### END OF PREPROCESSING AND DATASET SPLIT ########
         
         ############### Optional time series analysis ############
         if args.ts_analysis:
-            ts_analysis(train, args.target_column, args.period)
+            time_s_analysis(train, args.target_column, args.period)
             multiple_STL(train, args.target_column)
             
         ############## End of time series analysis ###########
@@ -188,10 +198,10 @@ def main():
 
         if args.run_mode == "fine_tuning" or args.run_mode == "test":
 
-            #################### LOAD MODEL FOR TEST OR FINE TUNING ####################
+            #################### MODEL LOADING FOR TEST OR FINE TUNING ####################
+ 
             # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
-
-
+                
             match args.model_type:
 
                     case 'ARIMA':
@@ -246,7 +256,7 @@ def main():
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
                         if args.run_mode == 'fine_tuning':
-                            history = model.fit(X_train, y_train, epochs=1, validation_data=(X_valid, y_valid),batch_size=1000)
+                            history = model.fit(X_train, y_train, epochs=200, validation_data=(X_valid, y_valid),batch_size=1000)
                             valid_metrics = {}
                             valid_metrics['valid_loss'] = history.history['val_loss']
                             valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
@@ -255,8 +265,6 @@ def main():
                             save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
 
-                        
-                    
                     case 'XGB':
                         model = xgb.XGBRegressor()
                         model.load_model(f"{args.model_path}/model.json")
@@ -274,7 +282,7 @@ def main():
                             save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                     end_index = len(train),  valid_metrics = valid_metrics)
 
-            ######################## # END OF LOAD MODEL AND FINE TUNING ####################
+            ######################## # END OF MODEL LOADING AND FINE TUNING ####################
     
         if args.run_mode == "train" or args.run_mode == "train_test":
 
@@ -372,12 +380,12 @@ def main():
 
                 case 'LSTM':
                     time_values = df.index[len(df.index) - len(y_test):]
-                    model_test.LSTM_plot_pred(y_test, predictions, time_values)
+                    model_test.plot_pred(y_test, predictions, time_values)
 
                 case 'XGB':
-                    _ = plot_importance(model, height=0.9)
-                    if args.run_mode != 'test':    
-                        model_test.XGB_plot_pred(predictions, train)    
+                    _ = plot_importance(model, height=0.9) 
+                    time_values = df.index[len(df.index) - len(y_test):]   
+                    model_test.plot_pred(y_test, predictions, time_values)    
 
             #################### END OF PLOT PREDICTIONS ####################        
          
@@ -418,23 +426,7 @@ def main():
                         save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
 
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
-        
 
-
-            #################### PRINT AND PLOT PERFORMANCE ####################
-            if verbose:
-                # Statistical Models
-                match args.model_type:
-                
-                    case 'ARIMA':
-                        perf_measure.print_stats_performance(args.model_type, metrics, metrics_naive)
-                        perf_measure.plot_stats_performance(args.model_type, metrics, metrics_naive)
-                
-                    case 'SARIMAX'|'SARIMA':
-                        perf_measure.print_stats_performance(args.model_type, metrics, metrics_seasonal_naive)
-                        perf_measure.plot_stats_performance(args.model_type, metrics, metrics_seasonal_naive)             
-
-            #################### END OF PRINT AND PLOT PERFORMANCE ####################
         
     except Exception as e:
         print(f"An error occurred in Main: {e}")

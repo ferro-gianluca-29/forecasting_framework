@@ -3,11 +3,11 @@ from matplotlib import pyplot as plt
 
 class ModelTest():
     """
-    A class for testing and visualizing the performance of various types of forecasting models.
+    A class for testing and visualizing the predictions of various types of forecasting models.
 
     :param model_type: The type of model to test ('ARIMA', 'SARIMAX', etc.).
     :param model: The model object to be tested.
-    :param test: The test dataset.
+    :param test: The test set.
     :param target_column: The target column in the dataset.
     :param forecast_type: The type of forecasting to be performed ('ol-one', etc.).
     :param steps_ahead: Number of forecasting steps to perform.
@@ -24,7 +24,7 @@ class ModelTest():
 
     def test_ARIMA_model(self, steps_jump = None, ol_refit = False):
         """
-        Tests an ARIMA model by performing step-ahead predictions and optionally refitting the model.
+        Tests an ARIMA model by performing one step-ahead predictions and optionally refitting the model.
 
         :param steps_jump: Optional parameter to skip steps in the forecasting.
         :param ol_refit: Boolean indicating whether to refit the model after each forecast.
@@ -59,10 +59,10 @@ class ModelTest():
         
     def test_SARIMAX_model(self, steps_jump = None, exog_test = None, ol_refit = False): 
         """
-        Tests a SARIMAX model by performing step-ahead predictions, using exogenous variables, and optionally refitting.
+        Tests a SARIMAX model by performing one step-ahead predictions, using exogenous variables, and optionally refitting.
 
         :param steps_jump: Optional parameter to skip steps in the forecasting.
-        :param exog_test: Optional exogenous variables for the test dataset.
+        :param exog_test: Optional exogenous variables for the test set.
         :param ol_refit: Boolean indicating whether to refit the model after each forecast.
         :return: A pandas Series of the predictions.
         """
@@ -117,7 +117,7 @@ class ModelTest():
         """
         Performs a naive forecast using the last observed value from the training set.
 
-        :param train: The training dataset.
+        :param train: The training set.
         :return: A pandas Series of naive forecasts.
         """
         try:
@@ -137,8 +137,8 @@ class ModelTest():
         """
         Performs a seasonal naive forecast using the last observed seasonal cycle.
 
-        :param train: The training dataset.
-        :param target_test: The test dataset.
+        :param train: The training set.
+        :param target_test: The test set.
         :param period: The seasonal period to consider for the forecast.
         :return: A pandas Series of naive seasonal forecasts.
         """
@@ -198,38 +198,23 @@ class ModelTest():
         plt.show()
 
 
-    def LSTM_plot_pred(self, test, predictions, time_values):
+    def plot_pred(self, test, predictions, time_values):
         """
-        Plots LSTM model predictions against the test data.
+        Plots model predictions against the test data.
 
         :param test: The actual test data.
-        :param predictions: The predictions made by the LSTM model.
+        :param predictions: The predictions made by the model.
         :param time_values: Time values corresponding to the test data.
         """
-        title = "Predictions made by simple LSTM model"
+        title = f"Predictions made by {self.model_type} model"
         plt.figure(figsize=(16,4))
-        plt.plot(time_values, test, color='blue',label='Actual power consumption data')
-        plt.plot(time_values, predictions, alpha=0.7, color='orange',label='Predicted power consumption data')
+        plt.plot(time_values, test, color='blue',label='Actual values')
+        plt.plot(time_values, predictions, alpha=0.7, color='orange',label='Predicted values')
         plt.title(title)
         plt.xlabel('Date and Time')
-        plt.ylabel('Normalized power consumption scale')
+        plt.ylabel('Normalized scale')
         plt.xticks(rotation=45)
         plt.legend()
         plt.show()
 
-    def XGB_plot_pred(self, predictions, train):
-        """
-        Plots XGBoost model predictions against the training and test data.
-
-        :param predictions: The predictions made by the XGBoost model.
-        :param train: The training dataset for context.
-        """
-        try:
-            #Forecast on Test Set
-            self.test['Prediction'] = predictions
-            full_data = pd.concat([self.test, train], sort=False)
-            _ = full_data[[self.target_column,'Prediction']].plot(figsize=(15, 5))
-            plt.show()
-        except Exception as e:
-            print(f"An error occurred during plot of predictions: {e}")
-            return None
+   

@@ -25,11 +25,10 @@ class DataLoader():
 
     def load_data(self):
         """
-        Load data from a file and preprocess it according to the model type and other specified parameters.
+        Load data from a file and convert the time column to the datetime format.
 
         :returns: 
             - A tuple containing the dataframe and the indices of the dates if provided in `date_list`.
-            - None if the file format is not supported or if the target column/time column is not found.
         """
         # load the dataframe with all the columns
         if self.format == '.csv':
@@ -68,7 +67,7 @@ class DataLoader():
                     for date in self.date_list:     
                         dates.append(df[df['date'] == date].index)
                     # Convert the 'date' column to datetime
-                    df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S', utc=True)
+                    df['date'] = pd.to_datetime(df['date'], infer_datetime_format=True, utc=True)
                     # Sort the dataset by date
                     df = df.sort_values(by='date')
                 else:

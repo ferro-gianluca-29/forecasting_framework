@@ -8,15 +8,31 @@ from tqdm import tqdm
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.stats.diagnostic import acorr_ljungbox
-from statsmodels.tsa.seasonal import MSTL, seasonal_decompose
+from statsmodels.tsa.seasonal import MSTL, STL, seasonal_decompose
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 def conditional_print(verbose, *args, **kwargs):
+    """
+    Prints messages conditionally based on a verbosity flag.
+
+    :param verbose: Boolean flag indicating whether to print messages.
+    :param args: Arguments to be printed.
+    :param kwargs: Keyword arguments to be printed.
+    """
     if verbose:
         print(*args, **kwargs)
 
 def adf_test(df, alpha=0.05, verbose=False):
+    """
+    Performs the Augmented Dickey-Fuller test to determine if a series is stationary and provides detailed output.
+
+    :param df: The time series data as a DataFrame.
+    :param alpha: The significance level for the test to determine stationarity.
+    :param verbose: Boolean flag that determines whether to print detailed results.
+    :return: The number of differences needed to make the series stationary.
+    """
     d = 0
     adf_result = adfuller(df.dropna())
     p_value = adf_result[1]
@@ -58,6 +74,14 @@ def adf_test(df, alpha=0.05, verbose=False):
     return d
 
 def ARIMA_optimizer(train, target_column=None, verbose=False):
+        """
+        Determines the optimal parameters for an ARIMA model based on the Akaike Information Criterion (AIC).
+
+        :param train: The training dataset.
+        :param target_column: The target column in the dataset that needs to be forecasted.
+        :param verbose: If set to True, prints the process of optimization.
+        :return: The best (p, d, q) order for the ARIMA model.
+        """
         d = adf_test(df=train[target_column], verbose=verbose)
 
         p = range(0, 5)
@@ -70,6 +94,16 @@ def ARIMA_optimizer(train, target_column=None, verbose=False):
         return best_order
 
 def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose=False):
+        """
+        Identifies the optimal parameters for a SARIMAX model.
+
+        :param train: The training dataset.
+        :param target_column: The target column in the dataset.
+        :param period: The seasonal period of the dataset.
+        :param exog: The exogenous variables included in the model.
+        :param verbose: Controls the output of the optimization process.
+        :return: The best (p, d, q, P, D, Q) parameters for the SARIMAX model.
+        """
         d = adf_test(train[target_column], verbose=verbose)
         D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
 
@@ -82,6 +116,13 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose
         return best_order
 
 def optimize_ARIMA(endog, order_list):
+    """
+    Optimizes ARIMA parameters by iterating over a list of (p, d, q) combinations to find the lowest AIC.
+
+    :param endog: The endogenous variable.
+    :param order_list: A list of (p, d, q) tuples representing different ARIMA configurations to test.
+    :return: A DataFrame containing the AIC scores for each parameter combination.
+    """
     print("\nOptimizing ARIMA parameters in progress...\n")
     results = []
     
@@ -96,6 +137,15 @@ def optimize_ARIMA(endog, order_list):
     return result_df
 
 def optimize_SARIMAX(endog, order_list, s, exog = None):
+    """
+    Optimizes SARIMAX parameters by testing various combinations and selecting the one with the lowest AIC.
+
+    :param endog: The dependent variable.
+    :param order_list: A list of order tuples (p, d, q, P, D, Q) for the SARIMAX.
+    :param s: The seasonal period of the model.
+    :param exog: Optional exogenous variables.
+    :return: A DataFrame with the results of the parameter testing.
+    """
     print("\nOptimizing SARIMAX parameters in progress...\n")
     results = []
     for order in tqdm(order_list):
@@ -112,15 +162,26 @@ def optimize_SARIMAX(endog, order_list, s, exog = None):
     return result_df
 
 def ljung_box_test(model):
+        """
+        Conducts the Ljung-Box test on the residuals of a fitted time series model to check for autocorrelation.
+
+        :param model: The time series model after fitting to the data.
+        """
         residuals = model.resid
         lb_test = acorr_ljungbox(residuals, lags=[10], return_df=True)
         lb_pvalue = lb_test['lb_pvalue'].iloc[0]
         if lb_pvalue > 0.05:
-            return 'Ljung-Box test result:\nNull hypothesis valid: Residuals are uncorrelated\n'
+            print('Ljung-Box test result:\nNull hypothesis valid: Residuals are uncorrelated\n')
         else:
-            return 'Ljung-Box test result:\nNull hypothesis invalid: Residuals are correlated\n'
+            print('Ljung-Box test result:\nNull hypothesis invalid: Residuals are correlated\n')
 
 def multiple_STL(dataframe,target_column):
+    """
+    Performs multiple seasonal decomposition using STL on specified periods.
+
+    :param dataframe: The DataFrame containing the time series data.
+    :param target_column: The column in the DataFrame to be decomposed.
+    """
     mstl = MSTL(dataframe[target_column], periods=[24, 24 * 7, 24 * 7 * 4])
     res = mstl.fit()
 
@@ -149,7 +210,13 @@ def multiple_STL(dataframe,target_column):
     plt.show()
 
 def moving_average_ST(dataframe,target_column):
-    "Seasonal-Trend decomposition using moving averages"
+    """
+    Decomposes a time series into its seasonal, trend, and residual components using moving averages.
+
+    :param dataframe: DataFrame containing the time series.
+    :param target_column: The target column in the DataFrame to decompose.
+    :return: The decomposed series with seasonal, trend, and residual attributes.
+    """
 
     result = seasonal_decompose(dataframe[target_column], model='additive', period=24) # Assuming daily seasonality
     seasonal = result.seasonal
@@ -185,3 +252,69 @@ def moving_average_ST(dataframe,target_column):
     plt.show()
 
     return result
+
+def time_s_analysis(df, target_column, seasonal_period):
+
+    # Print dataset statistics for each column
+    print("Dataset statistics:\n", df.describe())
+
+    # Number of NaNs per column
+    print("Number of NaNs per column:\n", df.isna().sum())
+
+
+    # Calculate the number of outliers across the dataset
+
+    # Select only numeric columns
+    numeric_cols = df.select_dtypes(include=[np.number])
+
+    # Calculate the IQR (Interquartile Range) only for numeric columns
+    Q1 = numeric_cols.quantile(0.25)
+    Q3 = numeric_cols.quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Create a mask for outliers only on numeric columns
+    outliers_mask = (numeric_cols < (Q1 - 1.5 * IQR)) | (numeric_cols > (Q3 + 1.5 * IQR))
+    num_outliers = outliers_mask.sum()
+    print("Number of outliers per column:\n", num_outliers)
+   
+    # ADF test for stationarity
+    adf_result = adfuller(df[target_column].dropna())
+    p_value = adf_result[1]
+    adf_statistic = adf_result[0]
+    alpha = 0.05
+   
+    if p_value < alpha and adf_statistic < adf_result[4]['5%']:
+        print("The series is stationary.")
+    else:
+        print("The series is not stationary.")
+
+    # ACF and PACF plots
+    print("\n===== ACF and PACF Plots =====")
+    plot_acf(df[target_column].dropna())
+    plt.show()
+    
+    plot_pacf(df[target_column].dropna())
+    plt.show()
+
+    # Time series decomposition into its trend, seasonality, and residuals components
+    decomposition = STL(df[target_column], period=seasonal_period).fit()
+    
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(10,8))
+
+    ax1.plot(decomposition.observed)
+    ax1.set_ylabel('Observed')
+
+    ax2.plot(decomposition.trend)
+    ax2.set_ylabel('Trend')
+
+    ax3.plot(decomposition.seasonal)
+    ax3.set_ylabel('Seasonal')
+
+    ax4.plot(decomposition.resid)
+    ax4.set_ylabel('Residuals')
+
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    # Add title
+    plt.suptitle(f"Time Series Decomposition with period {seasonal_period}")
+    plt.show()

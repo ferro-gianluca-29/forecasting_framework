@@ -7,22 +7,22 @@ import pickle
 
 class DataPreprocessor():
     """
-    A class to handle preprocessing of datasets for machine learning tasks, handling tasks such as managing NaN values,
-    removing non-numeric columns, splitting datasets, managing outliers, scaling data, and more.
+    A class to handle operations of preprocessing, including tasks such as managing NaN values,
+    removing non-numeric columns, splitting datasets, managing outliers, and scaling data.
 
     :param file_ext: File extension for saving datasets
     :param run_mode: Mode of operation ('train', 'test', 'train_test', 'fine_tuning')
     :param model_type: Type of machine learning model to prepare data for
     :param df: DataFrame containing the data
     :param target_column: Name of the target column in the DataFrame
-    :param dates: Specific dates for splitting data, if applicable
+    :param dates: indexes of dates given by command line with --date_list
     :param scaling: Boolean flag to determine if scaling should be applied
     :param validation: Boolean flag to determine if a validation set should be created
     :param train_size: Proportion of data to be used for training
     :param val_size: Proportion of data to be used for validation
     :param test_size: Proportion of data to be used for testing
     :param seasonal_split: Boolean flag to use seasonal data splitting logic
-    :param folder_path: Path to folder for saving data-related files
+    :param folder_path: Path to folder for saving data
     :param model_path: Path to model file for loading or saving the model
     :param verbose: Boolean flag for verbose output
     """    
@@ -61,7 +61,7 @@ class DataPreprocessor():
         """
         Main method to preprocess the dataset according to specified configurations.
 
-        :return: Depending on the mode, returns the appropriate datasets along with an exit flag.
+        :return: Depending on the mode, returns the splitted dataframe and an exit flag.
         """
         exit = False
         try:
@@ -158,10 +158,10 @@ class DataPreprocessor():
         """
         Manage NaN values in the dataset based on defined percentage thresholds and interpolation strategies.
 
-        :param max_nan_percentage: Maximum percentage of NaNs allowed in a column before it is considered for deletion or special treatment
-        :param min_nan_percentage: Minimum percentage of NaNs required to consider a column for linear interpolation
-        :param percent_threshold: Percentage threshold of NaNs in the target column to trigger file splitting
-        :return: A tuple containing the possibly modified DataFrame and an exit flag indicating if the file needs reloading
+        :param max_nan_percentage: Maximum allowed percentage of NaN values for a column to be interpolated or kept
+        :param min_nan_percentage:  Minimum percentage of NaN values for which linear interpolation is applied
+        :param percent_threshold: Threshold percentage of NaNs in the target column to decide between interpolation and splitting the dataset
+        :return: A tuple (df, exit), where df is the DataFrame after NaN management, and exit is a boolean flag indicating if the dataset needs to be split
         """
         # percent_threshold is the percentage threshold of NaNs in the target column to split the file
         df = self.df.copy()
@@ -316,22 +316,11 @@ class DataPreprocessor():
         print(stats_train)
         print('\n')
 
-    def scale_data(df):
-        """
-        Scale data in a DataFrame using MinMaxScaler, excluding the first column.
-
-        :param df: DataFrame to scale
-        :return: Scaled DataFrame
-        """
-        scaler = MinMaxScaler()
-        scaler.fit(df[df.columns[1:]])
-        df[df.columns[1:]] = scaler.transform(df[df.columns[1:]])
-
-        return df
-
     def split_data(self, df):
         """
-        Split the dataset into training, validation, and testing sets based on predefined proportions.
+        Split the dataset into training, validation, and test sets.
+        If a list with dates is given, each set is created within the respective dates, otherwise the sets are created following 
+        the given percentage sizes.
 
         :param df: DataFrame to split
         :return: Tuple of DataFrames for training, testing, and validation
@@ -386,7 +375,7 @@ class DataPreprocessor():
         :param train: Training DataFrame
         :param valid: Validation DataFrame
         :param test: Testing DataFrame
-        :return: Lists of input and target data arrays for training, validation, and testing phases
+        :return: Lists of input and target data arrays for training, validation, and test
         """
         # Data windowing for neural network models
         seq_len = 20
@@ -429,14 +418,14 @@ class DataPreprocessor():
     
     def create_time_features(self, df, label=None, seasonal_model = None, lags = [1, 2, 3, 24], rolling_window = 24):
         """
-        Create time-based features for a DataFrame, potentially including Fourier features and rolling window statistics.
+        Create time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.
 
-        :param df: DataFrame to enhance with time-based features
-        :param label: Label column name for generating lagged features
+        :param df: DataFrame to modify with time-based features
+        :param label: Label column name for generating features
         :param seasonal_model: Boolean indicating whether to add Fourier features for seasonal models
         :param lags: List of integers representing lag periods to generate features for
         :param rolling_window: Window size for generating rolling mean and standard deviation
-        :return: Enhanced DataFrame with new features, optionally including target column labels
+        :return: Modified DataFrame with new features, optionally including target column labels
         """
         df['date'] = df.index
         df['hour'] = df['date'].dt.hour

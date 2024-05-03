@@ -11,11 +11,12 @@
                 "--dataset_path", "./data/Dataset/SP_SPX.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
+                "--ts_analysis",
                 "--scaling", 
                 "--validation",
                 "--steps_ahead", "10",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+              //  "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+              //  "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",
@@ -36,8 +37,8 @@
                 "--scaling", 
                 "--validation",
                 "--steps_ahead", "10",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+            //    "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+            //    "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",
@@ -59,8 +60,8 @@
                 "--scaling", 
                 "--validation",
                 "--steps_ahead", "10",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+           //     "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+           //     "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",
@@ -80,8 +81,8 @@
                 "--model_type", "LSTM",
                 "--scaling", 
                 "--validation",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             //   "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+             //   "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",
@@ -101,61 +102,14 @@
                 "--model_type", "XGB",
                 "--scaling", 
                 "--validation",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+           //     "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
+           //     "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
              ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": []
-        },
-        {
-            "label": "Test",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "main_code.py",
-                "--run_mode", "test",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--model_path", "D:/VISUAL STUDIO/Thesis/data/models/ARIMA_2024-04-08_10-33-09"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Training",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "main_code.py",
-                "--run_mode", "train",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--validation",
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Fine Tuning",
-            "type": "shell",
-            "command": "python",
-            "args": [
-                "main_code.py",
-                "--run_mode", "fine_tuning",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-            ],
-            "problemMatcher": []
-        }        
+        }       
     ]
 }

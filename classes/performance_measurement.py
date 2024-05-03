@@ -7,17 +7,17 @@ from classes.model_testing import ModelTest
 
 class PerfMeasure(ModelTest):
     """
-    Class that extends ModelTest to provide additional functionality for measuring and plotting performance
+    Class that extends ModelTest to provide additional methods for measuring and plotting performance
     metrics of forecasting models.
     """
     
     def get_performance_metrics(self, test, predictions, naive = False):
         """
-        Calculates a suite of performance metrics for model evaluation.
+        Calculates a set of performance metrics for model evaluation.
 
         :param test: The actual test data.
         :param predictions: Predicted values by the model.
-        :param naive: Boolean flag to indicate if the naive predictions should be considered for zero-handling.
+        :param naive: Boolean flag to indicate if the naive predictions should be considered.
         :return: A dictionary of performance metrics including MSE, RMSE, MAPE, MSPE, MAE, and R-squared.
         """
         try:
@@ -56,60 +56,3 @@ class PerfMeasure(ModelTest):
         except Exception as e:
             print(f"An error occurred during performance measurement: {e}")
             return None
-
-    def plot_stats_performance(self, model_type, metrics, metrics_naive):
-        """
-        Plots a bar graph comparing the performance metrics of a given model against naive predictions.
-
-        :param model_type: The type of model tested.
-        :param metrics: Performance metrics of the model.
-        :param metrics_naive: Performance metrics of the naive model.
-        """
-        try:
-            metric_names = list(metrics.keys())
-            metric_values = list(metrics.values())
-            naive_metric_names = list(metrics_naive.keys())
-            naive_metric_values = list(metrics_naive.values())
-            
-            plt.figure()
-            x = np.arange(len(metric_names))
-            width = 0.3
-            
-            plt.bar(x, metric_values, width, color='orange', label=model_type)
-            if model_type == 'SARIMAX' or model_type == 'PROPHET':
-                plt.bar(x + width, naive_metric_values, width, color='blue', label='Seasonal Naive Model')
-            else:
-                plt.bar(x + width, naive_metric_values, width, color='blue', label='Naive Model')
-            plt.ylabel('Metric Values')
-            plt.title('Performance Comparison')
-            plt.xticks(ticks=x + width/2, labels=metric_names)
-            plt.legend()
-            plt.show()
-            
-        except Exception as e:
-            print(f"An error occurred during chart creation: {e}")
-            
-    def print_stats_performance(self, model_type, metrics, metrics_naive):
-        """
-        Prints a detailed comparison of performance metrics for the model and naive predictions.
-
-        :param model_type: The type of model tested.
-        :param metrics: Performance metrics of the model.
-        :param metrics_naive: Performance metrics of the naive model.
-        """
-        try:
-            print(f'\n===== Model Performance: {model_type} =====')
-            for key, value in metrics.items():
-                print(f'{key}: {value}')
-            
-            if model_type == 'SARIMAX' or model_type == 'PROPHET':
-                print(f'\n===== Model Performance: Seasonal Naive =====')
-                for key, value in metrics_naive.items():
-                    print(f'{key}: {value}')
-            else:
-                print(f'\n===== Model Performance: Naive =====')
-                for key, value in metrics_naive.items():
-                    print(f'{key}: {value}')
-                    
-        except Exception as e:
-            print(f"An error occurred during performance printing: {e}")
