@@ -12,7 +12,7 @@ class DataLoader():
     :param date_list: List of specific dates to be filtered (default is None)
     """
 
-    def __init__(self,file_path, model_type, target_column, time_column_index = 0, date_list = None):
+    def __init__(self,file_path, model_type, target_column, time_column_index = 0, date_list = None, exog = None):
         """
         Initialize the DataLoader with the specified parameters.
         """
@@ -22,6 +22,7 @@ class DataLoader():
         self.target_column = target_column
         self.time_column_index = time_column_index 
         self.date_list = date_list
+        self.exog = exog
 
     def load_data(self):
         """
@@ -52,7 +53,13 @@ class DataLoader():
         if self.time_column_index is not None:
             if self.time_column_index < len(df.columns):
                 time_column_name = df.columns[self.time_column_index]  # Get the correct column name
-                
+
+                # remove columns that will not be used
+                useful_columns = [self.target_column, time_column_name]
+                if self.exog is not None: 
+                    useful_columns.extend(self.exog)
+                df = df[useful_columns]
+
                 if self.time_column_index != 0:
                     # Remove and copy the time column to the first position
                     time_column_data = df.pop(time_column_name)
@@ -77,7 +84,7 @@ class DataLoader():
                     case 'LSTM'|'XGB':
                         # Set the date column as index for neural network models 
                         # (in case of statistical models it may cause index errors during forecasting)
-                        # Make a copy of date column as set it as last column of the dataframe
+                        # Make a copy of date column and set it as the last column of the dataframe
                         df['temp_date'] = df['date']
                         date = df.pop('temp_date')
                         df = pd.concat([df, date], 1)

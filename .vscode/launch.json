@@ -10,10 +10,10 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/it_electricity_demand_adj.csv",
-                "--target_column", "Italia",
+                "--dataset_path", "./data/Dataset/SP_SPX.csv",
+                "--target_column", "open",
                 "--model_type", "ARIMA",
-               // "--exog","close",
+                "--exog","close", "high",
                 "--scaling", 
                 "--validation",
                 "--date_list", "1/1/2012 8:00", "4/20/2019 9:00", "4/20/2019 9:00", 

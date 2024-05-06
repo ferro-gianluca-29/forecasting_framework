@@ -85,7 +85,7 @@ def main():
 
         #######  DATA LOADING
 
-        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index, args.date_list)
+        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index, args.date_list, args.exog)
         df, dates = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
