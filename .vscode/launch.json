@@ -10,14 +10,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/SP_SPX.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--exog","close", "high",
+                "--dataset_path", "./data/Dataset/recs2020_public_v7.csv",
+                "--target_column", "KWH",
+                "--model_type", "LSTM",
+              //  "--exog","close", "high",
                 "--scaling", 
                 "--validation",
-                "--date_list", "1/1/2012 8:00", "4/20/2019 9:00", "4/20/2019 9:00", 
-                "3/15/2021 9:00","3/15/2021 9:00","8/15/2022 23:00",
+             //   "--date_list", "100010", "105010", "105010", 
+              //  "108010","108010","110010",
             ]
         },
         {
@@ -49,15 +49,15 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--dataset_path", "./data/Dataset/SP_SPX.csv",
-                "--model_path", "./data/models/XGB_2024-05-02_11-48-44",                
-                "--target_column", "open",
-                "--model_type", "XGB",
-                "--period", "7",
+                "--model_path", "./data/models/LSTM_2024-05-06_20-29-47",                
+                "--dataset_path", "./data/Dataset/pjm_hourly_est.csv",
+                "--target_column", "PJM_Load",
+                "--model_type", "LSTM",
+              //  "--exog","close", "high",
                 "--scaling", 
                 "--validation",
-                "--test_size", "0.01",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00"
+                "--date_list", "1998-12-31", "2010-02-17 23:00:00", "2010-02-17 23:00:00", 
+                "2011-04-17 15:00:00","2011-04-17 15:00:00","2018-01-02 00:00:00",
             ]
         },
         {

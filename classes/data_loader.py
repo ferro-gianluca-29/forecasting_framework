@@ -10,6 +10,7 @@ class DataLoader():
     :param target_column: Name of the target column in the dataset
     :param time_column_index: Index of the time column in the dataset (default is 0)
     :param date_list: List of specific dates to be filtered (default is None)
+    :param exog: name of exogenous variable (or list of exogenous variables)
     """
 
     def __init__(self,file_path, model_type, target_column, time_column_index = 0, date_list = None, exog = None):

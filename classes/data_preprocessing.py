@@ -67,9 +67,10 @@ class DataPreprocessor():
         try:
             print('\nData preprocessing in progress...\n')
 
+            df = self.df.iloc[:,:(len(self.df.columns) - 1)]
 
             ########## NaN MANAGEMENT ##########
-            self.df, exit = self.manage_nan()
+            self.df, exit = self.manage_nan(df.reset_index(drop=True))
       
             if exit:
                 raise Exception('The dataset has been modified, please reload the file')
@@ -154,7 +155,7 @@ class DataPreprocessor():
             print(f"An error occurred during preprocessing: {e}")
             return None
          
-    def manage_nan(self, max_nan_percentage=50, min_nan_percentage=10, percent_threshold = 40):
+    def manage_nan(self, df, max_nan_percentage=50, min_nan_percentage=10, percent_threshold = 40):
         """
         Manage NaN values in the dataset based on defined percentage thresholds and interpolation strategies.
 
@@ -164,7 +165,6 @@ class DataPreprocessor():
         :return: A tuple (df, exit), where df is the DataFrame after NaN management, and exit is a boolean flag indicating if the dataset needs to be split
         """
         # percent_threshold is the percentage threshold of NaNs in the target column to split the file
-        df = self.df.copy()
         exit = False
         # Calculate the percentage of NaNs for each column
         nan_percentages = df.isna().mean() * 100
@@ -214,7 +214,7 @@ class DataPreprocessor():
         # Dictionary to store the start and end indices of the consecutive NaN group for the target column
         nan_hole = {}
         # Find the target column in the DataFrame
-        target = self.df[target_column]
+        target = df[target_column]
         # Find NaN values in the target column
         is_nan = target.isna()
         # Calculate groups of consecutive NaN or non-NaN values
