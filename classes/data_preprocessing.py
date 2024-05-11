@@ -67,10 +67,8 @@ class DataPreprocessor():
         try:
             print('\nData preprocessing in progress...\n')
 
-            df = self.df.iloc[:,:(len(self.df.columns) - 1)]
-
             ########## NaN MANAGEMENT ##########
-            self.df, exit = self.manage_nan(df.reset_index(drop=True))
+            self.df, exit = self.manage_nan(self.df)
       
             if exit:
                 raise Exception('The dataset has been modified, please reload the file')
@@ -159,11 +157,16 @@ class DataPreprocessor():
         """
         Manage NaN values in the dataset based on defined percentage thresholds and interpolation strategies.
 
+        :param df: Dataframe to analyze
         :param max_nan_percentage: Maximum allowed percentage of NaN values for a column to be interpolated or kept
         :param min_nan_percentage:  Minimum percentage of NaN values for which linear interpolation is applied
         :param percent_threshold: Threshold percentage of NaNs in the target column to decide between interpolation and splitting the dataset
         :return: A tuple (df, exit), where df is the DataFrame after NaN management, and exit is a boolean flag indicating if the dataset needs to be split
         """
+        # Save the original index
+        original_index = self.df.index
+        # Reset the index
+        df.reset_index(drop=True, inplace=True)
         # percent_threshold is the percentage threshold of NaNs in the target column to split the file
         exit = False
         # Calculate the percentage of NaNs for each column
@@ -199,8 +202,9 @@ class DataPreprocessor():
                     return df, exit
             # If there is no hole in the target column, fill NaNs with polynomial interpolation
             else:
-                df[self.target_column].interpolate(method='polynomial', inplace=True)   
-        
+                df[self.target_column].interpolate(method='polynomial', inplace=True)
+
+        df.index = original_index
         return df, exit
         
     def detect_nan_hole(self, df):
@@ -378,7 +382,7 @@ class DataPreprocessor():
         :return: Lists of input and target data arrays for training, validation, and test
         """
         # Data windowing for neural network models
-        seq_len = 20
+        seq_len = 48
         X_train = []
         y_train = []    
         X_valid = []

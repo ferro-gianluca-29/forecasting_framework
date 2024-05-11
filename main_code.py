@@ -16,6 +16,7 @@ from keras.models import load_model
 import xgboost as xgb
 from xgboost import plot_importance, plot_tree
 
+
 # END OF LIBRARY IMPORTS #
   
 import os
@@ -64,7 +65,7 @@ def main():
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')  
 
     # Other models
-    parser.add_argument('--seasonal_model', action='store_true', help='If True, seasonal decomposition is made, and the seasonal component is fed into the LSTM model')
+    parser.add_argument('--seasonal_model', action='store_true', help='If True, in the case of LSTM the seasonal component is fed into the model, while for XGB models Fourier features are added')
     #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
     # Fine tuning arguments    
@@ -105,7 +106,7 @@ def main():
 
         ### Preprocessing for test-only mode
         if args.run_mode == "test":
-            # If you need to just test the model, you must give the "--test_size" argument
+            # If you need to just test the model and "--date_list" is empty, you must give the "--test_size" argument
             # the test set will be a percentage part of the whole dataset
             test, exit = data_preprocessor.preprocess_data()
             if args.model_type in ['SARIMA','SARIMAX']:
@@ -172,8 +173,10 @@ def main():
                         raise ValueError("Unable to preprocess dataset.")
                     if args.seasonal_model:
                         # Take the seasonal component of the training set
-                        train_seasonal = moving_average_ST(train,args.target_column).seasonal
+                        train_seasonal = pd.DataFrame(moving_average_ST(train,args.target_column).seasonal)
+                        train_seasonal.rename(columns = {'seasonal': args.target_column}, inplace = True)
                         X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_seasonal, valid, test)
+                        
                     else:
                         X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, valid, test)
 
@@ -184,7 +187,6 @@ def main():
                     X_train, y_train = data_preprocessor.create_time_features(train, label=args.target_column, seasonal_model = args.seasonal_model)
                     X_valid, y_valid = data_preprocessor.create_time_features(valid, label=args.target_column, seasonal_model = args.seasonal_model)
                     X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
-
 
         ########### END OF PREPROCESSING AND DATASET SPLIT ########
         

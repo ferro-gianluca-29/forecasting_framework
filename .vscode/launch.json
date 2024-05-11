@@ -10,14 +10,16 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/recs2020_public_v7.csv",
-                "--target_column", "KWH",
+                "--model_path", "./data/models/LSTM_2024-05-10_10-56-24",                
+                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
+                "--target_column", "hourly_demand",
                 "--model_type", "LSTM",
-              //  "--exog","close", "high",
+                "--seasonal_model",
                 "--scaling", 
                 "--validation",
-             //   "--date_list", "100010", "105010", "105010", 
-              //  "108010","108010","110010",
+             //   "--ts_analysis",
+                "--date_list", "2020-01-01 00:00:00", "2021-12-31 00:00:00", "2022-01-01 00:00:00", 
+                "2022-12-31 00:00:00","2022-01-01 00:00:00","2022-12-31 00:00:00",
             ]
         },
         {
@@ -29,15 +31,16 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train",
-                "--dataset_path", "./data/Dataset/SP_SPX.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--ts_analysis",
+                "--model_path", "./data/models/LSTM_2024-05-10_10-56-24",                
+                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
+                "--target_column", "hourly_demand",
+                "--model_type", "LSTM",
+                "--seasonal_model",
+                "--scaling", 
                 "--validation",
-             //   "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-           //     "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+             //   "--ts_analysis",
+                "--date_list", "2020-01-01 00:00:00", "2021-12-31 00:00:00", "2022-01-01 00:00:00", 
+                "2022-12-31 00:00:00","2022-01-01 00:00:00","2022-12-31 00:00:00",
             ]
         },
         {
@@ -49,15 +52,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--model_path", "./data/models/LSTM_2024-05-06_20-29-47",                
-                "--dataset_path", "./data/Dataset/pjm_hourly_est.csv",
-                "--target_column", "PJM_Load",
+                "--model_path", "./data/models/LSTM_2024-05-10_10-56-24",                
+                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
+                "--target_column", "hourly_demand",
                 "--model_type", "LSTM",
-              //  "--exog","close", "high",
+                "--seasonal_model",
                 "--scaling", 
                 "--validation",
-                "--date_list", "1998-12-31", "2010-02-17 23:00:00", "2010-02-17 23:00:00", 
-                "2011-04-17 15:00:00","2011-04-17 15:00:00","2018-01-02 00:00:00",
+                "--date_list", "2022-01-01 00:00:00","2022-12-31 00:00:00",
             ]
         },
         {
@@ -77,8 +79,8 @@
                 "--scaling", 
                 "--validation",
                 "--steps_ahead", "10",
-                "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-                "2022-05-04T19:55:00+02:00","2022-05-04T19:55:00+02:00","2022-05-11T17:40:00+02:00",
+                "--date_list", "2000-01-01 02:00:00", "2013-04-08 17:00:00", "2013-04-08 17:00:00", 
+                "2017-07-15 01:00:00","2017-07-15 01:00:00","2021-11-09 10:00:00",
             ]
         }
     ]

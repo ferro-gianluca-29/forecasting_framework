@@ -172,7 +172,7 @@ class ModelTest():
         plt.plot(test.index, predictions, 'k--', label=f'ARIMA({best_order[0]}, {best_order[1]}, {best_order[2]})')
         if naive_predictions is not None:
             plt.plot(test.index, naive_predictions, 'r--', label='Naive')
-        plt.title(f'{self.forecast_type} prediction for feature: {self.target_column}')
+        plt.title(f'{self.model_type} prediction for feature: {self.target_column}')
         plt.xlabel('Time series index')
         plt.legend(loc='best')
         plt.tight_layout()
@@ -191,7 +191,7 @@ class ModelTest():
         plt.plot(test.index, self.predictions, 'k--', label=f'SARIMAX({best_order[0]}, {best_order[1]}, {best_order[2]}, {best_order[3]}, {best_order[4]}, {best_order[5]})')
         if naive_predictions is not None:
             plt.plot(test.index, naive_predictions, 'r--', label='Naive seasonal')
-        plt.title(f'{self.forecast_type} prediction for feature: {self.target_column}')
+        plt.title(f'{self.model_type} prediction for feature: {self.target_column}')
         plt.xlabel('Time series index')
         plt.legend(loc='best')
         plt.tight_layout()
