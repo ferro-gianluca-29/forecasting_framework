@@ -23,13 +23,14 @@ class ModelTraining():
     :param target_column: The name of the target variable in the dataset.
     :param verbose: If True, enables verbose output during model training.
     """
-    def __init__(self, model_type: str, train, valid = None, target_column = None, 
+    def __init__(self, model_type: str, train, valid = None, valid_steps = None, target_column = None, 
                  verbose = False):
         
         self.verbose = verbose
         self.model_type = model_type
         self.train = train
         self.valid = valid
+        self.valid_steps = valid_steps
         self.target_column = target_column
         self.ARIMA_order = []
         self.SARIMAX_order = []
@@ -62,7 +63,7 @@ class ModelTraining():
                 valid = self.valid[self.target_column]
                 # Number of time steps to forecast
                 nforecasts = 3  
-                nsteps_ahead = 10
+                nsteps_ahead = self.valid_steps
                 # Choose whether to refit the model at each step
                 refit_model = False  
                 model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                

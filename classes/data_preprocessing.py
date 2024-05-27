@@ -263,7 +263,15 @@ class DataPreprocessor():
     
     def replace_outliers(self,df):
         """
-        Replaces outliers in the DataFrame using a rolling window and IQR method.
+        Replaces outliers in the dataset based on the Interquartile Range (IQR)
+        method. Instead of analyzing the entire dataset at once, this method focuses on a window of data points at a time. 
+        The window moves through the data series step by step. For each step, it includes the next data point
+        in the sequence while dropping the oldest one, thus maintaining a constant
+        window size. For each position of the window, the function calculates the
+        first (Q1) and third (Q3) quartiles of the data within the window. These
+        quartiles are used to determine the Interquartile Range (IQR), from which
+        lower and upper bounds for outliers are derived.
+
 
         :param df: DataFrame from which to remove and replace outliers
         :return: DataFrame with outliers replaced

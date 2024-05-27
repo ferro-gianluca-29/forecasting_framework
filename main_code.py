@@ -51,7 +51,7 @@ def main():
     parser.add_argument('--val_size', type=float, required=False, default=0.2, help='Validation set size')
     parser.add_argument('--test_size', type=float, required=False, default=0.1, help='Test set size')
     parser.add_argument('--scaling', action='store_true', help='If True, data will be scaled')
-    parser.add_argument('--validation', action='store_true', required=False, help='If True, the validation set is created (not for ARIMA-SARIMAX)' )
+    parser.add_argument('--validation', action='store_true', required=False, help='If True, the validation set is created' )
     parser.add_argument('--target_column', type=str, required=True, help='Name of the target column for forecasting')
     parser.add_argument('--time_column_index', type=int, required=False, default=0, help='Index of the column containing the timestamps')
 
@@ -60,6 +60,7 @@ def main():
     # Statistical models
     parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
     parser.add_argument('--steps_ahead', type=int, required=False, default=100, help='Number of time steps ahead to forecast')
+    parser.add_argument('--valid_steps', type=int, required=False, default=10, help='Number of time steps to use during validation')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')  
@@ -68,7 +69,7 @@ def main():
     parser.add_argument('--seasonal_model', action='store_true', help='If True, in the case of LSTM the seasonal component is fed into the model, while for XGB models Fourier features are added')
     #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
-    # Fine tuning arguments    
+    # Test and fine tuning arguments    
     parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
     parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
        
@@ -106,10 +107,14 @@ def main():
 
         ### Preprocessing for test-only mode
         if args.run_mode == "test":
+
             # If you need to just test the model and "--date_list" is empty, you must give the "--test_size" argument
             # the test set will be a percentage part of the whole dataset
+
             test, exit = data_preprocessor.preprocess_data()
+
             if args.model_type in ['SARIMA','SARIMAX']:
+                # Create the test set for target and exog variables
                 target_test = test[[args.target_column]]
                 if args.exog is not None:
                     exog_test = test[args.exog]
@@ -144,7 +149,7 @@ def main():
 
                 case 'SARIMA'|'SARIMAX':
                     # Set the exogenous variable column
-                    if args.exog is  None:
+                    if args.exog is None:
                         exog = args.target_column
                     else: 
                         exog = args.exog
@@ -172,10 +177,43 @@ def main():
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
                     if args.seasonal_model:
-                        # Take the seasonal component of the training set
+                        # Seasonal and residual components of the training set
                         train_seasonal = pd.DataFrame(moving_average_ST(train,args.target_column).seasonal)
                         train_seasonal.rename(columns = {'seasonal': args.target_column}, inplace = True)
-                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_seasonal, valid, test)
+                        train_seasonal = train_seasonal.dropna()
+                        train_residual = pd.DataFrame(moving_average_ST(train,args.target_column).resid)
+                        train_residual.rename(columns = {'resid': args.target_column}, inplace = True)
+                        train_residual = train_residual.dropna()
+                        # Seasonal and residual components of the validation set
+                        valid_seasonal = pd.DataFrame(moving_average_ST(valid,args.target_column).seasonal)
+                        valid_seasonal.rename(columns = {'seasonal': args.target_column}, inplace = True)
+                        valid_seasonal = valid_seasonal.dropna()
+                        valid_residual = pd.DataFrame(moving_average_ST(valid,args.target_column).resid)
+                        valid_residual.rename(columns = {'resid': args.target_column}, inplace = True)
+                        valid_residual = valid_residual.dropna()
+                        # Seasonal and residual components of the test set
+                        test_seasonal = pd.DataFrame(moving_average_ST(test,args.target_column).seasonal)
+                        test_seasonal.rename(columns = {'seasonal': args.target_column}, inplace = True)
+                        test_seasonal = test_seasonal.dropna()
+                        test_residual = pd.DataFrame(moving_average_ST(test,args.target_column).resid)
+                        test_residual.rename(columns = {'resid': args.target_column}, inplace = True)
+                        test_residual = test_residual.dropna()
+
+                        # Merge residual and seasonal components on indices with 'inner' join to keep only matching rows
+                        train_merge = pd.merge(train_residual, train_seasonal, left_index=True, right_index=True, how='inner')
+                        valid_merge = pd.merge(valid_residual, valid_seasonal, left_index=True, right_index=True, how='inner')
+                        test_merge = pd.merge(test_residual, test_seasonal, left_index=True, right_index=True, how='inner')
+                        
+                        train_decomposed = pd.DataFrame(train_merge.iloc[:,0] + train_merge.iloc[:,1])
+                        train_decomposed = train_decomposed.rename(columns = {train_decomposed.columns[0]: args.target_column})
+                        valid_decomposed = pd.DataFrame(valid_merge.iloc[:,0] + valid_merge.iloc[:,1])
+                        valid_decomposed = valid_decomposed.rename(columns = {valid_decomposed.columns[0]: args.target_column})
+                        test_decomposed = pd.DataFrame(test_merge.iloc[:,0] + test_merge.iloc[:,1])
+                        test_decomposed = test_decomposed.rename(columns = {test_decomposed.columns[0]: args.target_column})
+
+                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_decomposed, 
+                                                                                                              valid_decomposed, 
+                                                                                                              test_decomposed)
                         
                     else:
                         X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, valid, test)
@@ -213,7 +251,7 @@ def main():
                         last_train_index = pre_trained_model.data.row_labels[-1] + 1
                         train_start_index = last_train_index
 
-                        # Update the indices so that the the indices are contiguous to those of the pre-trained model
+                        # Update the indices so that they are contiguous to those of the pre-trained model
 
                         test_start_index = test.index[0] + last_train_index
                         test_end_index = test_start_index + len(test)
@@ -258,7 +296,7 @@ def main():
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
                         if args.run_mode == 'fine_tuning':
-                            history = model.fit(X_train, y_train, epochs=200, validation_data=(X_valid, y_valid),batch_size=1000)
+                            history = model.fit(X_train, y_train, epochs=2, validation_data=(X_valid, y_valid),batch_size=1000)
                             valid_metrics = {}
                             valid_metrics['valid_loss'] = history.history['val_loss']
                             valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
@@ -290,7 +328,7 @@ def main():
 
                 #################### MODEL TRAINING ####################
 
-                model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
+                model_training = ModelTraining(args.model_type, train, valid, args.valid_steps, args.target_column, verbose = False)
 
                 match args.model_type:
 

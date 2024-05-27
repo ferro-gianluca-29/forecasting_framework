@@ -219,9 +219,7 @@ def moving_average_ST(dataframe,target_column):
     """
 
     result = seasonal_decompose(dataframe[target_column], model='additive', period=24) # Assuming daily seasonality
-    seasonal = result.seasonal
-    trend = result.trend
-    residual = result.resid
+
     # Plot the original time series data
     plt.figure(figsize=(16, 8))
     plt.subplot(4, 1, 1)
@@ -254,7 +252,15 @@ def moving_average_ST(dataframe,target_column):
     return result
 
 def time_s_analysis(df, target_column, seasonal_period):
+    """
+    Performs time series analysis including descriptive statistics, outlier detection, stationarity test,
+    autocorrelation function (ACF), partial autocorrelation function (PACF) plots,
+    and time series decomposition.
 
+    :param df: DataFrame containing the time series data.
+    :param target_column: Name of the target column in the DataFrame.
+    :param seasonal_period: Integer, period of the seasonality in the data.
+    """
     # Print dataset statistics for each column
     print("Dataset statistics:\n", df.describe())
 
