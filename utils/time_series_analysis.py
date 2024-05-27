@@ -251,6 +251,44 @@ def moving_average_ST(dataframe,target_column):
 
     return result
 
+def prepare_seasonal_sets(train, valid, test, target_column):
+    # Seasonal and residual components of the training set
+    train_seasonal = pd.DataFrame(moving_average_ST(train, target_column).seasonal)
+    train_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
+    train_seasonal = train_seasonal.dropna()
+    train_residual = pd.DataFrame(moving_average_ST(train, target_column).resid)
+    train_residual.rename(columns = {'resid': target_column}, inplace = True)
+    train_residual = train_residual.dropna()
+    # Seasonal and residual components of the validation set
+    valid_seasonal = pd.DataFrame(moving_average_ST(valid, target_column).seasonal)
+    valid_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
+    valid_seasonal = valid_seasonal.dropna()
+    valid_residual = pd.DataFrame(moving_average_ST(valid, target_column).resid)
+    valid_residual.rename(columns = {'resid': target_column}, inplace = True)
+    valid_residual = valid_residual.dropna()
+    # Seasonal and residual components of the test set
+    test_seasonal = pd.DataFrame(moving_average_ST(test, target_column).seasonal)
+    test_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
+    test_seasonal = test_seasonal.dropna()
+    test_residual = pd.DataFrame(moving_average_ST(test, target_column).resid)
+    test_residual.rename(columns = {'resid': target_column}, inplace = True)
+    test_residual = test_residual.dropna()
+
+    # Merge residual and seasonal components on indices with 'inner' join to keep only matching rows
+    train_merge = pd.merge(train_residual, train_seasonal, left_index=True, right_index=True, how='inner')
+    valid_merge = pd.merge(valid_residual, valid_seasonal, left_index=True, right_index=True, how='inner')
+    test_merge = pd.merge(test_residual, test_seasonal, left_index=True, right_index=True, how='inner')
+    
+    # Add the residual and seasonal columns
+    train_decomposed = pd.DataFrame(train_merge.iloc[:,0] + train_merge.iloc[:,1])
+    train_decomposed = train_decomposed.rename(columns = {train_decomposed.columns[0]: target_column})
+    valid_decomposed = pd.DataFrame(valid_merge.iloc[:,0] + valid_merge.iloc[:,1])
+    valid_decomposed = valid_decomposed.rename(columns = {valid_decomposed.columns[0]: target_column})
+    test_decomposed = pd.DataFrame(test_merge.iloc[:,0] + test_merge.iloc[:,1])
+    test_decomposed = test_decomposed.rename(columns = {test_decomposed.columns[0]: target_column})
+
+    return train_decomposed, valid_decomposed, test_decomposed
+
 def time_s_analysis(df, target_column, seasonal_period):
     """
     Performs time series analysis including descriptive statistics, outlier detection, stationarity test,
