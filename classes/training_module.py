@@ -197,24 +197,24 @@ class ModelTraining():
                             model_fit = model_fit.append(new_obs, exog = new_exog, refit=refit_model)
                             forecasts[new_obs.index[0]] = model_fit.forecast(exog = exog_valid.loc[t:t+nforecasts - 1], steps=nforecasts)
 
-            # Combine all forecasts into a DataFrame
-            forecasts = pd.concat(forecasts, axis=1)
+                        # Combine all forecasts into a DataFrame
+                        forecasts = pd.concat(forecasts, axis=1)
 
-            # Calculate and print forecast errors
-            forecast_errors = forecasts.apply(lambda column: valid - column).reindex(forecasts.index)
-            
-            # Reshape errors by horizon and calculate RMSE
-            def flatten(column):
-                return column.dropna().reset_index(drop=True)
+                        # Calculate and print forecast errors
+                        forecast_errors = forecasts.apply(lambda column: valid - column).reindex(forecasts.index)
+                        
+                        # Reshape errors by horizon and calculate RMSE
+                        def flatten(column):
+                            return column.dropna().reset_index(drop=True)
 
-            flattened = forecast_errors.apply(flatten)
-            flattened.index = (flattened.index + 1).rename('horizon')
-            perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
-            valid_metrics = {}
-            valid_metrics['valid_rmse'] = (flattened**2).mean(axis=1)**0.5
-            valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
-            valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
-            valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
+                        flattened = forecast_errors.apply(flatten)
+                        flattened.index = (flattened.index + 1).rename('horizon')
+                        perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
+                        valid_metrics = {}
+                        valid_metrics['valid_rmse'] = (flattened**2).mean(axis=1)**0.5
+                        valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
+                        valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
+                        valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
             
             # Running the LJUNG-BOX test for residual correlation
             ljung_box_test(model_fit)
@@ -256,7 +256,7 @@ class ModelTraining():
                                loss="MSE",
                                metrics=[MeanAbsoluteError(), MeanAbsolutePercentageError(), RootMeanSquaredError()])
             
-            history= lstm_model.fit(X_train, y_train, epochs=10, validation_data=(X_valid, y_valid),batch_size=1000)
+            history= lstm_model.fit(X_train, y_train, epochs=200, validation_data=(X_valid, y_valid),batch_size=1000)
             my_loss= lstm_model.history.history['loss']
             valid_metrics = {}
             valid_metrics['valid_loss'] = history.history['val_loss']

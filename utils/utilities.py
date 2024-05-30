@@ -54,10 +54,13 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
                 file.write(f"Best Order: {best_order}\n")
                 file.write(f"End Index: {end_index}\n")
                 file.write(f"Dataset: {dataset}\n")
-               #if validation:
-                for metric in valid_metrics.keys():
-                    file.write(f"{metric}:\n {valid_metrics[metric]}\n")
+
+                if validation:
+                    for metric in valid_metrics.keys():
+                        file.write(f"{metric}:\n {valid_metrics[metric]}\n")
+                        
                 file.write(f"Launch Command Used:{sys.argv[1:]}\n")
+
                 # Save the model
                 match model_type:
                     case 'LSTM':
@@ -139,3 +142,53 @@ def load_trained_model(model_type, folder_name):
 
     return model, best_order
 
+def naive_forecast(train, test , target_column, steps_ahead = None): 
+        """
+        Performs a naive forecast using the last observed value from the training set.
+
+        :param train: The training set.
+        :return: A pandas Series of naive forecasts.
+        """
+        try:
+            # Create a list of predictions
+            predictions = list()
+
+            last_observation = train.iloc[-1][target_column]
+            if steps_ahead is not None:
+                predictions = [last_observation] *  steps_ahead
+            else:
+                predictions = [last_observation] *  len(test)
+            predictions = pd.Series(predictions)
+            return predictions
+        
+        except Exception as e:
+            print(f"An error occurred during the naive model creation: {e}")
+            return None
+        
+def naive_seasonal_forecast(train, test , target_column, steps_ahead = None, period = 24):
+        """
+        Performs a seasonal naive forecast using the last observed seasonal cycle.
+
+        :param train: The training set.
+        :param target_test: The test set.
+        :param period: The seasonal period to consider for the forecast.
+        :return: A pandas Series of naive seasonal forecasts.
+        """
+        # Naive seasonal forecast: Use the last observed value from the same season as the prediction
+        # period to make the forecast.
+        
+        # Create a list of predictions
+        predictions = list()
+
+        if steps_ahead is not None: end = steps_ahead
+        else: end = len(test)
+        # For each step to predict
+        for t in range(0, end):
+            # Get the last observed value from the same season as the prediction period
+            last_observation = train.iloc[-period + t][target_column]
+            # Append the last observed value to the predictions list
+            predictions.append(last_observation)
+                    
+        predictions = pd.Series(predictions)    
+        # Return the predictions as a pd.Series with the same indexes as the test set
+        return predictions
