@@ -21,18 +21,23 @@ class ModelTest():
         self.predictions = list()
         self.forecast_type = forecast_type            
         self.steps_ahead = steps_ahead
+        
 
-    def test_ARIMA_model(self, steps_jump = None, ol_refit = False):
+    def test_ARIMA_model(self, last_index, steps_jump = None, ol_refit = False):
         """
         Tests an ARIMA model by performing one step-ahead predictions and optionally refitting the model.
 
         :param steps_jump: Optional parameter to skip steps in the forecasting.
         :param ol_refit: Boolean indicating whether to refit the model after each forecast.
+        :param last_index: index of last training/validation timestep 
         :return: A pandas Series of the predictions.
         """
         try:
             print("\nTesting ARIMA model...\n")
             
+            test = self.test
+            test_start_index = last_index
+            test.index = range(test_start_index, test_start_index + len(test))
             # ROLLING FORECASTS (ONE STEP-AHEAD, OPEN LOOP)
 
             for t in range(0, self.steps_ahead):
@@ -41,7 +46,7 @@ class ModelTest():
                 # Append the forecast to the list
                 self.predictions.append(y_hat)
                 # Take the actual value from the test set to predict the next
-                y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
+                y = test.iloc[t, test.columns.get_loc(self.target_column)]
                 # Update the model with the actual value
                 if ol_refit:
                     self.model = self.model.append([y], refit = True)
@@ -57,7 +62,7 @@ class ModelTest():
             print(f"An error occurred during the model test: {e}")
             return None
         
-    def test_SARIMAX_model(self, steps_jump = None, exog_test = None, ol_refit = False): 
+    def test_SARIMAX_model(self, last_index, steps_jump = None, exog_test = None, ol_refit = False): 
         """
         Tests a SARIMAX model by performing one step-ahead predictions, using exogenous variables, and optionally refitting.
 
@@ -69,6 +74,11 @@ class ModelTest():
         try:    
             print("\nTesting SARIMAX model...\n")
             
+            test = self.test
+            test_start_index = last_index
+            test_end_index = test_start_index + len(test)
+            test.index = range(test_start_index, test_end_index)
+
             # ROLLING FORECASTS (ONE STEP-AHEAD OPEN LOOP)
 
             match self.model_type:
@@ -79,23 +89,27 @@ class ModelTest():
                         # Insert the forecast into the list
                         self.predictions.append(y_hat)
                         # Take the actual value from the test set to predict the next
-                        y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
+                        y = test.iloc[t, test.columns.get_loc(self.target_column)]
                         # Update the model with the actual value and exogenous
                         if ol_refit:
                             self.model = self.model.append([y], refit=True)
                         else:
                             self.model = self.model.append([y], refit=False)
-                    predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])            
+                    predictions = pd.Series(data=self.predictions, index = test.index[:self.steps_ahead])            
+
                     print("Model testing successful.")
                     return predictions
                 
                 case 'SARIMAX':
+                    
+                    exog_test.index = range(test_start_index, test_end_index)
+
                     for t in range(0, self.steps_ahead):
                         y_hat = self.model.forecast(exog = exog_test.iloc[t:t+1])
                         # Insert the forecast into the list
                         self.predictions.append(y_hat)
                         # Take the actual value from the test set to predict the next
-                        y = self.test.iloc[t, self.test.columns.get_loc(self.target_column)]
+                        y = test.iloc[t, test.columns.get_loc(self.target_column)]
                         # Take the exogenous values from the test set to predict the next
                         new_exog = exog_test.iloc[t:t+1]
                         # Set the index for new_exog equal to the last index of the model
@@ -105,7 +119,7 @@ class ModelTest():
                             self.model = self.model.append([y], exog = new_exog, refit=True)
                         else:
                             self.model = self.model.append([y], exog = new_exog, refit=False) 
-                    predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])            
+                    predictions = pd.Series(data=self.predictions, index = test.index[:self.steps_ahead])            
                     print("Model testing successful.")
                     return predictions
                 

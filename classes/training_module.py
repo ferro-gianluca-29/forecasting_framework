@@ -39,11 +39,11 @@ class ModelTraining():
         """
         Trains an ARIMA model using the training dataset. 
 
-        :return: A tuple containing the trained model and validation metrics.
+        :return: A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
         """
         try:
             best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
-            # for debug: #best_order = (1,1,1)
+            # for debug: best_order = (1,1,1)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -57,6 +57,8 @@ class ModelTraining():
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")
                 valid_metrics = None
+                last_index = model_fit.data.row_labels[-1] + 1
+
 
             else:
 
@@ -68,6 +70,11 @@ class ModelTraining():
                 refit_model = False  
                 model = ARIMA(self.train[self.target_column], order=(best_order[0], best_order[1], best_order[2]))                
                 model_fit = model.fit()
+
+                last_train_index = model_fit.data.row_labels[-1] + 1
+                valid_start_index = last_train_index
+                valid.index = range(valid_start_index, valid_start_index + len(valid))    
+        
                 # Dictionary to store forecasts
                 forecasts = {}
                 forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
@@ -96,11 +103,13 @@ class ModelTraining():
                 valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
                 valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
 
+                last_index = model_fit.data.row_labels[-1] + 1
+
                 # Running the LJUNG-BOX test for residual correlation
                 ljung_box_test(model_fit)
                 print("Model successfully trained.")
 
-            return model_fit, valid_metrics
+            return model_fit, valid_metrics, last_index
  
         except Exception as e:
             print(f"An error occurred during the model training: {e}")
@@ -114,16 +123,18 @@ class ModelTraining():
         :param exog_train: Training dataset containing the exogenous variables.
         :param exog_valid: Optional validation dataset containing the exogenous variables for model evaluation.
         :param period: Seasonal period of the SARIMAX model.
-        :return: A tuple containing the trained model and validation metrics.
+        :return: A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
         """
         try:        
             match self.model_type:
                 case 'SARIMA':
                     target_train = self.train[[self.target_column]]
+                    
                     best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
-                    # for debug: # best_order = (1,1,1,1,1,1)
+                    #for debug:  best_order = (1,1,1,1,1,1)
                     self.SARIMAX_order = best_order
                     print("\nTraining the SARIMAX model...")
+
                     if self.valid is None:
                         model = SARIMAX(target_train, order = (best_order[0], best_order[1], best_order[2]),
                                             seasonal_order=(best_order[3], best_order[4], best_order[5], period),
@@ -131,9 +142,13 @@ class ModelTraining():
                                             )
                         model_fit = model.fit()
                         valid_metrics = None
+                        
+                        last_index = model_fit.data.row_labels[-1] + 1
                         # Running the LJUNG-BOX test for residual correlation
                         ljung_box_test(model_fit)
                         print("Model successfully trained.")
+
+
                     else:
                         valid = self.valid[self.target_column]
                         # Number of time steps to forecast
@@ -145,6 +160,11 @@ class ModelTraining():
                                         simple_differencing=False
                                     )
                         model_fit = model.fit()
+
+                        last_train_index = model_fit.data.row_labels[-1] + 1
+                        valid_start_index = last_train_index
+                        valid.index = range(valid_start_index, valid_start_index + len(valid))
+                        
                         # Dictionary to store forecasts
                         forecasts = {}
                         forecasts[self.train.index[-1]] = model_fit.forecast(steps=nforecasts)
@@ -156,6 +176,28 @@ class ModelTraining():
                             new_obs = valid.loc[t:t]
                             model_fit = model_fit.append(new_obs, refit=refit_model)
                             forecasts[new_obs.index[0]] = model_fit.forecast(steps=nforecasts)
+
+                        # Combine all forecasts into a DataFrame
+                        forecasts = pd.concat(forecasts, axis=1)
+
+                        # Calculate and print forecast errors
+                        forecast_errors = forecasts.apply(lambda column: valid - column).reindex(forecasts.index)
+                        
+                        # Reshape errors by horizon and calculate RMSE
+                        def flatten(column):
+                            return column.dropna().reset_index(drop=True)
+
+                        flattened = forecast_errors.apply(flatten)
+                        flattened.index = (flattened.index + 1).rename('horizon')
+                        perc_forecast_errors = forecasts.apply(lambda column: (valid - column)/ valid).reindex(forecasts.index).apply(flatten)
+                        valid_metrics = {}
+                        valid_metrics['valid_rmse'] = (flattened**2).mean(axis=1)**0.5
+                        valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
+                        valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
+                        valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
+
+                        last_index = model_fit.data.row_labels[-1] + 1
+
 
                 case 'SARIMAX':
                     target_train = self.train[[self.target_column]]
@@ -184,6 +226,11 @@ class ModelTraining():
                                     simple_differencing=False
                                     )
                         model_fit = model.fit()
+
+                        last_train_index = model_fit.data.row_labels[-1] + 1
+                        valid_start_index = last_train_index
+                        valid.index = range(valid_start_index, valid_start_index + len(valid))
+
                         # Dictionary to store forecasts
                         forecasts = {}
                         forecasts[self.train.index[-1]] = model_fit.forecast(exog = exog_valid.iloc[:nforecasts], steps=nforecasts)
@@ -215,12 +262,14 @@ class ModelTraining():
                         valid_metrics['valid_mse'] = (flattened**2).mean(axis=1)
                         valid_metrics['valid_mae'] = ((flattened).abs()).mean(axis=1)
                         valid_metrics['valid_mape'] = ((perc_forecast_errors).abs()).mean(axis=1)
-            
+
+                        last_index = model_fit.data.row_labels[-1] + 1
+
             # Running the LJUNG-BOX test for residual correlation
             ljung_box_test(model_fit)
             print("Model successfully trained.")
 
-            return model_fit, valid_metrics
+            return model_fit, valid_metrics, last_index
         
         except Exception as e:
                 print(f"An error occurred during the model training: {e}")

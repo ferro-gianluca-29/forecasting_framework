@@ -305,7 +305,7 @@ def main():
                 match args.model_type:
 
                     case 'ARIMA':    
-                        model, valid_metrics = model_training.train_ARIMA_model()
+                        model, valid_metrics, last_index = model_training.train_ARIMA_model()
                         best_order = model_training.ARIMA_order
                         # Save a buffer containing the last elements of the training set for further test
                         buffer_size = 20
@@ -315,7 +315,7 @@ def main():
                                 best_order = best_order, end_index = model.data.row_labels[-1] + 1, valid_metrics = valid_metrics)
 
                     case 'SARIMAX'|'SARIMA':  
-                        model, valid_metrics = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
+                        model, valid_metrics, last_index  = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
                         best_order = model_training.SARIMAX_order
                         # Save a buffer containing the last elements of the training set for further test
                         buffer_size = 20
@@ -361,13 +361,13 @@ def main():
 
                 case 'ARIMA':
                     # Model testing
-                    predictions = model_test.test_ARIMA_model(args.steps_jump, args.ol_refit)    
+                    predictions = model_test.test_ARIMA_model(last_index, args.steps_jump, args.ol_refit)    
                     # Create the naive model
                     naive_predictions = model_test.naive_forecast(train)
 
                 case 'SARIMAX'|'SARIMA':
                     # Model testing
-                    predictions = model_test.test_SARIMAX_model(args.steps_jump, exog_test, args.ol_refit)   
+                    predictions = model_test.test_SARIMAX_model(last_index, args.steps_jump, exog_test, args.ol_refit)   
                     # Create the naive model
                     naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
 
