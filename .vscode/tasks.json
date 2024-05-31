@@ -8,12 +8,12 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/Demand-US-hourly-UTC time.csv",
-                "--target_column", "megawatthours",
+                "--dataset_path", "./data/Dataset/panama.csv",
+                "--target_column", "nat_demand",
                 "--model_type", "ARIMA",
                 "--scaling", 
                 "--validation",
-                "--date_list", "2015-07-01 05:00:00","2020-12-31 23:00:00","2020-12-31 23:00:00","2022-01-01 00:00:00","2022-01-01 00:00:00","2022-03-21 20:00:00",
+                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
 
              ],
             "group": {
@@ -72,13 +72,14 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/PJMW_hourly.csv",
-                "--target_column", "PJMW_MW",
+                "--dataset_path", "./data/Dataset/panama.csv",
+                "--target_column", "nat_demand",
                 "--model_type", "LSTM",
                 "--scaling", 
                 "--seasonal_model",
                 "--validation",
-                "--date_list", "2013-01-01 00:00:00", "2016-01-01 00:00:00", "2016-01-01 00:00:00", "2017-12-31 00:00:00", "2017-12-31 00:00:00", "2018-08-02 01:00:00",
+                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2020-01-01 00:00:00", "2020-01-01 00:00:00", "2020-06-27 00:00:00",
+                
              ],
             "group": {
                 "kind": "build",
@@ -97,8 +98,9 @@
                 "--target_column", "hourly_demand",
                 "--model_type", "XGB",
                 "--scaling", 
+                "--seasonal_model",
                 "--validation",
-                "--date_list", "2015-01-01 00:00:00","2019-01-01 00:00:00","2019-01-01 00:00:00","2020-01-01 00:00:00","2020-01-01 00:00:00","2023-01-01 00:00:00",
+                "--date_list", "2015-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2020-01-01 00:00:00", "2020-01-01 00:00:00", "2023-01-01 00:00:00",
              ],
             "group": {
                 "kind": "build",

@@ -10,11 +10,11 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/historic_demand_2009_2023.csv",
-                "--target_column", "england_wales_demand",
-                "--model_type", "SARIMA",
+                "--dataset_path", "./data/Dataset/panama.csv",
+                "--target_column", "nat_demand",
+                "--model_type", "ARIMA",
                 "--scaling", 
-                "--date_list", "2016-01-01","2020-01-01","2023-01-01","2023-02-24",
+                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2020-01-01 00:00:00", "2020-06-27 00:00:00",
             ]
         },
         {

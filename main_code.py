@@ -199,26 +199,6 @@ def main():
 
         ########### END OF PREPROCESSING AND DATASET SPLIT ########
         
-        """
-        ##### BENCHMARK NAIVE MODELS
-        naive_predictions = naive_seasonal_forecast(train, test , args.target_column, steps_ahead = args.steps_ahead)
-        model = None
-        naive_perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
-        # Compute naive performance metrics
-        mse = mean_squared_error(test.iloc[:args.steps_ahead,0], naive_predictions)
-        rmse = np.sqrt(mse)
-        naive_metrics = {}
-        naive_metrics['MSE'] = mse
-        naive_metrics['RMSE'] = rmse
-        naive_metrics['MAPE'] = mean_absolute_percentage_error(test.iloc[:args.steps_ahead,0], naive_predictions)
-        naive_metrics['MSPE'] = mean_squared_percentage_error(test.iloc[:args.steps_ahead,0], naive_predictions)
-        naive_metrics['MAE'] = mean_absolute_error(test.iloc[:args.steps_ahead,0], naive_predictions)
-        naive_metrics['R_2'] = r2_score(test.iloc[:args.steps_ahead,0], naive_predictions)
-
-        # Save model data
-        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, naive_metrics, best_order = None, end_index = None)   
-        #####
-        """
 
         ############### Optional time series analysis ############
         if args.ts_analysis:
