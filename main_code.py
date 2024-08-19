@@ -378,7 +378,7 @@ def main():
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 best_order = best_order, end_index = model.data.row_labels[-1] + 1, valid_metrics = valid_metrics)
 
-                    case 'SARIMAX'|'SARIMA':  
+                    case 'SARIMAX'|'SARIMA':   
                         model, valid_metrics, last_index  = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period, args.set_fourier)
                         best_order = model_training.SARIMAX_order
                         # Save a buffer containing the last elements of the training set for further test
