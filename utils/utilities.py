@@ -20,7 +20,7 @@ def conditional_print(verbose, *args, **kwargs):
     if verbose:
         print(*args, **kwargs)
 
-def save_data(save_mode, validation, path, model_type, model, dataset, performance = None, 
+def save_data(save_mode, validation, path, model_type, model, dataset, performance = None, naive_performance = None,
               best_order=None, end_index=None, valid_metrics = None):
     """
     Saves various types of data to files based on the specified mode.
@@ -31,7 +31,8 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
     :param model_type: Type of model used.
     :param model: Model object to be saved.
     :param dataset: Name of the dataset used.
-    :param performance: performance metrics to be saved.
+    :param performance: model performance metrics to be saved.
+    :param naive_performance: naive model performance metrics to be saved.
     :param best_order: best model order to be saved.
     :param end_index: index of the last training point.
     :param valid_metrics: validation metrics to be saved.
@@ -42,10 +43,10 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
         print(f"Error creating the save directory: {error}")
         return
     
-    file_mode = "a" if os.path.exists(f"{path}/model_details.txt") else "w"
+    file_mode = "a" if os.path.exists(f"{path}/model_details_{model_type}.txt") else "w"
 
     try:
-        with open(f"{path}/model_details.txt", file_mode) as file:
+        with open(f"{path}/model_details_{model_type}.txt", file_mode) as file:
 
             if save_mode == "training":
                 # Training Info
@@ -74,7 +75,8 @@ def save_data(save_mode, validation, path, model_type, model, dataset, performan
             elif save_mode == "test":
                 # Test Info
                 file.write(f"Test Info:\n")
-                file.write(f"Performance: {performance}\n") 
+                file.write(f"Model Performance: {performance}\n") 
+                file.write(f"Naive Model Performance: {naive_performance}\n") 
                 file.write(f"Launch Command Used:{sys.argv[1:]}\n")
             
             
@@ -94,11 +96,10 @@ def save_buffer(folder_path, df, target_column, size = 20, file_name = 'buffer.j
     :param size: Number of rows to save from the end of the DataFrame.
     :param file_name: Name of the file to save the data in.
     """
-    # Select the last rows with the specified columns 
-    target_col_index = df.columns.get_loc(target_column)
-    buffer_df = df.iloc[-size:, target_col_index]
+    # Select the last rows with the specified column 
+    buffer_df = df.iloc[-size:][[target_column]]  # Modified to keep as DataFrame
     
-    # Convert the index timestamp column to string format
+    # Convert the index timestamp column to string format if needed
     buffer_df.index = buffer_df.index.astype(str)
 
     # Serialize the dataframe to a JSON string
@@ -129,7 +130,7 @@ def load_trained_model(model_type, folder_name):
             with open(f"{folder_name}/model.pkl", "rb") as file:
                 model = pickle.load(file)
 
-            with open(f"{folder_name}/model_details.txt", "r") as file:
+            with open(f"{folder_name}/model_details_{model_type}.txt", "r") as file:
                 for line in file:
                     if "Best Order" in line:
                         best_order_values = line.split(":")[1].strip().strip("()").split(", ")
@@ -147,6 +148,9 @@ def naive_forecast(train, test , target_column, steps_ahead = None):
         Performs a naive forecast using the last observed value from the training set.
 
         :param train: The training set.
+        :param test: The test set.
+        :param target_column: Column name for the target variable.
+        :param steps_ahead: Number of steps to forecast ahead, if not set, matches the test set length.
         :return: A pandas Series of naive forecasts.
         """
         try:
@@ -170,7 +174,9 @@ def naive_seasonal_forecast(train, test , target_column, steps_ahead = None, per
         Performs a seasonal naive forecast using the last observed seasonal cycle.
 
         :param train: The training set.
-        :param target_test: The test set.
+        :param test: The test set.
+        :param target_column: Column name for the target variable.
+        :param steps_ahead: Number of steps to forecast ahead, if not set, matches the test set length.
         :param period: The seasonal period to consider for the forecast.
         :return: A pandas Series of naive seasonal forecasts.
         """

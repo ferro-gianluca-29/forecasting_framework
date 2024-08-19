@@ -10,12 +10,16 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/panama.csv",
-                "--target_column", "nat_demand",
-                "--model_type", "ARIMA",
+                "--dataset_path", "./data/Dataset/Ireland_community_household.csv",
+                "--date_format", "%Y-%m-%d %H:%M:%S",
+                "--date_list", "2020-01-01 01:00:00", "2020-12-15 00:00:00", "2020-12-15 00:00:00", "2020-12-16 00:00:00",
+                "--target_column", "Consumption[W]",
+                "--model_type", "SARIMA",
+                "--period", "96",
+                "--set_fourier",
                 "--scaling", 
-                "--validation",
-                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
+                "--forecast_type", "cl-multi", 
+                "--unscale_predictions",
             ]
         },
         {
@@ -48,14 +52,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--model_path", "./data/models/ARIMA_2024-05-23_09-42-21",                   
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
-                "--model_type", "ARIMA",
+                "--dataset_path", "./data/Dataset/Consumer 1.csv",
+                "--model_path", "./data/models/SARIMA_2024-08-01_12-54-04",
+                "--date_format", "%Y-%m-%d %H:%M:%S",
+                "--target_column", "Consumption [kWh]",
+                "--model_type", "SARIMA",
                 "--scaling", 
-                "--validation",
-                "--steps_ahead", "100",
-                "--date_list", "2021-12-31 00:00:00","2022-12-31 00:00:00",
+                "--forecast_type", "cl-multi", 
+                "--date_list",  "04/10/2019 00:00:00", "05/10/2019 00:00:00",
             ]
         },
         {
@@ -66,15 +70,14 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "--run_mode", "fine_tuning",   
-                "--model_path", "./data/models/LSTM_2024-05-23_13-49-17",            
-                "--dataset_path", "./data/Dataset/SP_SPX.csv",
-                "--target_column", "open",
-                "--model_type", "LSTM",
+                "--run_mode", "fine_tuning",
+                "--dataset_path", "./data/Dataset/panama.csv",
+                "--model_path", "./data/models/ARIMA_2024-05-30_11-27-39",
+                "--target_column", "nat_demand",
+                "--model_type", "ARIMA",
                 "--scaling", 
                 "--validation",
-                "--date_list", "2022-04-25T15:30:00+02:00", "2022-12-13T19:10:00+01:00", "2022-12-13T19:10:00+01:00", 
-                "2023-03-03T20:55:00+01:00","2023-03-03T20:55:00+01:00","2023-04-27T21:55:00+02:00",
+                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
             ]
         }
     ]

@@ -10,24 +10,23 @@ class DataPreprocessor():
     A class to handle operations of preprocessing, including tasks such as managing NaN values,
     removing non-numeric columns, splitting datasets, managing outliers, and scaling data.
 
-    :param file_ext: File extension for saving datasets
-    :param run_mode: Mode of operation ('train', 'test', 'train_test', 'fine_tuning')
-    :param model_type: Type of machine learning model to prepare data for
-    :param df: DataFrame containing the data
-    :param target_column: Name of the target column in the DataFrame
-    :param dates: indexes of dates given by command line with --date_list
-    :param scaling: Boolean flag to determine if scaling should be applied
-    :param validation: Boolean flag to determine if a validation set should be created
-    :param train_size: Proportion of data to be used for training
-    :param val_size: Proportion of data to be used for validation
-    :param test_size: Proportion of data to be used for testing
-    :param seasonal_split: Boolean flag to use seasonal data splitting logic
-    :param folder_path: Path to folder for saving data
-    :param model_path: Path to model file for loading or saving the model
-    :param verbose: Boolean flag for verbose output
+    :param file_ext: File extension for saving datasets.
+    :param run_mode: Mode of operation ('train', 'test', 'train_test', 'fine_tuning').
+    :param model_type: Type of machine learning model to prepare data for.
+    :param df: DataFrame containing the data.
+    :param target_column: Name of the target column in the DataFrame.
+    :param dates: Indexes of dates given by command line with --date_list.
+    :param scaling: Boolean flag to determine if scaling should be applied.
+    :param validation: Boolean flag to determine if a validation set should be created.
+    :param train_size: Proportion of data to be used for training.
+    :param val_size: Proportion of data to be used for validation.
+    :param test_size: Proportion of data to be used for testing.
+    :param folder_path: Path to folder for saving data.
+    :param model_path: Path to model file for loading or saving the model.
+    :param verbose: Boolean flag for verbose output.
     """    
     def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, dates = None, 
-                 scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
+                 scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, 
                  folder_path = None, model_path = None,  verbose = False):
         
         self.file_ext = file_ext
@@ -42,7 +41,6 @@ class DataPreprocessor():
         self.train_size = train_size
         self.val_size = val_size
         self.test_size = test_size
-        self.seasonal_split = seasonal_split
         self.folder_path = folder_path
         self.model_path = model_path
         self.verbose = verbose
@@ -89,10 +87,7 @@ class DataPreprocessor():
             
             ############## SPLIT DATASET ##############
 
-            if self.seasonal_split:
-                train, test, valid = self.seasonal_split_data(self.df)
-            else:
-                train, test, valid = self.split_data(self.df)
+            train, test, valid = self.split_data(self.df)
 
             #######################
 
@@ -109,15 +104,19 @@ class DataPreprocessor():
                 if self.run_mode == "train" or self.run_mode == "train_test":
                     scaler = MinMaxScaler()
                     # fit the scaler on the training set
+                    train = train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
                     scaler.fit(train[train.columns[0:train.columns.shape[0] - 1]])
                     # save training scaling data with pickle
                     with open(f"{self.folder_path}/scaler.pkl", "wb") as file:
                         pickle.dump(scaler, file)
                     # scale training data    
                     train[train.columns[0:train.columns.shape[0] - 1]] = scaler.transform(train[train.columns[0:train.columns.shape[0] - 1]])
-                    if self.validation: valid[valid.columns[0:valid.columns.shape[0] - 1]] = scaler.transform(valid[valid.columns[0:valid.columns.shape[0] - 1]])
+                    if self.validation: 
+                        valid = valid.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+                        valid[valid.columns[0:valid.columns.shape[0] - 1]] = scaler.transform(valid[valid.columns[0:valid.columns.shape[0] - 1]])
                     if self.run_mode == "train_test":    
                         # scale test data
+                        test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
                         test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
                         
 
@@ -127,6 +126,7 @@ class DataPreprocessor():
                         scaler = pickle.load(file)
                     # The last column is the date column, so it is not considered
                     num_features = test.columns.shape[0] - 1
+                    test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
                     test[test.columns[0:num_features]] = scaler.transform(test[test.columns[0:num_features]]) 
                 
                 if self.run_mode == "fine_tuning": 
@@ -380,65 +380,95 @@ class DataPreprocessor():
                     test = df[int(n * self.train_size):]
                     return train, test, None 
         
-    def data_windowing(self, train, valid, test):
+    def data_windowing(self, train, valid, test, input_len, output_len, seasonal_model=False, set_fourier = False):
         """
-        Prepare data windows for training, validation, and testing datasets, suitable for neural network models.
+        Creates data windows suitable for input into deep learning models, optionally incorporating Fourier features for seasonality.
 
-        :param train: Training DataFrame
-        :param valid: Validation DataFrame
-        :param test: Testing DataFrame
-        :return: Lists of input and target data arrays for training, validation, and test
+        :param train: Training dataset.
+        :param valid: Validation dataset.
+        :param test: Test dataset.
+        :param input_len: Length of the input data window.
+        :param output_len: Length of the output data window.
+        :param seasonal_model: Flag to include Fourier features for seasonal predictions.
+        :param set_fourier: Flag to set Fourier transformation features.
+        :return: Arrays of input and output data windows for training, validation, and testing.
         """
-        # Data windowing for neural network models
-        seq_len = 48
-        X_train = []
-        y_train = []    
-        X_valid = []
-        y_valid = [] 
-        X_test = []
-        y_test = [] 
 
-        # If run mode requires training create training and validation windows
-        if self.run_mode in ["train","train_test","fine_tuning"]:
-            for i in range(seq_len, len(train)):
-                X_train.append(train[self.target_column].iloc[i-seq_len : i])
-                y_train.append(train[self.target_column].iloc[i])
-            for i in range(seq_len, len(valid)):
-                X_valid.append(valid[self.target_column].iloc[i-seq_len : i])
-                y_valid.append(valid[self.target_column].iloc[i])
-            # convert to numpy array
-            X_train = np.array(X_train)
-            y_train = np.array(y_train)
-            X_valid = np.array(X_train)
-            y_valid = np.array(y_train)
-            # reshape data to input into RNN models
-            X_train = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
-            X_valid = np.reshape(X_train, (X_train.shape[0], seq_len, 1))
+        stride = input_len
+        X_train, y_train, X_valid, y_valid, X_test, y_test = [], [], [], [], [], []
+        indices_train, indices_valid, indices_test = [], [], []
 
-        # Create test windows    
-        for i in range(seq_len, len(test)):
-            X_test.append(test[self.target_column].iloc[i-seq_len : i])
-            y_test.append(test[self.target_column].iloc[i])
-        # convert to numpy array
-        X_test = np.array(X_test)
-        y_test = np.array(y_test)
-        # reshape data to input into RNN models
-        X_test = np.reshape(X_test, (X_test.shape[0], seq_len, 1))
+        # Definisci le colonne base e le colonne di Fourier
+        
+
+        if self.run_mode in ["train", "train_test", "fine_tuning"]:
+            # Processa train e valid sets
+            for dataset, X, y, indices in [(train, X_train, y_train, indices_train),
+                                        (valid, X_valid, y_valid, indices_valid)]:
+                
+                fourier_columns = [col for col in dataset.columns if col.startswith(('sin', 'cos'))]
+                input_columns = [self.target_column] + fourier_columns if set_fourier else [self.target_column]
+                first_window = True
+
+                for i in range(0, len(dataset) - input_len - output_len + 1, stride):
+                    X.append(dataset[input_columns].iloc[i:i + input_len].values)
+                    y.append(dataset[self.target_column].iloc[i + input_len:i + input_len + output_len].values)
+                    indices.append(i)
+                    if first_window == True and seasonal_model == False:
+                        print(f"X first window from {dataset['date'].iloc[i]} to {dataset['date'].iloc[i+input_len-1]}")
+                        print(f"y first window from {dataset['date'].iloc[i+input_len]} to {dataset['date'].iloc[i+input_len+output_len-1]}")
+                        first_window = False
+
+        # Test set sempre processato
+        if len(test) < input_len + output_len:
+            print("Test data is too short for creating windows")
+            return None
+        else:
+
+            fourier_columns = [col for col in test.columns if col.startswith(('sin', 'cos'))]
+            input_columns = [self.target_column] + fourier_columns if set_fourier else [self.target_column]
+            first_window = True
+
+            for i in range(0, len(test) - input_len - output_len + 1, stride):
+                X_test.append(test[input_columns].iloc[i:i + input_len].values)
+                y_test.append(test[self.target_column].iloc[i + input_len:i + input_len + output_len].values)
+                indices_test.append(i)
+                if first_window == True and seasonal_model == False:
+                    print(f"X_test first window from {test['date'].iloc[i]} to {test['date'].iloc[i+input_len-1]}")
+                    print(f"y_test first window from {test['date'].iloc[i+input_len]} to {test['date'].iloc[i+input_len+output_len-1]}")
+                    first_window = False
+
+        # Conversione in array e ridimensionamento
+        X_train, y_train = np.array(X_train), np.array(y_train)
+        X_valid, y_valid = np.array(X_valid), np.array(y_valid)
+        X_test, y_test = np.array(X_test), np.array(y_test)
+
+        # Reshape dei dati di input per includere tutte le feature nel modello
+        if X_train.size > 0:
+            X_train = np.reshape(X_train, (X_train.shape[0], input_len, len(input_columns)))
+        if X_valid.size > 0:
+            X_valid = np.reshape(X_valid, (X_valid.shape[0], input_len, len(input_columns)))
+        X_test = np.reshape(X_test, (X_test.shape[0], input_len, len(input_columns)))
 
         print("Data windowing complete")
-        return [X_train, y_train, X_valid, y_valid, X_test, y_test]    
-    
+        if self.run_mode == "test":
+            return [X_test, y_test]
+        else:
+            return [X_train, y_train, X_valid, y_valid, X_test, y_test]
+
+
     def create_time_features(self, df, label=None, seasonal_model = None, lags = [1, 2, 3, 24], rolling_window = 24):
         """
         Create time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.
 
-        :param df: DataFrame to modify with time-based features
-        :param label: Label column name for generating features
-        :param seasonal_model: Boolean indicating whether to add Fourier features for seasonal models
-        :param lags: List of integers representing lag periods to generate features for
-        :param rolling_window: Window size for generating rolling mean and standard deviation
-        :return: Modified DataFrame with new features, optionally including target column labels
+        :param df: DataFrame to modify with time-based features.
+        :param label: Label column name for generating features.
+        :param seasonal_model: Boolean indicating whether to add Fourier features for seasonal models.
+        :param lags: List of integers representing lag periods to generate features for.
+        :param rolling_window: Window size for generating rolling mean and standard deviation.
+        :return: Modified DataFrame with new features, optionally including target column labels.
         """
+
         df['date'] = df.index
         df['hour'] = df['date'].dt.hour
         df['dayofweek'] = df['date'].dt.dayofweek
@@ -456,12 +486,12 @@ class DataPreprocessor():
                 df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
 
             # Lagged features
-            for lag in lags:
-                df[f'lag_{lag}'] = df[label].shift(lag)
+            #for lag in lags:
+                #df[f'lag_{lag}'] = df[label].shift(lag)
 
             # Rolling window features
-            df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
-            df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
+            #df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
+            #df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
 
             df = df.dropna()  # Drop rows with NaN values resulting from lag/rolling operations
             X = df.drop(['date', label], axis=1, errors='ignore')
@@ -473,55 +503,4 @@ class DataPreprocessor():
             return X, y
         return X
 
-    def seasonal_split_data(self,df):
-        """
-        Split the dataset into seasonal parts based on day conditions to form the training, validation, and testing datasets.
-
-        :param df: DataFrame to be split
-        :return: DataFrames for training, testing, and validation, based on the seasonal conditions applied
-        """
-        # Define masks for selecting different subsets of data
-
-        # Mask for even days
-        even_mask = df['date'].dt.day % 2 == 0
-
-        # Mask for odd days that are multiples of 3
-        odd_mult_3_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 3 == 0)
-
-        # Update condition to include odd days that are multiples of 5, excluding multiples of 15
-        odd_mult_5_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 5 == 0) & (df['date'].dt.day % 15 != 0)
-
-        # Combine the updated conditions for the training set
-        train_valid_mask = even_mask | odd_mult_3_mask | odd_mult_5_mask
-
-        # Data that doesn't meet the training set condition goes into the test set
-        test_mask = ~train_valid_mask
-
-        # Split the data using the new conditions
-        train_valid_df = df[train_valid_mask]
-
-        if  self.validation:
-            train = train_valid_df[:int(len(train_valid_df) * 0.8)]
-            valid = train_valid_df[int(len(train_valid_df) * 0.8):]
-            test = df[test_mask]
-            valid_dim = valid.shape[0]
-            perc_val = (valid_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        else:
-            train = train_valid_df
-            test = df[test_mask]
-            valid = None
-
-        # Calculate the updated sizes of the training set and test set
-        train_dim = train.shape[0]
-        test_dim = test.shape[0]
-        
-
-        # Calculate the updated percentages
-        perc_train = (train_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        perc_test = (test_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        
-        if  self.validation:
-            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n validation set: {perc_val:.2f}% \n")
-        else:
-            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n")
-        return train, test, valid
+    

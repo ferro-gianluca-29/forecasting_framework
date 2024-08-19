@@ -8,7 +8,14 @@ from classes.model_testing import ModelTest
 class PerfMeasure(ModelTest):
     """
     Class that extends ModelTest to provide additional methods for measuring and plotting performance
-    metrics of forecasting models.
+    metrics of forecasting models. It calculates and returns various performance metrics
+    for a given set of actual and predicted values.
+
+    :param model_type: The type of model to test ('ARIMA', 'SARIMAX', etc.).
+    :param model: The model object to be tested.
+    :param test: The test set.
+    :param target_column: The target column in the dataset.
+    :param forecast_type: The type of forecasting to be performed ('ol-one', etc.).
     """
     
     def get_performance_metrics(self, test, predictions, naive = False):
@@ -23,32 +30,38 @@ class PerfMeasure(ModelTest):
         try:
             match self.model_type:
                 
-                case 'ARIMA'|'SARIMA'|'SARIMAX':
+                case 'ARIMA'|'SARIMA'|'SARIMAX'|'NAIVE':
                     test = test[:self.steps_ahead][self.target_column]
-                    non_zero_indices = np.where(test != 0)
                     # Handle zero values in test_data for MAPE and MSPE calculations
+                    test_zero_indices = np.where(test == 0)
+                    test.iloc[test_zero_indices] = 0.00000001
+                   
                     if naive == False:
-                        # predictions is a series containing a series in each element, so it must be trasformed to a simple series of values, keeping the original index
-                        predictions_non_zero = pd.Series({index: item.iloc[0] for index, item in predictions.iteritems()})
-                    else: 
-                        predictions_non_zero = predictions.iloc[non_zero_indices]
-                    test_non_zero = test.iloc[non_zero_indices]
+                        if self.forecast_type == 'ol-one':
+                            # predictions is a series containing a series in each element, so it must be trasformed to a simple series of values, keeping the original index
+                            predictions = pd.Series({index: item.iloc[0] for index, item in predictions.items()})
+
+                    pred_zero_indices = np.where(predictions == 0)
+                    predictions.iloc[pred_zero_indices] = 0.00000001
+                    
                 case 'LSTM':
-                    non_zero_indices = np.where(test != 0)
-                    predictions_non_zero = predictions[non_zero_indices]
-                    test_non_zero = test[non_zero_indices]
+                    test_zero_indices = np.where(test == 0)
+                    test[test_zero_indices] = 0.00000001
+                    pred_zero_indices = np.where(predictions == 0)
+                    predictions[pred_zero_indices] = 0.00000001
                 case 'XGB':
-                    non_zero_indices = np.where(test != 0)
-                    predictions_non_zero = predictions[non_zero_indices]
-                    test_non_zero = test.iloc[non_zero_indices]
+                    test_zero_indices = np.where(test == 0)
+                    test.iloc[test_zero_indices] = 0.00000001
+                    pred_zero_indices = np.where(predictions == 0)
+                    predictions[pred_zero_indices] = 0.00000001
 
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)
             rmse = np.sqrt(mse)
             performance_metrics['MSE'] = mse
             performance_metrics['RMSE'] = rmse
-            performance_metrics['MAPE'] = mean_absolute_percentage_error(test_non_zero, predictions_non_zero)
-            performance_metrics['MSPE'] = mean_squared_percentage_error(test_non_zero, predictions_non_zero)
+            performance_metrics['MAPE'] = mean_absolute_percentage_error(test, predictions)
+            performance_metrics['MSPE'] = mean_squared_percentage_error(test, predictions)
             performance_metrics['MAE'] = mean_absolute_error(test, predictions)
             performance_metrics['R_2'] = r2_score(test, predictions)
             return performance_metrics

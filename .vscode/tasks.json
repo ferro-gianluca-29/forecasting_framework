@@ -8,13 +8,39 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/panama.csv",
-                "--target_column", "nat_demand",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "30/11/2019 00:15:00", "01/12/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
                 "--model_type", "ARIMA",
                 "--scaling", 
-                "--validation",
-                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
+                "--forecast_type", "cl-multi", 
+                "--unscale_predictions",
 
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test - ARIMA",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",            
+                "--run_mode", "test",
+                "--dataset_path", "./data/Dataset/MG_Messico.csv",
+                "--dataset_path", "./data/Dataset/Ireland_community_household.csv",
+                "--date_format", "%Y-%m-%d %H:%M:%S",
+                "--date_list", "2020-01-01 01:00:00", "2020-12-15 00:00:00", "2020-12-15 00:00:00", "2020-12-16 00:00:00",
+                "--target_column", "Consumption[W]",
+                "--model_type", "ARIMA",
+                "--scaling", 
+                "--forecast_type", "cl-multi", 
+
+                ""
              ],
             "group": {
                 "kind": "build",
@@ -29,11 +55,16 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/panama.csv",
-                "--target_column", "nat_demand",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "30/11/2019 00:15:00", "01/12/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
                 "--model_type", "SARIMA",
+                "--period", "96",
+                "--set_fourier",
                 "--scaling", 
-                "--date_list", "2016-01-01 00:00:00","2019-01-01 00:00:00","2020-01-01 00:00:00","2020-06-27 00:00:00",
+                "--forecast_type", "cl-multi", 
+                "--unscale_predictions",
                 
              ],
             "group": {
@@ -43,21 +74,20 @@
             "problemMatcher": []
         },
         {
-            "label": "Training and Test - SARIMAX",
+            "label": "Test - SARIMA",
             "type": "shell",
             "command": "python",
             "args": [
                 "main_code.py",
-                "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/SP_SPX.csv",
-                "--target_column", "open",
-                "--exog", "close",
-                "--model_type", "SARIMAX",
+                "--run_mode", "test",
+                "--dataset_path", "./data/Dataset/Consumer 1.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--target_column", "Consumption [kWh]",
+                "--model_type", "SARIMA",
                 "--scaling", 
-                "--validation",
-                "--steps_ahead", "10",
-           //     "--date_list", "2022-04-25T16:00:00+02:00", "2022-04-27T20:50:00+02:00", "2022-04-27T20:50:00+02:00", 
-           //     "2022-05-04T19:55:00+02:00","2022-05-04T20:00:00+02:00","2022-05-11T17:40:00+02:00",
+                "--forecast_type", "cl-multi", 
+
+                ""
              ],
             "group": {
                 "kind": "build",
@@ -72,14 +102,18 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/panama.csv",
-                "--target_column", "nat_demand",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "27/11/2019 00:15:00", "27/11/2019 00:15:00", "30/11/2019 00:15:00", "30/11/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
                 "--model_type", "LSTM",
+                "--seasonal_model", "--period","96", 
+                "--set_fourier",
+                "--input_len", "96",
+                "--output_len", "96",
                 "--scaling", 
-                "--seasonal_model",
                 "--validation",
-                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2020-01-01 00:00:00", "2020-01-01 00:00:00", "2020-06-27 00:00:00",
-                
+                "--unscale_predictions",
              ],
             "group": {
                 "kind": "build",
@@ -94,19 +128,68 @@
             "args": [
                 "main_code.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/energy_demand_hourly_brazil.csv",
-                "--target_column", "hourly_demand",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "27/11/2019 00:15:00", "27/11/2019 00:15:00", "30/11/2019 00:15:00", "01/12/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
                 "--model_type", "XGB",
-                "--scaling", 
                 "--seasonal_model",
+                "--scaling", 
                 "--validation",
-                "--date_list", "2015-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2020-01-01 00:00:00", "2020-01-01 00:00:00", "2023-01-01 00:00:00",
+                "--unscale_predictions",
              ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": []
-        }       
+        },
+        {
+            "label": "Training and Test - NAIVE",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "30/11/2019 00:15:00", "01/12/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
+                "--model_type", "NAIVE",
+                "--scaling", 
+                "--forecast_type", "cl-multi",
+                "--seasonal_model",
+                "--period", "96",
+                "--unscale_predictions",    
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Time series analysis",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "main_code.py",
+                "--run_mode", "train_test",
+                "--ts_analysis",
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "30/11/2019 00:15:00", "01/12/2019 00:15:00", "02/12/2019 00:15:00",
+                "--target_column", "Producer 1 (kW)",
+                "--model_type", "TS ANALYSIS",
+                "--period","96",
+                "--scaling", 
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+
     ]
 }

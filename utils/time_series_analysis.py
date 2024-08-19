@@ -94,6 +94,7 @@ def ARIMA_optimizer(train, target_column=None, verbose=False):
         return best_order
 
 def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose=False):
+        
         """
         Identifies the optimal parameters for a SARIMAX model.
 
@@ -104,6 +105,7 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose
         :param verbose: Controls the output of the optimization process.
         :return: The best (p, d, q, P, D, Q) parameters for the SARIMAX model.
         """
+        
         d = adf_test(train[target_column], verbose=verbose)
         D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
 
@@ -209,68 +211,41 @@ def multiple_STL(dataframe,target_column):
     plt.tight_layout()
     plt.show()
 
-def moving_average_ST(dataframe,target_column):
+
+
+
+
+def prepare_seasonal_sets(train, valid, test, target_column, period):
     """
-    Decomposes a time series into its seasonal, trend, and residual components using moving averages.
+    Decomposes the datasets into seasonal and residual components based on the specified period.
 
-    :param dataframe: DataFrame containing the time series.
-    :param target_column: The target column in the DataFrame to decompose.
-    :return: The decomposed series with seasonal, trend, and residual attributes.
+    :param train: Training dataset.
+    :param valid: Validation dataset.
+    :param test: Test dataset.
+    :param target_column: The target column in the datasets.
+    :param period: The period for seasonal decomposition.
+    :return: Decomposed training, validation, and test datasets.
     """
-
-    result = seasonal_decompose(dataframe[target_column], model='additive', period=24) # Assuming daily seasonality
-
-    # Plot the original time series data
-    plt.figure(figsize=(16, 8))
-    plt.subplot(4, 1, 1)
-    plt.plot(dataframe[target_column], label='Original')
-    plt.legend(loc='best')
-    plt.title('Original Time Series Data')
-
-    # Plot the trend component
-    plt.subplot(4, 1, 2)
-    plt.plot(result.trend, label='Trend')
-    plt.legend(loc='best')
-    plt.title('Trend Component')
-
-    # Plot the seasonal component
-    plt.subplot(4, 1, 3)
-    plt.plot(result.seasonal, label='Seasonal')
-    plt.legend(loc='best')
-    plt.title('Seasonal Component')
-
-    # Plot the residual component
-    plt.subplot(4, 1, 4)
-    plt.plot(result.resid, label='Residual')
-    plt.legend(loc='best')
-    plt.title('Residual Component')
-
-    # Show the plot
-    plt.tight_layout()
-    plt.show()
-
-    return result
-
-def prepare_seasonal_sets(train, valid, test, target_column):
+    
     # Seasonal and residual components of the training set
-    train_seasonal = pd.DataFrame(moving_average_ST(train, target_column).seasonal)
+    train_seasonal = pd.DataFrame(seasonal_decompose(train[target_column], model='additive', period=period).seasonal) # Assuming daily seasonality.seasonal)
     train_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
     train_seasonal = train_seasonal.dropna()
-    train_residual = pd.DataFrame(moving_average_ST(train, target_column).resid)
+    train_residual = pd.DataFrame(seasonal_decompose(train[target_column], model='additive', period=period).resid)
     train_residual.rename(columns = {'resid': target_column}, inplace = True)
     train_residual = train_residual.dropna()
     # Seasonal and residual components of the validation set
-    valid_seasonal = pd.DataFrame(moving_average_ST(valid, target_column).seasonal)
+    valid_seasonal = pd.DataFrame(seasonal_decompose(valid[target_column], model='additive', period=period).seasonal)
     valid_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
     valid_seasonal = valid_seasonal.dropna()
-    valid_residual = pd.DataFrame(moving_average_ST(valid, target_column).resid)
+    valid_residual = pd.DataFrame(seasonal_decompose(valid[target_column], model='additive', period=period).resid)
     valid_residual.rename(columns = {'resid': target_column}, inplace = True)
     valid_residual = valid_residual.dropna()
     # Seasonal and residual components of the test set
-    test_seasonal = pd.DataFrame(moving_average_ST(test, target_column).seasonal)
+    test_seasonal = pd.DataFrame(seasonal_decompose(test[target_column], model='additive', period=period).seasonal)
     test_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
     test_seasonal = test_seasonal.dropna()
-    test_residual = pd.DataFrame(moving_average_ST(test, target_column).resid)
+    test_residual = pd.DataFrame(seasonal_decompose(test[target_column], model='additive', period=period).resid)
     test_residual.rename(columns = {'resid': target_column}, inplace = True)
     test_residual = test_residual.dropna()
 
@@ -291,36 +266,21 @@ def prepare_seasonal_sets(train, valid, test, target_column):
 
 def time_s_analysis(df, target_column, seasonal_period):
     """
-    Performs time series analysis including descriptive statistics, outlier detection, stationarity test,
-    autocorrelation function (ACF), partial autocorrelation function (PACF) plots,
-    and time series decomposition.
+    Performs a comprehensive time series analysis including plotting, stationarity testing, and decomposition.
 
-    :param df: DataFrame containing the time series data.
-    :param target_column: Name of the target column in the DataFrame.
-    :param seasonal_period: Integer, period of the seasonality in the data.
+    :param df: The DataFrame containing the time series data.
+    :param target_column: The column in the DataFrame representing the time series to analyze.
+    :param seasonal_period: The period to consider for seasonal decomposition and autocorrelation analysis.
     """
-    # Print dataset statistics for each column
-    print("Dataset statistics:\n", df.describe())
 
-    # Number of NaNs per column
-    print("Number of NaNs per column:\n", df.isna().sum())
+    # Plot the time series
+    plt.plot(df.index, df[target_column], 'b')
+    plt.title('Time Series')
+    plt.xlabel('Time series index')
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
 
-
-    # Calculate the number of outliers across the dataset
-
-    # Select only numeric columns
-    numeric_cols = df.select_dtypes(include=[np.number])
-
-    # Calculate the IQR (Interquartile Range) only for numeric columns
-    Q1 = numeric_cols.quantile(0.25)
-    Q3 = numeric_cols.quantile(0.75)
-    IQR = Q3 - Q1
-
-    # Create a mask for outliers only on numeric columns
-    outliers_mask = (numeric_cols < (Q1 - 1.5 * IQR)) | (numeric_cols > (Q3 + 1.5 * IQR))
-    num_outliers = outliers_mask.sum()
-    print("Number of outliers per column:\n", num_outliers)
-   
     # ADF test for stationarity
     adf_result = adfuller(df[target_column].dropna())
     p_value = adf_result[1]
@@ -334,11 +294,35 @@ def time_s_analysis(df, target_column, seasonal_period):
 
     # ACF and PACF plots
     print("\n===== ACF and PACF Plots =====")
-    plot_acf(df[target_column].dropna())
+    fig, ax = plt.subplots()
+    plot_acf(df[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
+    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
+    ax.set_ylabel('Autocorrelation')  # Imposta l'etichetta dell'asse Y
     plt.show()
-    
-    plot_pacf(df[target_column].dropna())
+
+    fig, ax = plt.subplots()
+    plot_pacf(df[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
+    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
+    ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
     plt.show()
+
+    df_diff = df.diff()
+
+    # ACF and PACF plots
+    print("\n===== ACF and PACF Plots =====")
+    fig, ax = plt.subplots()
+    plot_acf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
+    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
+    ax.set_ylabel('Autocorrelation')  # Imposta l'etichetta dell'asse Y
+    plt.show()
+
+    fig, ax = plt.subplots()
+    plot_pacf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
+    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
+    ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
+    plt.show()
+
+    """
 
     # Time series decomposition into its trend, seasonality, and residuals components
     decomposition = STL(df[target_column], period=seasonal_period).fit()
@@ -362,3 +346,4 @@ def time_s_analysis(df, target_column, seasonal_period):
     # Add title
     plt.suptitle(f"Time Series Decomposition with period {seasonal_period}")
     plt.show()
+    """

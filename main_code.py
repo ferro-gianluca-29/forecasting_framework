@@ -3,6 +3,7 @@
 import argparse
 import json
 import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
 from classes.data_preprocessing import DataPreprocessor
 from classes.data_loader import DataLoader
@@ -10,14 +11,15 @@ from classes.training_module import ModelTraining
 from classes.model_testing import ModelTest
 from classes.performance_measurement import PerfMeasure
 import datetime
-from utils.utilities import save_data, save_buffer, load_trained_model, naive_forecast, naive_seasonal_forecast
+from utils.utilities import save_data, save_buffer, load_trained_model
 from utils.time_series_analysis import time_s_analysis, multiple_STL, prepare_seasonal_sets
 from keras.models import load_model
 import xgboost as xgb
-from xgboost import plot_importance, plot_tree
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error, r2_score
-from sktime.performance_metrics.forecasting import mean_squared_percentage_error
-import numpy as np
+from xgboost import plot_importance
+from statsmodels.tsa.deterministic import Fourier
+
+import pickle
+
 
 # END OF LIBRARY IMPORTS #
   
@@ -47,8 +49,8 @@ def main():
 
     # Dataset arguments
     parser.add_argument('--dataset_path', type=str, required=True, help='Dataset path')
+    parser.add_argument('--date_format', type=str, required=True, help='Format of date time')
     parser.add_argument('--date_list', type=str, nargs='+', help='List with start and end of dates for training, validation and test set')
-    parser.add_argument('--seasonal_split', action='store_true', required=False, default=False, help='If True, makes a split that takes into account seasonality')
     parser.add_argument('--train_size', type=float, required=False, default=0.7, help='Training set size')
     parser.add_argument('--val_size', type=float, required=False, default=0.2, help='Validation set size')
     parser.add_argument('--test_size', type=float, required=False, default=0.1, help='Test set size')
@@ -61,20 +63,23 @@ def main():
     parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMAX, PROPHET, CONV, LSTM, CNN_LSTM)')
     # Statistical models
     parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
-    parser.add_argument('--steps_ahead', type=int, required=False, default=100, help='Number of time steps ahead to forecast')
     parser.add_argument('--valid_steps', type=int, required=False, default=10, help='Number of time steps to use during validation')
-    parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
+    parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip in open loop multi step predictions')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
-    parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period for the SARIMAX model')  
-
+    parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period')  
+    parser.add_argument('--set_fourier', action='store_true', required=False, default=False, help='If True, Fourier exogenous variables are used')
     # Other models
     parser.add_argument('--seasonal_model', action='store_true', help='If True, in the case of LSTM the seasonal component is fed into the model, while for XGB models Fourier features are added')
+    parser.add_argument('--input_len', type=int, required=False, default=24, help='Number of timesteps to use for prediction in each window in LSTM')
+    parser.add_argument('--output_len', type=int, required=False, default=1, help='Number of timesteps to predict in each window in LSTM')
+    
     #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
 
     # Test and fine tuning arguments    
     parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
     parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
-       
+    parser.add_argument('--unscale_predictions', action='store_true', required=False, default=False, help=' If specified, predictions and test data are unscaled')
+    
     args = parser.parse_args()
     # END OF ARGUMENT PARSING
 
@@ -89,7 +94,7 @@ def main():
 
         #######  DATA LOADING
 
-        data_loader = DataLoader(args.dataset_path, args.model_type, args.target_column, args.time_column_index, args.date_list, args.exog)
+        data_loader = DataLoader(args.dataset_path, args.date_format, args.model_type, args.target_column, args.time_column_index, args.date_list, args.exog)
         df, dates = data_loader.load_data()
         if df is None:
             raise ValueError("Unable to load dataset.")
@@ -98,14 +103,27 @@ def main():
         
         ####### PREPROCESSING AND DATASET SPLIT  ########
         
-        # Extract the file extension from the path 
+        # Extract the file extension from the path s
         file_ext = os.path.splitext(args.dataset_path)[1]
         
         data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, dates, 
-                                             args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
+                                             args.scaling, args.validation, args.train_size, args.val_size, args.test_size, 
                                              folder_path, args.model_path, verbose)
 
         # Preprocessing and split 
+
+        ############### Optional time series analysis ############
+        
+        if args.ts_analysis:
+            time_s_analysis(df, args.target_column, args.period)
+            train, test, exit = data_preprocessor.preprocess_data()
+            
+            multiple_STL(train, args.target_column)
+            return 0
+            
+
+            
+        ############## End of time series analysis ###########
 
         ### Preprocessing for test-only mode
         if args.run_mode == "test":
@@ -178,16 +196,52 @@ def main():
                     train, test, valid, exit = data_preprocessor.preprocess_data()
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
+                    
                     if args.seasonal_model:
                         
-                        train_decomposed, valid_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column)
+                        """ Aggiunta feature di Fourier come nel caso XGB
+                        for df in [train, test, valid]:
+                            # Add Fourier features for daily, weekly, and yearly seasonality
+                            for period in [24, 7, 365]:
+                                df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
+                                df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
+                        """
 
-                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_decomposed, 
-                                                                                                              valid_decomposed, 
-                                                                                                              test_decomposed)
+                        if args.set_fourier:
+                            # Aggiunta feature di Fourier con Statsmodels
+
+                            K = 5
+                            fourier = Fourier(period=args.period, order=K)
+                            train_fourier_terms = fourier.in_sample(train.index)
+                            valid_fourier_terms = fourier.in_sample(valid.index)
+                            test_fourier_terms = fourier.in_sample(test.index)
+
+                            train[train_fourier_terms.columns] = train_fourier_terms
+                            valid[valid_fourier_terms.columns] = valid_fourier_terms
+                            test[test_fourier_terms.columns] = test_fourier_terms
+
+                            X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, 
+                                                                                                                valid, 
+                                                                                                                test, 
+                                                                                                                args.input_len, 
+                                                                                                                args.output_len,
+                                                                                                                seasonal_model = True,
+                                                                                                                set_fourier = True)
+                        
+                        else:
+
+                            # LSTM stagionale con decomposizione STL
+                            train_decomposed, train_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
+
+                            X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train_decomposed, 
+                                                                                                                train_decomposed, 
+                                                                                                                test_decomposed, 
+                                                                                                                args.input_len, 
+                                                                                                                args.output_len,
+                                                                                                                seasonal_model = True)
                         
                     else:
-                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, valid, test)
+                        X_train, y_train, X_valid, y_valid, X_test, y_test = data_preprocessor.data_windowing(train, valid, test, args.input_len, args.output_len)
 
                 case 'XGB':
                     train, test, valid, exit = data_preprocessor.preprocess_data()
@@ -197,15 +251,17 @@ def main():
                     X_valid, y_valid = data_preprocessor.create_time_features(valid, label=args.target_column, seasonal_model = args.seasonal_model)
                     X_test, y_test = data_preprocessor.create_time_features(test, label=args.target_column, seasonal_model = args.seasonal_model)
 
-        ########### END OF PREPROCESSING AND DATASET SPLIT ########
-        
+                case 'NAIVE':
+                    train, test, exit = data_preprocessor.preprocess_data()
+                    valid = None
+                    model = None      
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
 
-        ############### Optional time series analysis ############
-        if args.ts_analysis:
-            time_s_analysis(train, args.target_column, args.period)
-            multiple_STL(train, args.target_column)
-            
-        ############## End of time series analysis ###########
+            print(f"Training set dim: {train.shape[0]} \n")
+            print(f"Test set dim: {test.shape[0]}")
+
+        ########### END OF PREPROCESSING AND DATASET SPLIT ########
 
         
         if args.run_mode == "fine_tuning" or args.run_mode == "test":
@@ -228,6 +284,9 @@ def main():
                         test_start_index = test.index[0] + last_train_index
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
+
+                        # Create last_index entry for testing function
+                        last_index = test_start_index
                         
                         if args.run_mode == "fine_tuning":
                             
@@ -250,6 +309,9 @@ def main():
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
                         target_test.index = range(test_start_index, test_end_index)
+                        # Create last_index entry for testing function
+                        last_index = test_start_index
+
                         if args.model_type == 'SARIMAX':
                             exog_test.index = range(test_start_index, test_end_index)
                             
@@ -273,6 +335,7 @@ def main():
                             valid_metrics['valid_loss'] = history.history['val_loss']
                             valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
                             valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
+
                             # Save training data
                             save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
@@ -290,6 +353,7 @@ def main():
                             verbose=False  # Set to True to see training progress
                         )
                             valid_metrics = model.evals_result()
+                            
                             # Save training data
                             save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                     end_index = len(train),  valid_metrics = valid_metrics)
@@ -308,24 +372,24 @@ def main():
                         model, valid_metrics, last_index = model_training.train_ARIMA_model()
                         best_order = model_training.ARIMA_order
                         # Save a buffer containing the last elements of the training set for further test
-                        buffer_size = 20
+                        buffer_size = test.shape[0]
                         save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                         # Save training data 
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 best_order = best_order, end_index = model.data.row_labels[-1] + 1, valid_metrics = valid_metrics)
 
                     case 'SARIMAX'|'SARIMA':  
-                        model, valid_metrics, last_index  = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period)
+                        model, valid_metrics, last_index  = model_training.train_SARIMAX_model(target_train, exog_train, exog_valid, args.period, args.set_fourier)
                         best_order = model_training.SARIMAX_order
                         # Save a buffer containing the last elements of the training set for further test
-                        buffer_size = 20
+                        buffer_size = test.shape[0]
                         save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
                     
                     case 'LSTM':
-                        model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_valid, y_valid)
+                        model, valid_metrics = model_training.train_LSTM_model(X_train, y_train, X_valid, y_valid, args.output_len)
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
@@ -350,12 +414,14 @@ def main():
                 train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records') 
                 target_train = pd.DataFrame()
                 target_train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records')
+                print(f"Training set buffer dim: {train.shape[0]} \n")
+                print(f"Test set dim: {test.shape[0]}")
             ##### End of manage buffer
            
            
             #################### MODEL TESTING ####################
 
-            model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
+            model_test = ModelTest(args.model_type, model, test, args.target_column, args.forecast_type)
             
             match args.model_type:
 
@@ -365,16 +431,112 @@ def main():
                     # Create the naive model
                     naive_predictions = model_test.naive_forecast(train)
 
+                    if args.unscale_predictions:
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        
+                        # Unscale predictions
+                        predictions = np.array(predictions)
+                        predictions = predictions.reshape(-1, 1)
+                        predictions = scaler.inverse_transform(predictions) 
+                        predictions = predictions.flatten()
+                        predictions = pd.Series(predictions) 
+                        # Unscale test data
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+
+
                 case 'SARIMAX'|'SARIMA':
+                    last_index = model.data.row_labels[-1] + 1
                     # Model testing
-                    predictions = model_test.test_SARIMAX_model(last_index, args.steps_jump, exog_test, args.ol_refit)   
+                    predictions = model_test.test_SARIMAX_model(last_index, args.steps_jump, exog_test, args.ol_refit, args.period, args.set_fourier)   
                     # Create the naive model
                     naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
 
-                case 'LSTM'|'XGB':
+                    if args.unscale_predictions:
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        
+                        # Unscale predictions
+                        predictions = np.array(predictions)
+                        predictions = predictions.reshape(-1, 1)
+                        predictions = scaler.inverse_transform(predictions) 
+                        predictions = predictions.flatten()
+                        predictions = pd.Series(predictions) 
+                        # Unscale test data
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+                        target_test[args.target_column] = scaler.inverse_transform(target_test[[args.target_column]])
+
+                case 'LSTM':
                     # Model testing
                     predictions = model.predict(X_test)
+                    naive_predictions = model_test.naive_seasonal_forecast(train, test, args.period)
 
+                    if args.unscale_predictions:
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        
+                        # Unscale predictions
+                        num_samples, num_timesteps = predictions.shape
+                        predictions = predictions.reshape(-1, 1)
+                        predictions = scaler.inverse_transform(predictions)
+                        predictions = predictions.reshape(num_samples, num_timesteps)
+                        # Unscale test data
+                        num_samples, num_timesteps = y_test.shape
+                        y_test = y_test.reshape(-1, 1)
+                        y_test = scaler.inverse_transform(y_test)
+                        y_test = y_test.reshape(num_samples, num_timesteps)
+
+                case 'XGB':
+                    # Model testing
+                    predictions = model.predict(X_test)
+                    naive_predictions = model_test.naive_seasonal_forecast(train, test, args.period)
+
+                    if args.unscale_predictions:
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        
+                        # Unscale predictions
+                        predictions = predictions.reshape(-1, 1)
+                        predictions = scaler.inverse_transform(predictions) 
+                        predictions = predictions.flatten() 
+                        # Unscale test data
+                        y_test = pd.DataFrame(y_test)
+                        y_test = scaler.inverse_transform(y_test)
+                        y_test = pd.Series(y_test.flatten())
+                        
+
+                case 'NAIVE':
+                    if args.seasonal_model:
+                        naive_predictions = model_test.naive_seasonal_forecast(train, test, args.period)
+                    else:
+                        naive_predictions = model_test.naive_forecast(train)
+                        
+                    if args.unscale_predictions:
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        
+                        # Unscale predictions
+                        naive_predictions = np.array(naive_predictions)
+                        naive_predictions = naive_predictions.reshape(-1, 1)
+                        naive_predictions = scaler.inverse_transform(naive_predictions) 
+                        naive_predictions = naive_predictions.flatten()
+                        naive_predictions = pd.Series(naive_predictions) 
+                        # Unscale test data
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+
+                    
+            
+            
 
             #################### END OF MODEL TESTING ####################        
         
@@ -388,54 +550,68 @@ def main():
                     model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
             
                 case 'SARIMAX'|'SARIMA':
-                    model_test.SARIMAX_plot_pred(best_order, naive_predictions)
+                    model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
 
                 case 'LSTM':
-                    time_values = df.index[len(df.index) - len(y_test):]
-                    model_test.plot_pred(y_test, predictions, time_values)
+                    if args.output_len != 1: model_test.LSTM_plot_pred(predictions, y_test)
 
                 case 'XGB':
                     _ = plot_importance(model, height=0.9) 
-                    time_values = df.index[len(df.index) - len(y_test):]   
-                    model_test.plot_pred(y_test, predictions, time_values)    
+                    time_values = y_test.index   
+                    model_test.XGB_plot_pred(y_test, predictions, time_values)
+
+                case 'NAIVE':
+                    model_test.NAIVE_plot_pred(naive_predictions)     
 
             #################### END OF PLOT PREDICTIONS ####################        
          
             #################### PERFORMANCE MEASUREMENT AND SAVING #################
 
-            if predictions is not None:
 
-                perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type, args.steps_ahead)
-                
-                match args.model_type:
-                
-                    case 'ARIMA':
-                        # Compute performance metrics
-                        metrics = perf_measure.get_performance_metrics(test, predictions) 
-                        # Compute naive performance metrics
-                        metrics_naive = perf_measure.get_performance_metrics(test, naive_predictions, naive = True)
-                        # Save the index of the last element of the training set
-                        end_index = len(train)
-                        # Save model data
-                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
+            perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type)
+            
+            match args.model_type:
+            
+                case 'ARIMA':
+                    # Compute performance metrics
+                    metrics = perf_measure.get_performance_metrics(test, predictions) 
+                    # Compute naive performance metrics
+                    naive_metrics = perf_measure.get_performance_metrics(test, naive_predictions, naive = True)
+                    # Save the index of the last element of the training set
+                    end_index = len(train)
+                    # Save model data
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, naive_metrics, best_order, end_index)                
 
-                    case 'SARIMAX'|'SARIMA':
-                        # Compute performance metrics
-                        metrics = perf_measure.get_performance_metrics(target_test, predictions)
-                        # Compute naive seasonal performance metrics
-                        metrics_seasonal_naive = perf_measure.get_performance_metrics(target_test, naive_predictions, naive = True) 
-                        # Save the index of the last element of the training set
-                        end_index = len(train)
-                        # Save model data
-                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
+                case 'SARIMAX'|'SARIMA':
+                    # Compute performance metrics
+                    metrics = perf_measure.get_performance_metrics(target_test, predictions)
+                    # Compute naive seasonal performance metrics
+                    naive_metrics = perf_measure.get_performance_metrics(target_test, naive_predictions, naive = True) 
+                    # Save the index of the last element of the training set
+                    end_index = len(train)
+                    # Save model data
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, naive_metrics, best_order, end_index)  
 
-                    case 'LSTM'|'XGB':
-                        # Compute performance metrics
-                        metrics = perf_measure.get_performance_metrics(y_test, predictions)
-                        # Save the index of the last element of the training set
-                        end_index = len(train)
-                        # Save model data
-                        save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)   
+                case 'LSTM':
+                    # Compute performance metrics 
+                    metrics = perf_measure.get_performance_metrics(y_test[0], predictions[0])
+                    # Save the index of the last element of the training set
+                    end_index = len(train)
+                    # Save model data
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)  
+
+                case 'XGB':
+                    # Compute performance metrics 
+                    metrics = perf_measure.get_performance_metrics(y_test, predictions)
+                    # Save the index of the last element of the training set
+                    end_index = len(train)
+                    # Save model data
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)
+
+                case 'NAIVE':
+                    metrics = None
+                    naive_metrics = perf_measure.get_performance_metrics(test, naive_predictions, naive = True) 
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, naive_performance = naive_metrics)
 
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
 
