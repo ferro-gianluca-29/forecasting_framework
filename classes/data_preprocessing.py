@@ -424,11 +424,12 @@ class DataPreprocessor():
             print("Test data is too short for creating windows")
             return None
         else:
-
+            
             fourier_columns = [col for col in test.columns if col.startswith(('sin', 'cos'))]
             input_columns = [self.target_column] + fourier_columns if set_fourier else [self.target_column]
             first_window = True
 
+            stride = input_len
             for i in range(0, len(test) - input_len - output_len + 1, stride):
                 X_test.append(test[input_columns].iloc[i:i + input_len].values)
                 y_test.append(test[self.target_column].iloc[i + input_len:i + input_len + output_len].values)

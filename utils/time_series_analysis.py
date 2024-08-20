@@ -282,6 +282,7 @@ def time_s_analysis(df, target_column, seasonal_period):
     plt.show()
 
     # ADF test for stationarity
+    #df[target_column] = df[target_column].str.replace(',', '.').astype(float)
     adf_result = adfuller(df[target_column].dropna())
     p_value = adf_result[1]
     adf_statistic = adf_result[0]
@@ -308,18 +309,20 @@ def time_s_analysis(df, target_column, seasonal_period):
 
     df_diff = df.diff()
 
-    # ACF and PACF plots
+    # ACF and PACF plots od differentiated time series
     print("\n===== ACF and PACF Plots =====")
     fig, ax = plt.subplots()
     plot_acf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
     ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
     ax.set_ylabel('Autocorrelation')  # Imposta l'etichetta dell'asse Y
+    ax.set_title('Differentiated Series ACF')  # Imposta il titolo del plot
     plt.show()
 
     fig, ax = plt.subplots()
     plot_pacf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
     ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
     ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
+    ax.set_title('Differentiated Series PACF')  # Imposta il titolo del plot
     plt.show()
 
     """

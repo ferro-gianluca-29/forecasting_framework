@@ -44,7 +44,8 @@ class ModelTraining():
         """
         try:
             
-            best_order = ARIMA_optimizer(self.train, self.target_column, self.verbose)
+            best_order = list(ARIMA_optimizer(self.train, self.target_column, self.verbose))
+            best_order[1] = 1
             # for debug: 
             #best_order = (2,2,2)
             self.ARIMA_order = best_order
@@ -133,9 +134,9 @@ class ModelTraining():
                 
             target_train = self.train[[self.target_column]]
             
-            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
+            best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
             #if optimizer is too slow, set the order after plotting ACF and PACF:  
-            best_order = (4,0,4,4,0,4)
+            #best_order = (4,1,4,4,1,4)
 
             self.SARIMAX_order = best_order
             print("\nTraining the SARIMAX model...")
@@ -152,7 +153,7 @@ class ModelTraining():
 
                     model = SARIMAX(target_train,
                                     order = sarima_order,
-                                    #seasonal_order = sarima_seasonal_order, # if optimizer is disabled, comment this line
+                                    seasonal_order = sarima_seasonal_order, # if optimizer is disabled, comment this line
                                     exog = train_fourier_terms,
                                     enforce_stationarity=False,
                                     enforce_invertibility=False,
@@ -238,6 +239,7 @@ class ModelTraining():
         :return: A tuple containing the trained LSTM model and validation metrics.
         """
         try:
+            
             output_dim = output_len
             if output_len == 1:
                 ret_seq_flag = False
