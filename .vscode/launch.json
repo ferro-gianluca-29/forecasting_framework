@@ -11,6 +11,7 @@
             "args": [
                 "--run_mode", "train_test",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "value",
                 "--model_type", "ARIMA",
@@ -18,6 +19,8 @@
                 "--scaling",
                 "--validation",
 =======
+=======
+>>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "06/01/2019 00:15:00", "07/01/2019 00:15:00", 
@@ -27,6 +30,9 @@
                 "--scaling", 
                 "--unscale_predictions",
                 "--forecast_type","cl-multi",
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             ]
         },
@@ -40,6 +46,7 @@
             "args": [
                 "--run_mode", "train",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
@@ -47,6 +54,8 @@
                 "--scaling",
                 "--validation",
 =======
+=======
+>>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "08/01/2019 00:15:00", "11/01/2019 00:15:00",
@@ -56,6 +65,9 @@
                 "--set_fourier",
                 "--scaling", 
                 "--unscale_predictions",
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             ]
         },
@@ -69,6 +81,7 @@
             "args": [
                 "--run_mode", "test",
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
@@ -76,6 +89,8 @@
                 "--scaling",
                 "--model_path", "./data/ARIMA_2024-04-08_10-02-14"
 =======
+=======
+>>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--model_path","./data/models/SARIMA_2024-08-30_16-28-34",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
@@ -87,6 +102,9 @@
                 "--scaling", 
                 "--unscale_predictions",
                 "--forecast_type","cl-multi",
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             ]
         },

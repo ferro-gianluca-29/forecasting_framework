@@ -95,6 +95,7 @@
             "command": "python",
             "args": [
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 "main_code.py",
                 "--run_mode", "train",
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
@@ -103,6 +104,8 @@
                 "--forecast_type", "ol-one",
                 "--scaling",
 =======
+=======
+>>>>>>> Stashed changes
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/Consumer_power.csv",
@@ -126,6 +129,7 @@
             "command": "python",
             "args": [
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 "main_code.py",
                 "--run_mode", "fine_tuning",
                 "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
@@ -137,6 +141,8 @@
             "problemMatcher": []
         }        
 =======
+=======
+>>>>>>> Stashed changes
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/Produzione_PV_resampled_H.csv",

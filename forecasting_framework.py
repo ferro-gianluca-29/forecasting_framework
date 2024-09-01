@@ -2,6 +2,7 @@
 
 import argparse
 import pandas as pd
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:main_code.py
 from matplotlib import pyplot as plt
 from classes.data_preprocessing import DataPreprocessor
@@ -13,6 +14,8 @@ import datetime
 from utils.utilities import ts_analysis, save_data, save_buffer, load_trained_model
 from utils.time_series_analysis import multiple_STL
 =======
+=======
+>>>>>>> Stashed changes
 import numpy as np
 import datetime
 import pickle
@@ -36,7 +39,10 @@ from Predictors.SARIMA_model import SARIMA_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
 
 
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
+=======
+>>>>>>> Stashed changes
 
 # END OF LIBRARY IMPORTS #
   
@@ -47,8 +53,21 @@ import warnings
 warnings.filterwarnings('ignore') 
 
 def main():
+<<<<<<< Updated upstream
     
     # ARGUMENT PARSING
+=======
+    """
+    Main function to execute time series forecasting tasks based on user-specified arguments.
+    This function handles the entire workflow from data loading, preprocessing, model training, testing,
+    and evaluation, based on the configuration provided via command-line arguments.
+    """
+    
+    # ARGUMENT PARSING
+    """
+    Parsing of command-line arguments to set up the environment and specify model training, testing, and evaluation parameters.
+    """
+>>>>>>> Stashed changes
     parser = argparse.ArgumentParser(description='Time series forecasting')
 
     # General arguments
@@ -58,17 +77,27 @@ def main():
 
     # Dataset arguments
     parser.add_argument('--dataset_path', type=str, required=True, help='Dataset path')
+<<<<<<< Updated upstream
     parser.add_argument('--seasonal_split', action='store_true', required=False, default=False, help='If True, makes a split that takes into account seasonality')
+=======
+    parser.add_argument('--date_format', type=str, required=True, help='Format of date time')
+    parser.add_argument('--date_list', type=str, nargs='+', help='List with start and end of dates for training, validation and test set')
+>>>>>>> Stashed changes
     parser.add_argument('--train_size', type=float, required=False, default=0.7, help='Training set size')
     parser.add_argument('--val_size', type=float, required=False, default=0.2, help='Validation set size')
     parser.add_argument('--test_size', type=float, required=False, default=0.1, help='Test set size')
     parser.add_argument('--scaling', action='store_true', help='If True, data will be scaled')
+<<<<<<< Updated upstream
     parser.add_argument('--validation', action='store_true', required=False, help='If True, the validation set is created (not for ARIMA-SARIMAX)' )
+=======
+    parser.add_argument('--validation', action='store_true', required=False, help='If True, the validation set is created' )
+>>>>>>> Stashed changes
     parser.add_argument('--target_column', type=str, required=True, help='Name of the target column for forecasting')
     parser.add_argument('--time_column_index', type=int, required=False, default=0, help='Index of the column containing the timestamps')
 
     # Model arguments
     parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMAX, PROPHET, CONV, LSTM, CNN_LSTM)')
+<<<<<<< Updated upstream
     parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
     parser.add_argument('--steps_ahead', type=int, required=False, default=100, help='Number of time steps ahead to forecast')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip')
@@ -79,6 +108,27 @@ def main():
     parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
     parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
        
+=======
+    # Statistical models
+    parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
+    parser.add_argument('--valid_steps', type=int, required=False, default=10, help='Number of time steps to use during validation')
+    parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip in open loop multi step predictions')
+    parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
+    parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period')  
+    parser.add_argument('--set_fourier', action='store_true', required=False, default=False, help='If True, Fourier exogenous variables are used')
+    # Other models
+    parser.add_argument('--seasonal_model', action='store_true', help='If True, in the case of LSTM the seasonal component is fed into the model, while for XGB models Fourier features are added')
+    parser.add_argument('--input_len', type=int, required=False, default=24, help='Number of timesteps to use for prediction in each window in LSTM')
+    parser.add_argument('--output_len', type=int, required=False, default=1, help='Number of timesteps to predict in each window in LSTM')
+    
+    #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
+
+    # Test and fine tuning arguments    
+    parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
+    parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
+    parser.add_argument('--unscale_predictions', action='store_true', required=False, default=False, help=' If specified, predictions and test data are unscaled')
+    
+>>>>>>> Stashed changes
     args = parser.parse_args()
     # END OF ARGUMENT PARSING
 
@@ -90,6 +140,7 @@ def main():
         folder_name = args.model_type + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         folder_path = f"./data/models/{folder_name}"
         os.makedirs(folder_path)
+<<<<<<< Updated upstream
  
         #  DATA LOADING
         data_loader = DataLoader(args.dataset_path, args.target_column, args.time_column_index)
@@ -103,10 +154,24 @@ def main():
             
 
 #################### PREPROCESSING  ####################
+=======
+
+        #######  DATA LOADING
+
+        data_loader = DataLoader(args.dataset_path, args.date_format, args.model_type, args.target_column, args.time_column_index, args.date_list, args.exog)
+        df, dates = data_loader.load_data()
+        if df is None:
+            raise ValueError("Unable to load dataset.")
+        
+        ####### END OF DATA LOADING
+        
+        ####### PREPROCESSING AND DATASET SPLIT  ########
+>>>>>>> Stashed changes
         
         # Extract the file extension from the path 
         file_ext = os.path.splitext(args.dataset_path)[1]
         
+<<<<<<< Updated upstream
         data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, 
                                              args.scaling, args.validation, args.train_size, args.val_size, args.test_size, args.seasonal_split,
                                              folder_path, args.model_path, verbose)
@@ -171,6 +236,16 @@ def main():
                 plt.title('Training set')
                 plt.show()
 =======
+=======
+        data_preprocessor = DataPreprocessor(file_ext, args.run_mode, args.model_type, df, args.target_column, dates, 
+                                             args.scaling, args.validation, args.train_size, args.val_size, args.test_size, 
+                                             folder_path, args.model_path, verbose)
+
+        # Preprocessing and split 
+
+        ############### Optional time series analysis ############
+        
+>>>>>>> Stashed changes
         if args.ts_analysis:
             time_s_analysis(df, args.target_column, args.period)
             train, test, exit = data_preprocessor.preprocess_data()
@@ -362,6 +437,7 @@ def main():
 
         ########### END OF PREPROCESSING AND DATASET SPLIT ########
 
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
         
             if args.model_type == 'SARIMAX':
@@ -424,6 +500,72 @@ def main():
                     # Load the model 
                     model = pre_trained_model
 =======
+=======
+        
+        if args.run_mode == "fine_tuning" or args.run_mode == "test":
+
+            #################### MODEL LOADING FOR TEST OR FINE TUNING ####################
+ 
+            # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
+                
+            match args.model_type:
+
+                    case 'ARIMA':
+
+                        # Load a pre-trained model
+                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
+                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
+                        train_start_index = last_train_index
+
+                        # Update the indices so that they are contiguous to those of the pre-trained model
+
+                        test_start_index = test.index[0] + last_train_index
+                        test_end_index = test_start_index + len(test)
+                        test.index = range(test_start_index, test_end_index)
+
+                        # Create last_index entry for testing function
+                        last_index = test_start_index
+                        
+                        if args.run_mode == "fine_tuning":
+                            
+                            train.index = range(train_start_index, train_start_index + len(train))  
+                            model = pre_trained_model.append(train[args.target_column], refit = True)          
+                        elif args.run_mode == "test":
+                            # Load the model 
+                            model = pre_trained_model   
+ 
+                    case 'SARIMAX'|'SARIMA': 
+
+                        # Load a pre-trained model
+                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
+                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
+                        train_start_index = last_train_index
+
+                        # Update the indices so that the the indices are contiguous to those of the pre-trained model
+                        
+                        test_start_index = test.index[0] + last_train_index
+                        test_end_index = test_start_index + len(test)
+                        test.index = range(test_start_index, test_end_index)
+                        target_test.index = range(test_start_index, test_end_index)
+                        # Create last_index entry for testing function
+                        last_index = test_start_index
+
+                        if args.model_type == 'SARIMAX':
+                            exog_test.index = range(test_start_index, test_end_index)
+                            
+                        if args.run_mode == "fine_tuning":  
+                            # Update the model with the new data
+                            train.index = range(train_start_index, train_start_index + len(train)) 
+                            exog_train.index = range(train_start_index, train_start_index + len(train))  
+                            if args.model_type == 'SARIMA':
+                                model = pre_trained_model.append(train[args.target_column], refit = True)
+                            elif args.model_type == 'SARIMAX':
+                                model = pre_trained_model.append(train[args.target_column], exog = exog_train, refit = True)
+                        elif args.run_mode == "test":
+                            # Load the model 
+                            model = pre_trained_model
+                    
+>>>>>>> Stashed changes
                     case 'LSTM':
                         model = load_model(f"{args.model_path}/model.h5")
                         if args.run_mode == 'fine_tuning':
@@ -432,13 +574,41 @@ def main():
                             valid_metrics['valid_loss'] = history.history['val_loss']
                             valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
                             valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
 
             ######################## # END OF LOAD MODEL ####################
+=======
+
+                            # Save training data
+                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                end_index = len(train),  valid_metrics = valid_metrics)
+
+                    case 'XGB':
+                        model = xgb.XGBRegressor()
+                        model.load_model(f"{args.model_path}/model.json")
+                        if args.run_mode == 'fine_tuning':
+                            model = model.fit(
+                            X_train,
+                            y_train,
+                            eval_set=[(X_train, y_train), (X_valid, y_valid)],
+                            eval_metric=['rmse', 'mae'],
+                            early_stopping_rounds=100,
+                            verbose=False  # Set to True to see training progress
+                        )
+                            valid_metrics = model.evals_result()
+                            
+                            # Save training data
+                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                    end_index = len(train),  valid_metrics = valid_metrics)
+
+            ######################## # END OF MODEL LOADING AND FINE TUNING ####################
+>>>>>>> Stashed changes
     
         if args.run_mode == "train" or args.run_mode == "train_test":
 
                 #################### MODEL TRAINING ####################
+<<<<<<< Updated upstream
                 model_training = ModelTraining(args.model_type, train, valid, args.target_column, verbose = False)
 
 <<<<<<< Updated upstream:main_code.py
@@ -462,6 +632,9 @@ def main():
                     save_data("training", folder_path, args.model_type, model, args.dataset_path, 
                               best_order = best_order, end_index = len(train),  valid_metrics = valid_metrics)
 =======
+=======
+
+>>>>>>> Stashed changes
                 match args.model_type:
 
                     case 'ARIMA':    
@@ -497,11 +670,15 @@ def main():
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                 end_index = len(train),  valid_metrics = valid_metrics)
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
+=======
+>>>>>>> Stashed changes
 
                 #################### END OF MODEL TRAINING ####################
                     
         if args.run_mode == "train_test" or args.run_mode == "fine_tuning" or args.run_mode == "test":
+<<<<<<< Updated upstream
                 
             if args.run_mode == "test":
 
@@ -526,6 +703,26 @@ def main():
                 naive_predictions = model_test.naive_seasonal_forecast(target_train, target_test, args.period)
             
 =======
+=======
+
+
+            ##### Manage buffer for statistical models    
+            if args.run_mode == "test" and args.model_type in ['ARIMA','SARIMA','SARIMAX']:
+                # Create a training set from the loaded buffer, that will be used for the naive models
+                # for ARIMA: train; for SARIMAX: target_train
+                # Load buffer from JSON file
+                train = pd.DataFrame()
+                train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records') 
+                target_train = pd.DataFrame()
+                target_train[args.target_column] = pd.read_json(f"{args.model_path}/buffer.json", orient='records')
+                print(f"Training set buffer dim: {train.shape[0]} \n")
+                print(f"Test set dim: {test.shape[0]}")
+            ##### End of manage buffer
+           
+           
+            #################### MODEL TESTING ####################
+
+>>>>>>> Stashed changes
         
             match args.model_type:
 
@@ -613,13 +810,17 @@ def main():
 
                         
                     
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
+=======
+>>>>>>> Stashed changes
             #################### END OF MODEL TESTING ####################        
         
         if args.run_mode != "train":
 
             #################### PLOT PREDICTIONS ####################
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:main_code.py
             if(args.model_type == 'ARIMA'):
                 model_test.ARIMA_plot_pred(best_order, predictions, naive_predictions)
@@ -627,6 +828,8 @@ def main():
             elif(args.model_type == 'SARIMAX'):
                 model_test.SARIMAX_plot_pred(best_order, predictions, naive_predictions)
 =======
+=======
+>>>>>>> Stashed changes
             match args.model_type:
 
                 case 'ARIMA':
@@ -645,11 +848,15 @@ def main():
 
                 case 'NAIVE':
                     naive.plot_predictions(predictions)     
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
+=======
+>>>>>>> Stashed changes
 
             #################### END OF PLOT PREDICTIONS ####################        
          
             #################### PERFORMANCE MEASUREMENT AND SAVING #################
+<<<<<<< Updated upstream
             if predictions is not None:
                 perf_measure = PerfMeasure(model, test, args.target_column, args.forecast_type, args.steps_ahead)
                 if(args.model_type == 'ARIMA'):
@@ -663,10 +870,22 @@ def main():
                     # Save model data
                     save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
 =======
+=======
+
+
+            perf_measure = PerfMeasure(args.model_type, model, test, args.target_column, args.forecast_type)
+            
+            match args.model_type:
+            
+                case 'ARIMA':
+                    # Compute performance metrics
+                    metrics = perf_measure.get_performance_metrics(test, predictions) 
+>>>>>>> Stashed changes
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)                
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
 
                 elif(args.model_type == 'SARIMAX'):
@@ -681,6 +900,12 @@ def main():
                     save_data("test", folder_path, args.model_type, model, args.dataset_path, metrics, best_order, end_index)  
                         
 =======
+=======
+
+                case 'SARIMAX'|'SARIMA':
+                    # Compute performance metrics
+                    metrics = perf_measure.get_performance_metrics(target_test, predictions)
+>>>>>>> Stashed changes
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
@@ -707,6 +932,7 @@ def main():
                     naive_metrics = perf_measure.get_performance_metrics(test, predictions, naive = True) 
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, naive_performance = naive_metrics)
 
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:forecasting_framework.py
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
         
@@ -724,6 +950,10 @@ def main():
                     perf_measure.plot_stats_performance(args.model_type, metrics, metrics_seasonal_naive)             
 
             #################### END OF PRINT AND PLOT PERFORMANCE ####################
+=======
+            #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################
+
+>>>>>>> Stashed changes
         
     except Exception as e:
         print(f"An error occurred in Main: {e}")
