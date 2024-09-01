@@ -258,6 +258,7 @@ class DataPreprocessor():
         return df
 
     def split_data(self, df):
+<<<<<<< Updated upstream:classes/data_preprocessing.py
         
         n = len(df)
         if  self.validation:
@@ -325,3 +326,57 @@ class DataPreprocessor():
 
 
     
+=======
+        """
+        Split the dataset into training, validation, and test sets.
+        If a list with dates is given, each set is created within the respective dates, otherwise the sets are created following 
+        the given percentage sizes.
+
+        :param df: DataFrame to split
+        :return: Tuple of DataFrames for training, testing, and validation
+        """
+        # Data splitting for test mode
+
+
+        match self.run_mode:
+
+            case 'test':
+                # Convert into int values the list containing Int64Index elements
+                self.dates = [index[0] for index in self.dates]
+                test = df[self.dates[0]:self.dates[1]]
+                return None, test, None
+            
+            case 'train':
+                # Convert into int values the list containing Int64Index elements
+                self.dates = [index[0] for index in self.dates]
+
+                if self.validation:
+                    train = df[self.dates[0]:self.dates[1]]
+                    valid = df[self.dates[2]:self.dates[3]]
+                    return train, None, valid
+                else:
+                    train = df[self.dates[0]:self.dates[1]]
+                    return train, None, None
+            
+            case 'train_test':
+                # Convert into int values the list containing Int64Index elements
+                self.dates = [index[0] for index in self.dates]
+
+                if self.validation:
+                    train = df[self.dates[0]:self.dates[1]]
+                    valid = df[self.dates[2]:self.dates[3]]
+                    test = df[self.dates[4]:self.dates[5]]
+                    return train, test, valid
+                else:
+                    train = df[self.dates[0]:self.dates[1]]
+                    test = df[self.dates[2]:self.dates[3]]
+                    return train, test, None 
+                        
+
+        
+    
+
+
+    
+    
+>>>>>>> Stashed changes:tools/data_preprocessing.py

@@ -1,9 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
+<<<<<<< Updated upstream:classes/performance_measurement.py
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error
 from classes.model_testing import ModelTest
 
 class PerfMeasure(ModelTest):
+=======
+import pandas as pd
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, mean_absolute_error, r2_score
+from sktime.performance_metrics.forecasting import mean_squared_percentage_error
+
+class PerfMeasure:
+
+    def __init__(self, model_type, model, test, target_column, forecast_type):
+
+        self.model_type = model_type
+        self.model = model
+        self.test = test
+        self.target_column = target_column
+        self.predictions = list()
+        self.forecast_type = forecast_type            
+        self.steps_ahead = self.test.shape[0]
+>>>>>>> Stashed changes:tools/performance_measurement.py
     
     def get_performance_metrics(self, test, predictions):
         try:

@@ -5,58 +5,96 @@
             "name": "Training and Test",
             "type": "debugpy",
             "request": "launch",
-            "program": "main_code.py",
+            "program": "forecasting_framework.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "value",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
                 "--validation",
+=======
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "06/01/2019 00:15:00", "07/01/2019 00:15:00", 
+                "--target_column", "Producer 3 (kW)",
+                "--model_type", "NAIVE",
+                "--period", "96",
+                "--scaling", 
+                "--unscale_predictions",
+                "--forecast_type","cl-multi",
+>>>>>>> Stashed changes
             ]
         },
         {
             "name": "Training",
             "type": "debugpy",
             "request": "launch",
-            "program": "main_code.py",
+            "program": "forecasting_framework.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
                 "--run_mode", "train",
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
                 "--validation",
+=======
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "08/01/2019 00:15:00", "11/01/2019 00:15:00",
+                "--target_column", "Producer 3 (kW)",
+                "--model_type", "SARIMA",
+                "--period", "96",
+                "--set_fourier",
+                "--scaling", 
+                "--unscale_predictions",
+>>>>>>> Stashed changes
             ]
         },
         {
             "name": "Test",
             "type": "debugpy",
             "request": "launch",
-            "program": "main_code.py",
+            "program": "forecasting_framework.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
+<<<<<<< Updated upstream
                 "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
                 "--target_column", "open",
                 "--model_type", "ARIMA",
                 "--forecast_type", "ol-one",
                 "--scaling",
                 "--model_path", "./data/ARIMA_2024-04-08_10-02-14"
+=======
+                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
+                "--model_path","./data/models/SARIMA_2024-08-30_16-28-34",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list",  "08/01/2019 00:15:00", "11/01/2019 00:15:00",
+                "--target_column", "Producer 3 (kW)",
+                "--model_type", "SARIMA",
+                "--period", "96",
+                "--set_fourier",
+                "--scaling", 
+                "--unscale_predictions",
+                "--forecast_type","cl-multi",
+>>>>>>> Stashed changes
             ]
         },
         {
             "name": "Fine Tuning",
             "type": "debugpy",
             "request": "launch",
-            "program": "main_code.py",
+            "program": "forecasting_framework.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
