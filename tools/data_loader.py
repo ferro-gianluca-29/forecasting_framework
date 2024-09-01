@@ -2,20 +2,6 @@ import pandas as pd
 import os
 
 class DataLoader(): 
-<<<<<<< Updated upstream
-
-    def __init__(self,file_path, target_column, time_column_index = 0):
-        self.file_path = file_path
-        self.format = os.path.splitext(file_path)[1] 
-        self.target_column = target_column
-        self.time_column_index = time_column_index 
-
-    def load_data(self):
-
-        # load the dataframe with all the columns
-        if self.format == '.csv':
-            df = pd.read_csv(self.file_path)
-=======
     """
     Class for loading datasets from various file formats and preparing them for machine learning models.
 
@@ -53,7 +39,6 @@ class DataLoader():
         # load the dataframe with all the columns
         if self.format == '.csv':
             df = pd.read_csv(self.file_path, sep=None, engine='python')
->>>>>>> Stashed changes
         elif self.format == '.txt':
             df = pd.read_csv(self.file_path, delimiter='\t')
         elif self.format == '.xlsx' or self.format == '.xls':
@@ -73,9 +58,6 @@ class DataLoader():
         if self.time_column_index is not None:
             if self.time_column_index < len(df.columns):
                 time_column_name = df.columns[self.time_column_index]  # Get the correct column name
-<<<<<<< Updated upstream
-                
-=======
 
                 # remove columns that will not be used
                 useful_columns = [self.target_column, time_column_name]
@@ -83,7 +65,6 @@ class DataLoader():
                     useful_columns.extend(self.exog)
                 df = df[useful_columns]
 
->>>>>>> Stashed changes
                 if self.time_column_index != 0:
                     # Remove and copy the time column to the first position
                     time_column_data = df.pop(time_column_name)
@@ -92,18 +73,6 @@ class DataLoader():
                     # Rename if it's already the first column
                     df.rename(columns={time_column_name: 'date'}, inplace=True)
 
-<<<<<<< Updated upstream
-                # Convert the 'date' column to datetime
-                df['date'] = pd.to_datetime(df['date'], utc=True)
-                # Sort the dataset by date
-                df = df.sort_values(by=df.columns[0])
-                df.reset_index(drop=True, inplace = True)
-            else:
-                 print("time column not found.")
-            return df
-
-    
-=======
                 # Sort the dataset by date
                 #df = df.sort_values(by='date')
 
@@ -141,4 +110,3 @@ class DataLoader():
             else:
                  print("time column not found.")
             return df, dates
->>>>>>> Stashed changes

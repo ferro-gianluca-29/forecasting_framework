@@ -6,11 +6,6 @@ import datetime as datetime
 import pickle
 
 class DataPreprocessor():
-<<<<<<< Updated upstream
-    
-    def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, scaling = False, 
-                 validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, seasonal_split = False, 
-=======
     """
     A class to handle operations of preprocessing, including tasks such as managing NaN values,
     removing non-numeric columns, splitting datasets, managing outliers, and scaling data.
@@ -32,15 +27,11 @@ class DataPreprocessor():
     """    
     def __init__(self, file_ext, run_mode, model_type, df: pd.DataFrame, target_column: str, dates = None, 
                  scaling = False, validation = None, train_size = 0.7, val_size = 0.2, test_size = 0.1, 
->>>>>>> Stashed changes
                  folder_path = None, model_path = None,  verbose = False):
         
         self.file_ext = file_ext
         self.run_mode = run_mode
-<<<<<<< Updated upstream
-=======
         self.dates = dates
->>>>>>> Stashed changes
         self.model_type = model_type
         self.df = df
         self.target_column = target_column
@@ -50,48 +41,32 @@ class DataPreprocessor():
         self.train_size = train_size
         self.val_size = val_size
         self.test_size = test_size
-<<<<<<< Updated upstream
-        self.seasonal_split = seasonal_split
-=======
->>>>>>> Stashed changes
         self.folder_path = folder_path
         self.model_path = model_path
         self.verbose = verbose
 
     def conditional_print(self, *args, **kwargs):
-<<<<<<< Updated upstream
-=======
         """
         Print messages conditionally based on the verbose attribute.
 
         :param args: Non-keyword arguments to be printed
         :param kwargs: Keyword arguments to be printed
         """
->>>>>>> Stashed changes
         if self.verbose:
             print(*args, **kwargs)
 
     def preprocess_data(self):
-<<<<<<< Updated upstream
-=======
         """
         Main method to preprocess the dataset according to specified configurations.
 
         :return: Depending on the mode, returns the splitted dataframe and an exit flag.
         """
->>>>>>> Stashed changes
         exit = False
         try:
             print('\nData preprocessing in progress...\n')
 
-<<<<<<< Updated upstream
-
-            ########## NaN MANAGEMENT ##########
-            self.df, exit = self.manage_nan()
-=======
             ########## NaN MANAGEMENT ##########
             self.df, exit = self.manage_nan(self.df)
->>>>>>> Stashed changes
       
             if exit:
                 raise Exception('The dataset has been modified, please reload the file')
@@ -102,29 +77,6 @@ class DataPreprocessor():
             ########### REMOVING NON-NUMERIC COLUMNS ############
             
             # If there are columns containing non-numeric characters (excluding dates) they are removed
-<<<<<<< Updated upstream
-            non_numeric_cols = self.df.select_dtypes(include=['object']).columns
-            # Remove the target column and the time column from the list of columns to be deleted, if it is of object type
-            time_column = self.df.columns[0]
-            non_numeric_cols = non_numeric_cols.drop([self.target_column,time_column], errors='ignore')
-            # Deletes the non-numeric columns from the DataFrame
-            self.df.drop(columns=non_numeric_cols, inplace=True)      
-            #############################
-            
-            if self.run_mode == "test":
-                test = self.df.iloc[:int(len(self.df) * self.test_size)]
-            else:
-                ############## SPLIT DATASET ##############
-
-                if self.seasonal_split:
-                    train, test, valid = self.seasonal_split_data(self.df)
-                else:
-                    train, test, valid = self.split_data(self.df)
-
-                #######################
-
-                ######### OUTLIER MANAGEMENT #########
-=======
             #non_numeric_cols = self.df.select_dtypes(include=['object']).columns
             # Remove the target column from the list of columns to be deleted, if it is of object type
             #non_numeric_cols = non_numeric_cols.drop(self.target_column, errors='ignore')
@@ -141,7 +93,6 @@ class DataPreprocessor():
 
             ######### OUTLIER MANAGEMENT #########
             if self.run_mode != "test":
->>>>>>> Stashed changes
                 # Removing outliers from the training set
                 train = self.replace_outliers(train)
 
@@ -149,41 +100,16 @@ class DataPreprocessor():
             
             ############## DATA SCALING ##############
             if self.scaling:
-<<<<<<< Updated upstream
-                
-                if self.run_mode == "train" or self.run_mode == "train_test":
-                    scaler = MinMaxScaler()
-                    # fit the scaler on the training set
-                    scaler.fit(train[train.columns[1:]])
-=======
 
                 if self.run_mode == "train" or self.run_mode == "train_test":
                     scaler = MinMaxScaler()
                     # fit the scaler on the training set
                     train = train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
                     scaler.fit(train[train.columns[0:train.columns.shape[0] - 1]])
->>>>>>> Stashed changes
                     # save training scaling data with pickle
                     with open(f"{self.folder_path}/scaler.pkl", "wb") as file:
                         pickle.dump(scaler, file)
                     # scale training data    
-<<<<<<< Updated upstream
-                    train[train.columns[1:]] = scaler.transform(train[train.columns[1:]])
-                    if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:]])
-                    if self.run_mode == "train_test":    
-                        # scale test data
-                        test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])
-                        
-
-                elif self.run_mode == "test" or self.run_mode == "fine_tuning":
-                    # load scaling data from pkl file
-                    with open(f"{self.model_path}/scaler.pkl", "rb") as file:
-                        scaler = pickle.load(file)
-                    if self.run_mode == "fine_tuning":    
-                        train[train.columns[1:]] = scaler.transform(train[train.columns[1:]])
-                        if self.validation: valid[valid.columns[1:]] = scaler.transform(valid[valid.columns[1:]])
-                    test[test.columns[1:]] = scaler.transform(test[test.columns[1:]])    
-=======
                     train[train.columns[0:train.columns.shape[0] - 1]] = scaler.transform(train[train.columns[0:train.columns.shape[0] - 1]])
                     if self.validation: 
                         valid = valid.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
@@ -211,7 +137,6 @@ class DataPreprocessor():
                     train[train.columns[0:num_features]] = scaler.transform(train[train.columns[0:num_features]])
                     if self.validation: valid[valid.columns[0:num_features]] = scaler.transform(valid[valid.columns[0:num_features]])
                     test[test.columns[0:num_features]] = scaler.transform(test[test.columns[0:num_features]])   
->>>>>>> Stashed changes
 
             ############ END DATA SCALING ###########
 
@@ -228,11 +153,6 @@ class DataPreprocessor():
             print(f"An error occurred during preprocessing: {e}")
             return None
          
-<<<<<<< Updated upstream
-    def manage_nan(self, max_nan_percentage=50, min_nan_percentage=10, percent_threshold = 40):
-        # percent_threshold is the percentage threshold of NaNs in the target column to split the file
-        df = self.df.copy()
-=======
     def manage_nan(self, df, max_nan_percentage=50, min_nan_percentage=10, percent_threshold = 40):
         """
         Manage NaN values in the dataset based on defined percentage thresholds and interpolation strategies.
@@ -248,7 +168,6 @@ class DataPreprocessor():
         # Reset the index
         df.reset_index(drop=True, inplace=True)
         # percent_threshold is the percentage threshold of NaNs in the target column to split the file
->>>>>>> Stashed changes
         exit = False
         # Calculate the percentage of NaNs for each column
         nan_percentages = df.isna().mean() * 100
@@ -283,13 +202,6 @@ class DataPreprocessor():
                     return df, exit
             # If there is no hole in the target column, fill NaNs with polynomial interpolation
             else:
-<<<<<<< Updated upstream
-                df[self.target_column].interpolate(method='polynomial', inplace=True)   
-        
-        return df, exit
-        
-    def detect_nan_hole(self, df):
-=======
                 df[self.target_column].interpolate(method='polynomial', inplace=True)
 
         df.index = original_index
@@ -302,16 +214,11 @@ class DataPreprocessor():
         :param df: DataFrame in which to find the NaN hole
         :return: A dictionary with the start and end indices of the largest NaN hole in the target column
         """
->>>>>>> Stashed changes
         target_column = self.target_column
         # Dictionary to store the start and end indices of the consecutive NaN group for the target column
         nan_hole = {}
         # Find the target column in the DataFrame
-<<<<<<< Updated upstream
-        target = self.df[target_column]
-=======
         target = df[target_column]
->>>>>>> Stashed changes
         # Find NaN values in the target column
         is_nan = target.isna()
         # Calculate groups of consecutive NaN or non-NaN values
@@ -335,14 +242,11 @@ class DataPreprocessor():
     
     # TO BE MODIFIED: HANDLE OTHER EXTENSIONS AS WELL
     def split_file_at_nanhole(self, nan_hole):
-<<<<<<< Updated upstream
-=======
         """
         Splits the dataset at a significant NaN hole into two separate files.
 
         :param nan_hole: Dictionary containing start and end indices of the NaN hole in the target column
         """
->>>>>>> Stashed changes
         target_column = self.target_column
         # Extract the start and end indices from the target column within nan_hole
         start, end = nan_hole[target_column]
@@ -358,8 +262,6 @@ class DataPreprocessor():
         csv2.to_csv(second_file_name, index=False)
     
     def replace_outliers(self,df):
-<<<<<<< Updated upstream
-=======
         """
         Replaces outliers in the dataset based on the Interquartile Range (IQR)
         method. Instead of analyzing the entire dataset at once, this method focuses on a window of data points at a time. 
@@ -374,7 +276,6 @@ class DataPreprocessor():
         :param df: DataFrame from which to remove and replace outliers
         :return: DataFrame with outliers replaced
         """
->>>>>>> Stashed changes
         # Set the window size and k factor
         window_size = 7  # Increase if execution is slow
         k = 1.5  # standard factor for IQR
@@ -405,14 +306,11 @@ class DataPreprocessor():
         return df
 
     def print_stats(self, train):
-<<<<<<< Updated upstream
-=======
         """
         Print statistics for the selected feature in the training dataset.
 
         :param train: DataFrame containing the training data
         """
->>>>>>> Stashed changes
         # Print on the standard output the statistics of the dataset (for the selected feature)
         max_value = train[self.target_column].max()
         min_value = train[self.target_column].min()
@@ -430,88 +328,7 @@ class DataPreprocessor():
         print(stats_train)
         print('\n')
 
-<<<<<<< Updated upstream
-    def scale_data(df):
-
-        scaler = MinMaxScaler()
-        scaler.fit(df[df.columns[1:]])
-        df[df.columns[1:]] = scaler.transform(df[df.columns[1:]])
-
-        return df
-
     def split_data(self, df):
-<<<<<<< Updated upstream:classes/data_preprocessing.py
-        
-        n = len(df)
-        if  self.validation:
-            train_end = int(n * self.train_size)
-            valid_end = int(n * (self.train_size + self.val_size))
-
-            train = df.iloc[:train_end]
-            valid = df.iloc[train.index[-1] + 1:valid_end]  # +1 per iniziare subito dopo l'ultimo indice di train
-            test = df.iloc[valid.index[-1] + 1:]  # +1 per iniziare subito dopo l'ultimo indice di valid
-            print(f"training: {(train.index[0],train.index[-1])} \t valid: {valid.index[0],valid.index[-1]} \t test: {test.index[0],test.index[-1]}")
-
-            return train, test, valid
-        else:
-            train = df[:int(n * self.train_size)]
-            test = df[int(n * self.train_size):]
-            return train, test, None 
-        
-
-    def seasonal_split_data(self,df):
-        # Define masks for selecting different subsets of data
-
-        # Mask for even days
-        even_mask = df['date'].dt.day % 2 == 0
-
-        # Mask for odd days that are multiples of 3
-        odd_mult_3_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 3 == 0)
-
-        # Update condition to include odd days that are multiples of 5, excluding multiples of 15
-        odd_mult_5_mask = (df['date'].dt.day % 2 == 1) & (df['date'].dt.day % 5 == 0) & (df['date'].dt.day % 15 != 0)
-
-        # Combine the updated conditions for the training set
-        train_valid_mask = even_mask | odd_mult_3_mask | odd_mult_5_mask
-
-        # Data that doesn't meet the training set condition goes into the test set
-        test_mask = ~train_valid_mask
-
-        # Split the data using the new conditions
-        train_valid_df = df[train_valid_mask]
-
-        if  self.validation:
-            train = train_valid_df[:int(len(train_valid_df) * 0.8)]
-            valid = train_valid_df[int(len(train_valid_df) * 0.8):]
-            test = df[test_mask]
-            valid_dim = valid.shape[0]
-            perc_val = (valid_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        else:
-            train = train_valid_df
-            test = df[test_mask]
-            valid = None
-
-        # Calculate the updated sizes of the training set and test set
-        train_dim = train.shape[0]
-        test_dim = test.shape[0]
-        
-
-        # Calculate the updated percentages
-        perc_train = (train_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        perc_test = (test_dim / (train_valid_df.shape[0] + test_dim)) * 100
-        
-        if  self.validation:
-            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n validation set: {perc_val:.2f}% \n")
-        else:
-            print(f"Dimension of created sets:\n training set: {perc_train:.2f}% \n test set: {perc_test:.2f}% \n")
-        return train, test, valid
-
-
-    
-=======
-=======
-    def split_data(self, df):
->>>>>>> Stashed changes
         """
         Split the dataset into training, validation, and test sets.
         If a list with dates is given, each set is created within the respective dates, otherwise the sets are created following 
@@ -563,9 +380,4 @@ class DataPreprocessor():
 
 
     
-<<<<<<< Updated upstream
     
->>>>>>> Stashed changes:tools/data_preprocessing.py
-=======
-    
->>>>>>> Stashed changes
