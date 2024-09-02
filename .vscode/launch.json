@@ -10,17 +10,6 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "value",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--validation",
-=======
-=======
->>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "06/01/2019 00:15:00", "07/01/2019 00:15:00", 
@@ -30,10 +19,6 @@
                 "--scaling", 
                 "--unscale_predictions",
                 "--forecast_type","cl-multi",
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             ]
         },
         {
@@ -45,17 +30,6 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--validation",
-=======
-=======
->>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "05/01/2019 00:15:00", "08/01/2019 00:15:00", "11/01/2019 00:15:00",
@@ -65,10 +39,6 @@
                 "--set_fourier",
                 "--scaling", 
                 "--unscale_predictions",
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             ]
         },
         {
@@ -80,17 +50,6 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--model_path", "./data/ARIMA_2024-04-08_10-02-14"
-=======
-=======
->>>>>>> Stashed changes
                 "--dataset_path", "./data/Dataset/Produzione_PV.csv",
                 "--model_path","./data/models/SARIMA_2024-08-30_16-28-34",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
@@ -102,10 +61,6 @@
                 "--scaling", 
                 "--unscale_predictions",
                 "--forecast_type","cl-multi",
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             ]
         },
         {
@@ -117,12 +72,13 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "fine_tuning",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./data/Dataset/panama.csv",
+                "--model_path", "./data/models/ARIMA_2024-05-30_11-27-39",
+                "--target_column", "nat_demand",
                 "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--model_path", "./ARIMA_2024-04-04_16-52-32"
+                "--scaling", 
+                "--validation",
+                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
             ]
         }
     ]

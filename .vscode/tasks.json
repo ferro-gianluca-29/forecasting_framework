@@ -2,18 +2,22 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Training and Test",
+            "label": "Training and Test - ARIMA",
             "type": "shell",
             "command": "python",
             "args": [
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "C:/VISUAL STUDIO/forecasting_framework/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
+                "--dataset_path", "./data/Dataset/Produzione_PV_resampled_H.csv",
+                "--date_format", "%Y%m%d %H:%M:%S",
+                "--date_list", "2019-01-01 00:00:00", "2019-12-19 00:00:00",  "2019-12-25 00:00:00", "2019-12-27 00:00:00",
+                "--target_column", "Producer 1 (kW)",
                 "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-            ],
+                "--scaling", 
+                "--forecast_type", "cl-multi", 
+                "--unscale_predictions",
+
+             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -21,9 +25,6 @@
             "problemMatcher": []
         },
         {
-<<<<<<< Updated upstream
-            "label": "Test",
-=======
             "label": "Test - ARIMA",
             "type": "shell",
             "command": "python",
@@ -74,75 +75,57 @@
         },
         {
             "label": "Test - SARIMA",
->>>>>>> Stashed changes
             "type": "shell",
             "command": "python",
             "args": [
                 "forecasting_framework.py",
                 "--run_mode", "test",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-                "--model_path", "D:/VISUAL STUDIO/Thesis/data/models/ARIMA_2024-04-08_10-33-09"
-            ],
+                "--dataset_path", "./data/Dataset/Consumer 1.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--target_column", "Consumption [kWh]",
+                "--model_type", "SARIMA",
+                "--scaling", 
+                "--forecast_type", "cl-multi", 
+
+                ""
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {
-            "label": "Training",
+            "label": "Training and Test - LSTM",
             "type": "shell",
             "command": "python",
             "args": [
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                "main_code.py",
-                "--run_mode", "train",
-                "--dataset_path", "./data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-=======
-=======
->>>>>>> Stashed changes
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/Consumer_power.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "28/11/2019 00:00:00", "28/11/2019 00:00:00", "30/11/2019 00:00:00", "30/11/2019 00:00:00", "31/12/2019 23:45:00",
-                "--target_column", "Cons 7",
+                "--target_column", "Cons 8",
                 "--model_type", "LSTM",
                 //"--seasonal_model", "--period","24", 
                // "--set_fourier",
                 "--input_len", "96",
                 "--output_len", "1",
                 "--scaling", 
->>>>>>> Stashed changes
                 "--validation",
-            ],
+                "--unscale_predictions",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": []
         },
         {
-            "label": "Fine Tuning",
+            "label": "Training and Test - XGB",
             "type": "shell",
             "command": "python",
             "args": [
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                "main_code.py",
-                "--run_mode", "fine_tuning",
-                "--dataset_path", "D:/VISUAL STUDIO/GITHUB_CODICE_OGGETTI/data/Dataset/BATS_AAPL.csv",
-                "--target_column", "open",
-                "--model_type", "ARIMA",
-                "--forecast_type", "ol-one",
-                "--scaling",
-            ],
-            "problemMatcher": []
-        }        
-=======
-=======
->>>>>>> Stashed changes
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
                 "--dataset_path", "./data/Dataset/Produzione_PV_resampled_H.csv",
@@ -208,6 +191,5 @@
             "problemMatcher": []
         }
 
->>>>>>> Stashed changes
     ]
 }
