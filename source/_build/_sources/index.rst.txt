@@ -1,0 +1,113 @@
+.. Forewarning framework documentation master file, created by
+   sphinx-quickstart on Wed Apr 17 16:23:29 2024.
+
+Forecasting Framework's documentation
+======================================================
+
+Introduction
+------------
+.. rst-class:: justified-text
+   
+This framework is designed to provide the main blocks for implementing and using many types of machine learning models for time series forecasting, including 
+statistical models, neural networks, and Extreme Gradient Boosting (XGB) models. 
+Other models can also be integrated, by incorporating the corresponding tools into each respective block of the framework.
+The data preprocessing block makes possible to train and test the models on datasets with varying structures and formats, allowing a robust 
+support for handling NaN values and outliers. The framework comprises a main file that orchestrates the various implementation phases of the models, with initial settings provided as 
+command-line arguments using a parser (whose parameters are presented in the Appendix).
+The code supports four distinct modes of operation: training, testing, combined training and testing, and fine tuning.  
+Various configurations of the framework, using different terminal arguments, are present in the JSON files (`launch.json` for debug and `tasks.json` for 
+code usage); however, using consistent command line arguments, it is possible to create custom configurations 
+by passing parameters directly through the terminal.
+
+
+Framework Architecture
+----------------------
+
+The main blocks of the framework are data loading, data preprocessing, training, testing, and performance measurement.
+Each block makes use of classes and functions from a corresponding file located in the `classes` folder,
+in order to implement the time series forecasting models features.
+For time series analysis and functions for loading/saving data there are two respective files in the `utils` folder.
+Below is the structure of the framework.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/main_code
+
+The `main` function orchestrates the loading, preprocessing, training/testing of models, optionally fine-tuning, and plotting of predictions.  
+
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/data_loader
+
+Class for loading data from various file formats. If the parameter --time_column_index is not specified, 
+the code expects that the time column is the first of the dataset. 
+For statistical models, the end date of the training set must be equal to the start date of the validation set; 
+the same holds for validation and test set.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/data_preprocessing
+
+Class for preprocessing data for machine learning models.
+
+.. toctree::
+   :maxdepth: 1
+
+   docs/training_module
+
+Class for training time series forecasting models.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/model_testing
+
+Class for testing models.
+
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/performance_measurement
+
+Class for measuring the performance of forecasting models.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/time_series_analysis
+
+Functions for time series analysis, statistic tests and optimizing statistical models.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/utilities
+
+Functions for loading or saving models and training data.
+
+Appendix
+--------
+
+Here are presented all the parameters that can be given to the argument parser, specifying their function.
+
+.. toctree::
+   :maxdepth: 2
+
+   docs/parser_arguments
+
+
+References
+----------
+https://www.statsmodels.org/stable/examples/notebooks/generated/statespace_forecasting.html#Cross-validation
+https://www.statsmodels.org/stable/generated/statsmodels.tsa.ar_model.AutoRegResults.append.html#statsmodels.tsa.ar_model.AutoRegResults.append
+
+Indices
+==================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

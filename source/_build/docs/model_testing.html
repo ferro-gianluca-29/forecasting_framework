@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Testing Module &#8212; Forecasting framework 1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../_static/./custom.css?v=56c4699f" />
+    <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Performance Measurement" href="performance_measurement.html" />
+    <link rel="prev" title="Training Module" href="training_module.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-model_testing">
+<span id="testing-module"></span><h1>Testing Module<a class="headerlink" href="#module-model_testing" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="model_testing.ModelTest">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model_testing.</span></span><span class="sig-name descname"><span class="pre">ModelTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_ahead</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class for testing and visualizing the predictions of various types of forecasting models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_type</strong> – The type of model to test (‘ARIMA’, ‘SARIMAX’, etc.).</p></li>
+<li><p><strong>model</strong> – The model object to be tested.</p></li>
+<li><p><strong>test</strong> – The test set.</p></li>
+<li><p><strong>target_column</strong> – The target column in the dataset.</p></li>
+<li><p><strong>forecast_type</strong> – The type of forecasting to be performed (‘ol-one’, etc.).</p></li>
+<li><p><strong>steps_ahead</strong> – Number of forecasting steps to perform.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.ARIMA_plot_pred">
+<span class="sig-name descname"><span class="pre">ARIMA_plot_pred</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">best_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">naive_predictions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.ARIMA_plot_pred" title="Link to this definition">¶</a></dt>
+<dd><p>Plots the ARIMA model predictions against the test data and optionally against naive predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_order</strong> – The order of the ARIMA model used.</p></li>
+<li><p><strong>predictions</strong> – The predictions made by the ARIMA model.</p></li>
+<li><p><strong>naive_predictions</strong> – Optional naive predictions for comparison.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.SARIMAX_plot_pred">
+<span class="sig-name descname"><span class="pre">SARIMAX_plot_pred</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">best_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">naive_predictions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.SARIMAX_plot_pred" title="Link to this definition">¶</a></dt>
+<dd><p>Plots the SARIMAX model predictions against the test data and optionally against naive predictions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_order</strong> – The order of the SARIMAX model used.</p></li>
+<li><p><strong>naive_predictions</strong> – Optional naive predictions for comparison.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.naive_forecast">
+<span class="sig-name descname"><span class="pre">naive_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.naive_forecast" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a naive forecast using the last observed value from the training set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>train</strong> – The training set.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of naive forecasts.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.naive_seasonal_forecast">
+<span class="sig-name descname"><span class="pre">naive_seasonal_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.naive_seasonal_forecast" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a seasonal naive forecast using the last observed seasonal cycle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – The training set.</p></li>
+<li><p><strong>target_test</strong> – The test set.</p></li>
+<li><p><strong>period</strong> – The seasonal period to consider for the forecast.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of naive seasonal forecasts.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.plot_pred">
+<span class="sig-name descname"><span class="pre">plot_pred</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.plot_pred" title="Link to this definition">¶</a></dt>
+<dd><p>Plots model predictions against the test data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test</strong> – The actual test data.</p></li>
+<li><p><strong>predictions</strong> – The predictions made by the model.</p></li>
+<li><p><strong>time_values</strong> – Time values corresponding to the test data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.test_ARIMA_model">
+<span class="sig-name descname"><span class="pre">test_ARIMA_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps_jump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ol_refit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.test_ARIMA_model" title="Link to this definition">¶</a></dt>
+<dd><p>Tests an ARIMA model by performing one step-ahead predictions and optionally refitting the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps_jump</strong> – Optional parameter to skip steps in the forecasting.</p></li>
+<li><p><strong>ol_refit</strong> – Boolean indicating whether to refit the model after each forecast.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of the predictions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="model_testing.ModelTest.test_SARIMAX_model">
+<span class="sig-name descname"><span class="pre">test_SARIMAX_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps_jump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exog_test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ol_refit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model_testing.ModelTest.test_SARIMAX_model" title="Link to this definition">¶</a></dt>
+<dd><p>Tests a SARIMAX model by performing one step-ahead predictions, using exogenous variables, and optionally refitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps_jump</strong> – Optional parameter to skip steps in the forecasting.</p></li>
+<li><p><strong>exog_test</strong> – Optional exogenous variables for the test set.</p></li>
+<li><p><strong>ol_refit</strong> – Boolean indicating whether to refit the model after each forecast.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of the predictions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Forecasting framework</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="training_module.html">Training Module</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Testing Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#model_testing.ModelTest"><code class="docutils literal notranslate"><span class="pre">ModelTest</span></code></a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="time_series_analysis.html">Time Series Analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="training_module.html" title="previous chapter">Training Module</a></li>
+      <li>Next: <a href="performance_measurement.html" title="next chapter">Performance Measurement</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gianluca Ferro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/docs/model_testing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

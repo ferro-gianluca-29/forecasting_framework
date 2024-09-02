@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SARIMA Model &#8212; Forecasting framework 1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=56c4699f" />
+    <script src="../_static/documentation_options.js?v=29a6c3e3"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-SARIMA_model">
+<span id="sarima-model"></span><h1>SARIMA Model<a class="headerlink" href="#module-SARIMA_model" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SARIMA_model.</span></span><span class="sig-name descname"><span class="pre">SARIMA_Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_fourier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Predictor</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.plot_predictions">
+<span class="sig-name descname"><span class="pre">plot_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.plot_predictions" title="Link to this definition">¶</a></dt>
+<dd><p>Plots the SARIMA model predictions against the test data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>predictions</strong> – The predictions made by the SARIMA model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.test_model">
+<span class="sig-name descname"><span class="pre">test_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ol_refit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_Fourier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.test_model" title="Link to this definition">¶</a></dt>
+<dd><p>Tests a SARIMAX model by performing one-step or multi-step ahead predictions, optionally using exogenous variables or applying refitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>last_index</strong> – Index of the last training/validation timestep.</p></li>
+<li><p><strong>steps_jump</strong> – Optional parameter to skip steps in the forecasting.</p></li>
+<li><p><strong>exog_test</strong> – Optional exogenous variables for the test set.</p></li>
+<li><p><strong>ol_refit</strong> – Boolean indicating whether to refit the model after each forecast.</p></li>
+<li><p><strong>period</strong> – The period for Fourier terms if set_Fourier is True.</p></li>
+<li><p><strong>set_Fourier</strong> – Boolean flag to determine if Fourier terms should be included.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of the predictions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.train_model">
+<span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.train_model" title="Link to this definition">¶</a></dt>
+<dd><p>Trains a SARIMAX model using the training dataset and exogenous variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_train</strong> – Training dataset containing the target variable.</p></li>
+<li><p><strong>exog_train</strong> – Training dataset containing the exogenous variables.</p></li>
+<li><p><strong>exog_valid</strong> – Optional validation dataset containing the exogenous variables for model evaluation.</p></li>
+<li><p><strong>period</strong> – Seasonal period of the SARIMAX model.</p></li>
+<li><p><strong>set_fourier</strong> – Boolean flag to determine if Fourier terms should be included.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the trained model, validation metrics and the index of last training/validation timestep.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.unscale_predictions">
+<span class="sig-name descname"><span class="pre">unscale_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.unscale_predictions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Forecasting framework</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="time_series_analysis.html">Time Series Analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Gianluca Ferro.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/docs/SARIMA_model.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
