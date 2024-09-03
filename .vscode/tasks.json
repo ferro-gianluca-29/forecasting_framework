@@ -105,7 +105,7 @@
                 "--dataset_path", "./data/Dataset/Consumer_power.csv",
                 "--date_format", "%d/%m/%Y %H:%M:%S",
                 "--date_list", "01/01/2019 00:15:00", "28/11/2019 00:00:00", "28/11/2019 00:00:00", "30/11/2019 00:00:00", "30/11/2019 00:00:00", "31/12/2019 23:45:00",
-                "--target_column", "Cons 3",
+                "--target_column", "Cons 6",
                 "--model_type", "LSTM",
                 //"--seasonal_model", "--period","96", 
                // "--set_fourier",
@@ -113,6 +113,32 @@
                 "--output_len", "1",
                 "--scaling", 
                 "--validation",
+                "--unscale_predictions",
+             ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test - LSTM",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "forecasting_framework.py",
+                "--run_mode", "test",
+                "--dataset_path", "./data/Dataset/Consumer_power.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "30/11/2019 00:00:00", "31/12/2019 23:45:00",
+                "--target_column", "Cons 4",
+                "--model_type", "LSTM",
+                "--model_path","./data/models/Cons_3",
+                //"--seasonal_model", "--period","96", 
+               // "--set_fourier",
+                "--input_len", "96",
+                "--output_len", "1",
+                "--scaling", 
                 "--unscale_predictions",
              ],
             "group": {
