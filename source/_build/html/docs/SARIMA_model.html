@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="XGB Model" href="XGB_model.html" />
+    <link rel="prev" title="ARIMA Model" href="ARIMA_model.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -31,19 +33,35 @@
 
           <div class="body" role="main">
             
-  <section id="module-SARIMA_model">
-<span id="sarima-model"></span><h1>SARIMA Model<a class="headerlink" href="#module-SARIMA_model" title="Link to this heading">¶</a></h1>
+  <section id="sarima-model">
+<h1>SARIMA Model<a class="headerlink" href="#sarima-model" title="Link to this heading">¶</a></h1>
+<p>This module implements Seasonal ARIMA (SARIMA) models for time series forecasting.
+It features the <cite>SARIMA_Predictor</cite> class, which leverages seasonal differencing and potentially exogenous variables,
+like Fourier terms for capturing seasonality.
+The model used comes from the <cite>Statsmodels</cite> library, and the optimization of the hyperparameters
+is done through grid search, by finding the model with the best AIC score.
+This model is used for univariate time series, and is designed for both one-step ahead or multi-step ahead forecasts.
+Like the ARIMA model, one-step ahead predictions can be done in open loop mode, i.e. by updating at each forecast the
+model with the present observation, in order to make the model suitable for online learning settings.
+For datasets with high frequency, like solar panel production with 15 min timesteps, the model may
+not be able to be trained or optimized with daily or weekly seasonality, due to high memory requirements.
+For this reason, a setting with additional Fourier terms as exogenous variable is present, and the choice of the hyperparameters could be done
+by inspection of the ACF and PACF plots.
+An optional rolling window cross validation technique is also implemented in the class.</p>
+<section id="module-SARIMA_model">
+<span id="sarima-predictor"></span><h2>SARIMA_Predictor<a class="headerlink" href="#module-SARIMA_model" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">SARIMA_model.</span></span><span class="sig-name descname"><span class="pre">SARIMA_Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_fourier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Predictor</span></code></p>
+<p>A class used to predict time series data using Seasonal ARIMA (SARIMA) models.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.plot_predictions">
 <span class="sig-name descname"><span class="pre">plot_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.plot_predictions" title="Link to this definition">¶</a></dt>
 <dd><p>Plots the SARIMA model predictions against the test data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>predictions</strong> – The predictions made by the SARIMA model.</p>
+<dd class="field-odd"><p><strong>predictions</strong> – The predictions made by the SARIMA model</p>
 </dd>
 </dl>
 </dd></dl>
@@ -55,16 +73,16 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>last_index</strong> – Index of the last training/validation timestep.</p></li>
-<li><p><strong>steps_jump</strong> – Optional parameter to skip steps in the forecasting.</p></li>
-<li><p><strong>exog_test</strong> – Optional exogenous variables for the test set.</p></li>
-<li><p><strong>ol_refit</strong> – Boolean indicating whether to refit the model after each forecast.</p></li>
-<li><p><strong>period</strong> – The period for Fourier terms if set_Fourier is True.</p></li>
-<li><p><strong>set_Fourier</strong> – Boolean flag to determine if Fourier terms should be included.</p></li>
+<li><p><strong>model</strong> – The SARIMAX model to be tested</p></li>
+<li><p><strong>last_index</strong> – Index of the last training/validation timestep</p></li>
+<li><p><strong>forecast_type</strong> – Type of forecasting (‘ol-one’ for open-loop one-step ahead, ‘cl-multi’ for closed-loop multi-step)</p></li>
+<li><p><strong>ol_refit</strong> – Boolean indicating whether to refit the model after each forecast</p></li>
+<li><p><strong>period</strong> – The period for Fourier terms if set_fourier is true</p></li>
+<li><p><strong>set_fourier</strong> – Boolean flag to determine if Fourier terms should be included</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pandas Series of the predictions.</p>
+<dd class="field-even"><p>A pandas Series of the predictions</p>
 </dd>
 </dl>
 </dd></dl>
@@ -72,19 +90,10 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.train_model">
 <span class="sig-name descname"><span class="pre">train_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.train_model" title="Link to this definition">¶</a></dt>
-<dd><p>Trains a SARIMAX model using the training dataset and exogenous variables.</p>
+<dd><p>Trains a SARIMAX model using the training dataset and exogenous variables, if specified.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>target_train</strong> – Training dataset containing the target variable.</p></li>
-<li><p><strong>exog_train</strong> – Training dataset containing the exogenous variables.</p></li>
-<li><p><strong>exog_valid</strong> – Optional validation dataset containing the exogenous variables for model evaluation.</p></li>
-<li><p><strong>period</strong> – Seasonal period of the SARIMAX model.</p></li>
-<li><p><strong>set_fourier</strong> – Boolean flag to determine if Fourier terms should be included.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple containing the trained model, validation metrics and the index of last training/validation timestep.</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep</p>
 </dd>
 </dl>
 </dd></dl>
@@ -92,10 +101,20 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="SARIMA_model.SARIMA_Predictor.unscale_predictions">
 <span class="sig-name descname"><span class="pre">unscale_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#SARIMA_model.SARIMA_Predictor.unscale_predictions" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Unscales the predictions using the scaler saved during model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions</strong> – The scaled predictions that need to be unscaled</p></li>
+<li><p><strong>folder_path</strong> – Path to the folder containing the scaler object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
+</section>
 </section>
 
 
@@ -116,13 +135,13 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_framework.html">Forecasting Framework</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -134,13 +153,34 @@
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SARIMA Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-SARIMA_model">SARIMA_Predictor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="XGB_model.html">XGB Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NAIVE_model.html">NAIVE Model</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="ARIMA_model.html" title="previous chapter">ARIMA Model</a></li>
+      <li>Next: <a href="XGB_model.html" title="next chapter">XGB Model</a></li>
   </ul></li>
 </ul>
 </div>

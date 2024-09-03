@@ -1,63 +1,70 @@
-\indexentry{module@\spxentry{module}!main\_code@\spxentry{main\_code}|hyperpage}{3}
-\indexentry{main\_code@\spxentry{main\_code}!module@\spxentry{module}|hyperpage}{3}
-\indexentry{main() (in module main\_code)@\spxentry{main()}\spxextra{in module main\_code}|hyperpage}{3}
-\indexentry{module@\spxentry{module}!data\_loader@\spxentry{data\_loader}|hyperpage}{4}
-\indexentry{data\_loader@\spxentry{data\_loader}!module@\spxentry{module}|hyperpage}{4}
-\indexentry{DataLoader (class in data\_loader)@\spxentry{DataLoader}\spxextra{class in data\_loader}|hyperpage}{4}
-\indexentry{load\_data() (data\_loader.DataLoader method)@\spxentry{load\_data()}\spxextra{data\_loader.DataLoader method}|hyperpage}{4}
-\indexentry{module@\spxentry{module}!data\_preprocessing@\spxentry{data\_preprocessing}|hyperpage}{4}
-\indexentry{data\_preprocessing@\spxentry{data\_preprocessing}!module@\spxentry{module}|hyperpage}{4}
-\indexentry{DataPreprocessor (class in data\_preprocessing)@\spxentry{DataPreprocessor}\spxextra{class in data\_preprocessing}|hyperpage}{4}
-\indexentry{conditional\_print() (data\_preprocessing.DataPreprocessor method)@\spxentry{conditional\_print()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{5}
-\indexentry{create\_time\_features() (data\_preprocessing.DataPreprocessor method)@\spxentry{create\_time\_features()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{5}
-\indexentry{data\_windowing() (data\_preprocessing.DataPreprocessor method)@\spxentry{data\_windowing()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{5}
+\indexentry{module@\spxentry{module}!data\_loader@\spxentry{data\_loader}|hyperpage}{5}
+\indexentry{data\_loader@\spxentry{data\_loader}!module@\spxentry{module}|hyperpage}{5}
+\indexentry{DataLoader (class in data\_loader)@\spxentry{DataLoader}\spxextra{class in data\_loader}|hyperpage}{5}
+\indexentry{load\_data() (data\_loader.DataLoader method)@\spxentry{load\_data()}\spxextra{data\_loader.DataLoader method}|hyperpage}{5}
+\indexentry{module@\spxentry{module}!data\_preprocessing@\spxentry{data\_preprocessing}|hyperpage}{6}
+\indexentry{data\_preprocessing@\spxentry{data\_preprocessing}!module@\spxentry{module}|hyperpage}{6}
+\indexentry{DataPreprocessor (class in data\_preprocessing)@\spxentry{DataPreprocessor}\spxextra{class in data\_preprocessing}|hyperpage}{6}
+\indexentry{conditional\_print() (data\_preprocessing.DataPreprocessor method)@\spxentry{conditional\_print()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
 \indexentry{detect\_nan\_hole() (data\_preprocessing.DataPreprocessor method)@\spxentry{detect\_nan\_hole()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
-\indexentry{manage\_nan() (data\_preprocessing.DataPreprocessor method)@\spxentry{manage\_nan()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
-\indexentry{preprocess\_data() (data\_preprocessing.DataPreprocessor method)@\spxentry{preprocess\_data()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
-\indexentry{print\_stats() (data\_preprocessing.DataPreprocessor method)@\spxentry{print\_stats()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
-\indexentry{replace\_outliers() (data\_preprocessing.DataPreprocessor method)@\spxentry{replace\_outliers()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{6}
+\indexentry{manage\_nan() (data\_preprocessing.DataPreprocessor method)@\spxentry{manage\_nan()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
+\indexentry{preprocess\_data() (data\_preprocessing.DataPreprocessor method)@\spxentry{preprocess\_data()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
+\indexentry{print\_stats() (data\_preprocessing.DataPreprocessor method)@\spxentry{print\_stats()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
+\indexentry{replace\_outliers() (data\_preprocessing.DataPreprocessor method)@\spxentry{replace\_outliers()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
 \indexentry{split\_data() (data\_preprocessing.DataPreprocessor method)@\spxentry{split\_data()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
 \indexentry{split\_file\_at\_nanhole() (data\_preprocessing.DataPreprocessor method)@\spxentry{split\_file\_at\_nanhole()}\spxextra{data\_preprocessing.DataPreprocessor method}|hyperpage}{7}
-\indexentry{module@\spxentry{module}!training\_module@\spxentry{training\_module}|hyperpage}{7}
-\indexentry{training\_module@\spxentry{training\_module}!module@\spxentry{module}|hyperpage}{7}
-\indexentry{ModelTraining (class in training\_module)@\spxentry{ModelTraining}\spxextra{class in training\_module}|hyperpage}{7}
-\indexentry{train\_ARIMA\_model() (training\_module.ModelTraining method)@\spxentry{train\_ARIMA\_model()}\spxextra{training\_module.ModelTraining method}|hyperpage}{7}
-\indexentry{train\_LSTM\_model() (training\_module.ModelTraining method)@\spxentry{train\_LSTM\_model()}\spxextra{training\_module.ModelTraining method}|hyperpage}{7}
-\indexentry{train\_SARIMAX\_model() (training\_module.ModelTraining method)@\spxentry{train\_SARIMAX\_model()}\spxextra{training\_module.ModelTraining method}|hyperpage}{8}
-\indexentry{train\_XGB\_model() (training\_module.ModelTraining method)@\spxentry{train\_XGB\_model()}\spxextra{training\_module.ModelTraining method}|hyperpage}{8}
-\indexentry{module@\spxentry{module}!model\_testing@\spxentry{model\_testing}|hyperpage}{8}
-\indexentry{model\_testing@\spxentry{model\_testing}!module@\spxentry{module}|hyperpage}{8}
-\indexentry{ModelTest (class in model\_testing)@\spxentry{ModelTest}\spxextra{class in model\_testing}|hyperpage}{8}
-\indexentry{ARIMA\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{ARIMA\_plot\_pred()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{LSTM\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{LSTM\_plot\_pred()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{NAIVE\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{NAIVE\_plot\_pred()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{XGB\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{XGB\_plot\_pred()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{naive\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_forecast()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{naive\_mean\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_mean\_forecast()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{naive\_seasonal\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_seasonal\_forecast()}\spxextra{model\_testing.ModelTest method}|hyperpage}{9}
-\indexentry{test\_ARIMA\_model() (model\_testing.ModelTest method)@\spxentry{test\_ARIMA\_model()}\spxextra{model\_testing.ModelTest method}|hyperpage}{10}
-\indexentry{test\_SARIMAX\_model() (model\_testing.ModelTest method)@\spxentry{test\_SARIMAX\_model()}\spxextra{model\_testing.ModelTest method}|hyperpage}{10}
-\indexentry{module@\spxentry{module}!performance\_measurement@\spxentry{performance\_measurement}|hyperpage}{10}
-\indexentry{performance\_measurement@\spxentry{performance\_measurement}!module@\spxentry{module}|hyperpage}{10}
-\indexentry{PerfMeasure (class in performance\_measurement)@\spxentry{PerfMeasure}\spxextra{class in performance\_measurement}|hyperpage}{10}
-\indexentry{get\_performance\_metrics() (performance\_measurement.PerfMeasure method)@\spxentry{get\_performance\_metrics()}\spxextra{performance\_measurement.PerfMeasure method}|hyperpage}{10}
-\indexentry{module@\spxentry{module}!time\_series\_analysis@\spxentry{time\_series\_analysis}|hyperpage}{11}
-\indexentry{time\_series\_analysis@\spxentry{time\_series\_analysis}!module@\spxentry{module}|hyperpage}{11}
-\indexentry{ARIMA\_optimizer() (in module time\_series\_analysis)@\spxentry{ARIMA\_optimizer()}\spxextra{in module time\_series\_analysis}|hyperpage}{11}
-\indexentry{SARIMAX\_optimizer() (in module time\_series\_analysis)@\spxentry{SARIMAX\_optimizer()}\spxextra{in module time\_series\_analysis}|hyperpage}{11}
-\indexentry{adf\_test() (in module time\_series\_analysis)@\spxentry{adf\_test()}\spxextra{in module time\_series\_analysis}|hyperpage}{11}
-\indexentry{conditional\_print() (in module time\_series\_analysis)@\spxentry{conditional\_print()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{ljung\_box\_test() (in module time\_series\_analysis)@\spxentry{ljung\_box\_test()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{multiple\_STL() (in module time\_series\_analysis)@\spxentry{multiple\_STL()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{optimize\_ARIMA() (in module time\_series\_analysis)@\spxentry{optimize\_ARIMA()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{optimize\_SARIMAX() (in module time\_series\_analysis)@\spxentry{optimize\_SARIMAX()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{prepare\_seasonal\_sets() (in module time\_series\_analysis)@\spxentry{prepare\_seasonal\_sets()}\spxextra{in module time\_series\_analysis}|hyperpage}{12}
-\indexentry{time\_s\_analysis() (in module time\_series\_analysis)@\spxentry{time\_s\_analysis()}\spxextra{in module time\_series\_analysis}|hyperpage}{13}
-\indexentry{module@\spxentry{module}!utilities@\spxentry{utilities}|hyperpage}{13}
-\indexentry{utilities@\spxentry{utilities}!module@\spxentry{module}|hyperpage}{13}
-\indexentry{conditional\_print() (in module utilities)@\spxentry{conditional\_print()}\spxextra{in module utilities}|hyperpage}{13}
-\indexentry{load\_trained\_model() (in module utilities)@\spxentry{load\_trained\_model()}\spxextra{in module utilities}|hyperpage}{13}
-\indexentry{naive\_forecast() (in module utilities)@\spxentry{naive\_forecast()}\spxextra{in module utilities}|hyperpage}{13}
-\indexentry{naive\_seasonal\_forecast() (in module utilities)@\spxentry{naive\_seasonal\_forecast()}\spxextra{in module utilities}|hyperpage}{13}
-\indexentry{save\_buffer() (in module utilities)@\spxentry{save\_buffer()}\spxextra{in module utilities}|hyperpage}{14}
-\indexentry{save\_data() (in module utilities)@\spxentry{save\_data()}\spxextra{in module utilities}|hyperpage}{14}
+\indexentry{module@\spxentry{module}!performance\_measurement@\spxentry{performance\_measurement}|hyperpage}{8}
+\indexentry{performance\_measurement@\spxentry{performance\_measurement}!module@\spxentry{module}|hyperpage}{8}
+\indexentry{PerfMeasure (class in performance\_measurement)@\spxentry{PerfMeasure}\spxextra{class in performance\_measurement}|hyperpage}{8}
+\indexentry{get\_performance\_metrics() (performance\_measurement.PerfMeasure method)@\spxentry{get\_performance\_metrics()}\spxextra{performance\_measurement.PerfMeasure method}|hyperpage}{8}
+\indexentry{module@\spxentry{module}!time\_series\_analysis@\spxentry{time\_series\_analysis}|hyperpage}{8}
+\indexentry{time\_series\_analysis@\spxentry{time\_series\_analysis}!module@\spxentry{module}|hyperpage}{8}
+\indexentry{ARIMA\_optimizer() (in module time\_series\_analysis)@\spxentry{ARIMA\_optimizer()}\spxextra{in module time\_series\_analysis}|hyperpage}{8}
+\indexentry{SARIMAX\_optimizer() (in module time\_series\_analysis)@\spxentry{SARIMAX\_optimizer()}\spxextra{in module time\_series\_analysis}|hyperpage}{8}
+\indexentry{adf\_test() (in module time\_series\_analysis)@\spxentry{adf\_test()}\spxextra{in module time\_series\_analysis}|hyperpage}{8}
+\indexentry{conditional\_print() (in module time\_series\_analysis)@\spxentry{conditional\_print()}\spxextra{in module time\_series\_analysis}|hyperpage}{9}
+\indexentry{ljung\_box\_test() (in module time\_series\_analysis)@\spxentry{ljung\_box\_test()}\spxextra{in module time\_series\_analysis}|hyperpage}{9}
+\indexentry{multiple\_STL() (in module time\_series\_analysis)@\spxentry{multiple\_STL()}\spxextra{in module time\_series\_analysis}|hyperpage}{9}
+\indexentry{optimize\_ARIMA() (in module time\_series\_analysis)@\spxentry{optimize\_ARIMA()}\spxextra{in module time\_series\_analysis}|hyperpage}{9}
+\indexentry{optimize\_SARIMAX() (in module time\_series\_analysis)@\spxentry{optimize\_SARIMAX()}\spxextra{in module time\_series\_analysis}|hyperpage}{9}
+\indexentry{prepare\_seasonal\_sets() (in module time\_series\_analysis)@\spxentry{prepare\_seasonal\_sets()}\spxextra{in module time\_series\_analysis}|hyperpage}{10}
+\indexentry{time\_s\_analysis() (in module time\_series\_analysis)@\spxentry{time\_s\_analysis()}\spxextra{in module time\_series\_analysis}|hyperpage}{10}
+\indexentry{module@\spxentry{module}!utilities@\spxentry{utilities}|hyperpage}{10}
+\indexentry{utilities@\spxentry{utilities}!module@\spxentry{module}|hyperpage}{10}
+\indexentry{conditional\_print() (in module utilities)@\spxentry{conditional\_print()}\spxextra{in module utilities}|hyperpage}{10}
+\indexentry{load\_trained\_model() (in module utilities)@\spxentry{load\_trained\_model()}\spxextra{in module utilities}|hyperpage}{10}
+\indexentry{save\_buffer() (in module utilities)@\spxentry{save\_buffer()}\spxextra{in module utilities}|hyperpage}{10}
+\indexentry{save\_data() (in module utilities)@\spxentry{save\_data()}\spxextra{in module utilities}|hyperpage}{11}
+\indexentry{module@\spxentry{module}!ARIMA\_model@\spxentry{ARIMA\_model}|hyperpage}{13}
+\indexentry{ARIMA\_model@\spxentry{ARIMA\_model}!module@\spxentry{module}|hyperpage}{13}
+\indexentry{ARIMA\_Predictor (class in ARIMA\_model)@\spxentry{ARIMA\_Predictor}\spxextra{class in ARIMA\_model}|hyperpage}{13}
+\indexentry{plot\_predictions() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}|hyperpage}{13}
+\indexentry{test\_model() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{test\_model()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}|hyperpage}{13}
+\indexentry{train\_model() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{train\_model()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}|hyperpage}{13}
+\indexentry{unscale\_predictions() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}|hyperpage}{14}
+\indexentry{module@\spxentry{module}!SARIMA\_model@\spxentry{SARIMA\_model}|hyperpage}{14}
+\indexentry{SARIMA\_model@\spxentry{SARIMA\_model}!module@\spxentry{module}|hyperpage}{14}
+\indexentry{SARIMA\_Predictor (class in SARIMA\_model)@\spxentry{SARIMA\_Predictor}\spxextra{class in SARIMA\_model}|hyperpage}{14}
+\indexentry{plot\_predictions() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}|hyperpage}{14}
+\indexentry{test\_model() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{test\_model()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}|hyperpage}{14}
+\indexentry{train\_model() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{train\_model()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}|hyperpage}{15}
+\indexentry{unscale\_predictions() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}|hyperpage}{15}
+\indexentry{XGB\_Predictor (class in XGB\_model)@\spxentry{XGB\_Predictor}\spxextra{class in XGB\_model}|hyperpage}{15}
+\indexentry{create\_time\_features() (XGB\_model.XGB\_Predictor method)@\spxentry{create\_time\_features()}\spxextra{XGB\_model.XGB\_Predictor method}|hyperpage}{15}
+\indexentry{plot\_predictions() (XGB\_model.XGB\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{XGB\_model.XGB\_Predictor method}|hyperpage}{15}
+\indexentry{train\_model() (XGB\_model.XGB\_Predictor method)@\spxentry{train\_model()}\spxextra{XGB\_model.XGB\_Predictor method}|hyperpage}{16}
+\indexentry{unscale\_data() (XGB\_model.XGB\_Predictor method)@\spxentry{unscale\_data()}\spxextra{XGB\_model.XGB\_Predictor method}|hyperpage}{16}
+\indexentry{LSTM\_Predictor (class in LSTM\_model)@\spxentry{LSTM\_Predictor}\spxextra{class in LSTM\_model}|hyperpage}{17}
+\indexentry{data\_windowing() (LSTM\_model.LSTM\_Predictor method)@\spxentry{data\_windowing()}\spxextra{LSTM\_model.LSTM\_Predictor method}|hyperpage}{17}
+\indexentry{plot\_predictions() (LSTM\_model.LSTM\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{LSTM\_model.LSTM\_Predictor method}|hyperpage}{17}
+\indexentry{train\_model() (LSTM\_model.LSTM\_Predictor method)@\spxentry{train\_model()}\spxextra{LSTM\_model.LSTM\_Predictor method}|hyperpage}{17}
+\indexentry{unscale\_data() (LSTM\_model.LSTM\_Predictor method)@\spxentry{unscale\_data()}\spxextra{LSTM\_model.LSTM\_Predictor method}|hyperpage}{17}
+\indexentry{module@\spxentry{module}!NAIVE\_model@\spxentry{NAIVE\_model}|hyperpage}{18}
+\indexentry{NAIVE\_model@\spxentry{NAIVE\_model}!module@\spxentry{module}|hyperpage}{18}
+\indexentry{NAIVE\_Predictor (class in NAIVE\_model)@\spxentry{NAIVE\_Predictor}\spxextra{class in NAIVE\_model}|hyperpage}{18}
+\indexentry{forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}
+\indexentry{mean\_forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{mean\_forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}
+\indexentry{plot\_predictions() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}
+\indexentry{prepare\_data() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{prepare\_data()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}
+\indexentry{seasonal\_forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{seasonal\_forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}
+\indexentry{unscale\_predictions() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}|hyperpage}{18}

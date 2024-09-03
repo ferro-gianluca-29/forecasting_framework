@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.5.3)  19 AUG 2024 11:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.5.3)  3 SEP 2024 13:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**forecastingframeworko.tex
+**./forecastingframework.tex
 (forecastingframework.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-03-14>
@@ -864,47 +864,60 @@ Chapter 1.
 
 ]
 Chapter 2.
+[3] [4
+
+]
+Chapter 3.
 LaTeX Font Info:    Trying to load font information for T1+txtt on input line 1
-21.
+40.
 (D:\MiKTeX\tex/latex/txfonts\t1txtt.fd
 File: t1txtt.fd 2000/12/15 v3.1
 )
 LaTeX Font Info:    Font shape `T1/txtt/b/n' in size <10> not available
-(Font)              Font shape `T1/txtt/bx/n' tried instead on input line 121.
+(Font)              Font shape `T1/txtt/bx/n' tried instead on input line 140.
 LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 1
-34.
+49.
  (D:\MiKTeX\tex/latex/tex-gyre\ts1qtm.fd
 File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
-) [3{D:/MiKTeX/fonts/enc/dvips/tex-gyre/q-ts1.enc}] [4] [5] [6] [7] [8]
-[9] [10] [11] [12] [13] [14]
-Chapter 3.
-[15
+) [5{D:/MiKTeX/fonts/enc/dvips/tex-gyre/q-ts1.enc}] [6] [7] [8] [9] [10]
+[11] [12
 
-] [16]
+]
 Chapter 4.
+[13] [14] [15] [16] [17] [18] [19] [20
 
-Underfull \hbox (badness 10000) in paragraph at lines 1919--1922
+]
+Chapter 5.
+[21] [22]
+LaTeX Font Info:    Trying to load font information for TS1+txtt on input line 
+1975.
+ (D:\MiKTeX\tex/latex/txfonts\ts1txtt.fd
+File: ts1txtt.fd 2000/12/15 v3.1
+) [23] [24
+
+]
+Chapter 6.
+
+Underfull \hbox (badness 10000) in paragraph at lines 2005--2008
 [][]$\T1/qtm/m/n/10 https : / / www . statsmodels . org / stable / examples / n
 otebooks / generated / statespace _ forecasting . html # Cross-[]validation$[][
 ]
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1919--1922
+Underfull \hbox (badness 10000) in paragraph at lines 2005--2008
 [][]$\T1/qtm/m/n/10 https : / / www . statsmodels . org / stable / generated / 
 statsmodels . tsa . ar _ model . AutoRegResults . append . html # statsmodels .
 
  []
 
-[17
-
-] [18
+[25] [26
 
 ]
-Chapter 5.
-[19] [20
+Chapter 7.
+[27] [28
 
-] [21
+] [29
 
 
 ]
@@ -915,24 +928,26 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-03-14>
  ***********
 Package rerunfilecheck Info: File `forecastingframework.out' has not changed.
-(rerunfilecheck)             Checksum: 88A3A0769C48837DFEA8FAB5B28A5603;2133.
+(rerunfilecheck)             Checksum: 9C290400AC1BDFEA61C1A4B9129EB497;3859.
  ) 
 Here is how much of TeX's memory you used:
- 19679 strings out of 474423
- 344002 string characters out of 5758134
- 1944496 words of memory out of 5000000
- 41531 multiletter control sequences out of 15000+600000
- 609429 words of font info for 77 fonts, out of 8000000 for 9000
+ 19801 strings out of 474423
+ 346044 string characters out of 5758134
+ 1963496 words of memory out of 5000000
+ 41611 multiletter control sequences out of 15000+600000
+ 609672 words of font info for 78 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
- 72i,11n,79p,1421b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<D:/MiKTeX/fonts/type1/public/tex-gyre/qhvb.pfb><D:/MiKTeX/fonts/type1/public
-/tex-gyre/qhvbi.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qhvr.pfb><D:/MiKTeX/
-fonts/type1/public/tex-gyre/qtmb.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qtm
-r.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qtmri.pfb><D:/MiKTeX/fonts/type1/p
-ublic/txfonts/t1xbtt.pfb><D:/MiKTeX/fonts/type1/public/txfonts/t1xtt.pfb>
-Output written on forecastingframework.pdf (25 pages, 230643 bytes).
+ 72i,11n,79p,1422b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<D:/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><D:/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmsy5.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qhvb.pfb><D:/
+MiKTeX/fonts/type1/public/tex-gyre/qhvbi.pfb><D:/MiKTeX/fonts/type1/public/tex-
+gyre/qhvr.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qtmb.pfb><D:/MiKTeX/fonts/
+type1/public/tex-gyre/qtmr.pfb><D:/MiKTeX/fonts/type1/public/tex-gyre/qtmri.pfb
+><D:/MiKTeX/fonts/type1/public/txfonts/t1xbtt.pfb><D:/MiKTeX/fonts/type1/public
+/txfonts/t1xtt.pfb><D:/MiKTeX/fonts/type1/public/txfonts/tcxtt.pfb>
+Output written on forecastingframework.pdf (33 pages, 272486 bytes).
 PDF statistics:
- 325 PDF objects out of 1000 (max. 8388607)
- 94 named destinations out of 1000 (max. 500000)
- 157 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 451 PDF objects out of 1000 (max. 8388607)
+ 133 named destinations out of 1000 (max. 500000)
+ 261 words of extra memory for PDF output out of 10000 (max. 10000000)
 

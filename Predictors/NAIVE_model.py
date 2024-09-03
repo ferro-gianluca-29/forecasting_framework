@@ -4,11 +4,18 @@ import numpy as np
 import pickle
 
 class NAIVE_Predictor():
+    """
+    A class used to predict time series data using simple naive methods.
+    """
 
     def __init__(self,  run_mode, target_column, 
                  verbose=False):
         """
-        Documentation
+        Constructs all the necessary attributes for the NAIVE_Predictor object.
+
+        :param run_mode: The mode in which the predictor runs
+        :param target_column: The target column of the DataFrame to predict
+        :param verbose: If True, prints detailed outputs during the execution of methods
         """
 
         self.run_mode = run_mode
@@ -16,6 +23,13 @@ class NAIVE_Predictor():
         self.target_column = target_column
 
     def prepare_data(self, train = None, valid = None, test = None):
+        """
+        Prepares the data for the naive forecasting model.
+
+        :param train: Training dataset
+        :param valid: Validation dataset (optional)
+        :param test: Testing dataset
+        """
         self.train = train
         self.valid = valid
         self.test = test
@@ -24,9 +38,9 @@ class NAIVE_Predictor():
 
     def forecast(self, forecast_type): 
         """
-        Performs a naive forecast using the last observed value from the training set.
+        Performs a naive forecast using the last observed value from the training set or the immediate previous value from the test set.
 
-        :param train: The training set.
+        :param forecast_type: Type of forecasting ('cl-multi' for using the training set mean, else uses the last known values)
         :return: A pandas Series of naive forecasts.
         """
         try:
@@ -54,13 +68,11 @@ class NAIVE_Predictor():
             print(f"An error occurred during the naive model creation: {e}")
             return None
         
-    def naive_seasonal_forecast(self, period=24):
+    def seasonal_forecast(self, period=24):
 
         """
         Performs a seasonal naive forecast using the last observed seasonal cycle.
 
-        :param train: The training set.
-        :param target_test: The test set.
         :param period: The seasonal period to consider for the forecast.
         :return: A pandas Series of naive seasonal forecasts.
         """
@@ -86,11 +98,10 @@ class NAIVE_Predictor():
         return predictions
     
 
-    def naive_mean_forecast(self):
+    def mean_forecast(self):
         """
         Performs a naive forecast using the mean value of the training set.
 
-        :param train: The training set.
         :return: A pandas Series of naive forecasts using the mean.
         """
         try:
@@ -110,6 +121,12 @@ class NAIVE_Predictor():
             return None
     
     def unscale_predictions(self, predictions, folder_path):
+        """
+        Unscales the predictions using the scaler saved during model training.
+
+        :param predictions: The scaled predictions that need to be unscaled
+        :param folder_path: Path to the folder containing the scaler object
+        """
         # Load scaler for unscaling data
         with open(f"{folder_path}/scaler.pkl", "rb") as file:
             scaler = pickle.load(file)

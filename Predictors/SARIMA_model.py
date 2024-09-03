@@ -9,16 +9,22 @@ import pickle
 from Predictors.Predictor import Predictor
 
 class SARIMA_Predictor(Predictor):
+    """
+    A class used to predict time series data using Seasonal ARIMA (SARIMA) models.
+    """
 
     def __init__(self, run_mode, target_column=None, period = 24,
                  verbose=False, set_fourier=False):
         """
-        Initializes an SARIMA_Predictor object with specified settings.
+        Constructs all the necessary attributes for the SARIMA_Predictor object.
 
-        :param target_column: The target column of the DataFrame to predict.
-        :param verbose: If True, prints detailed outputs during the execution of methods.
-        :param set_fourier: Boolean, if true use Fourier transformation on the data.
+        :param run_mode: The mode in which the predictor runs
+        :param target_column: The target column of the DataFrame to predict
+        :param period: Seasonal period of the SARIMA model
+        :param verbose: If True, prints detailed outputs during the execution of methods
+        :param set_fourier: Boolean, if true use Fourier transformation on the data
         """
+
         super().__init__(verbose=verbose)  
 
         self.run_mode = run_mode
@@ -31,14 +37,9 @@ class SARIMA_Predictor(Predictor):
 
     def train_model(self):
         """
-        Trains a SARIMAX model using the training dataset and exogenous variables.
+        Trains a SARIMAX model using the training dataset and exogenous variables, if specified.
 
-        :param target_train: Training dataset containing the target variable.
-        :param exog_train: Training dataset containing the exogenous variables.
-        :param exog_valid: Optional validation dataset containing the exogenous variables for model evaluation.
-        :param period: Seasonal period of the SARIMAX model.
-        :param set_fourier: Boolean flag to determine if Fourier terms should be included.
-        :return: A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
+        :return: A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep
         """
         try:    
 
@@ -144,13 +145,13 @@ class SARIMA_Predictor(Predictor):
         """
         Tests a SARIMAX model by performing one-step or multi-step ahead predictions, optionally using exogenous variables or applying refitting.
 
-        :param last_index: Index of the last training/validation timestep.
-        :param steps_jump: Optional parameter to skip steps in the forecasting.
-        :param exog_test: Optional exogenous variables for the test set.
-        :param ol_refit: Boolean indicating whether to refit the model after each forecast.
-        :param period: The period for Fourier terms if set_Fourier is True.
-        :param set_Fourier: Boolean flag to determine if Fourier terms should be included.
-        :return: A pandas Series of the predictions.
+        :param model: The SARIMAX model to be tested
+        :param last_index: Index of the last training/validation timestep
+        :param forecast_type: Type of forecasting ('ol-one' for open-loop one-step ahead, 'cl-multi' for closed-loop multi-step)
+        :param ol_refit: Boolean indicating whether to refit the model after each forecast
+        :param period: The period for Fourier terms if set_fourier is true
+        :param set_fourier: Boolean flag to determine if Fourier terms should be included
+        :return: A pandas Series of the predictions
         """
         try:    
             print("\nTesting SARIMA model...\n")
@@ -219,6 +220,12 @@ class SARIMA_Predictor(Predictor):
         
 
     def unscale_predictions(self, predictions, folder_path):
+        """
+        Unscales the predictions using the scaler saved during model training.
+
+        :param predictions: The scaled predictions that need to be unscaled
+        :param folder_path: Path to the folder containing the scaler object
+        """
         # Load scaler for unscaling data
         with open(f"{folder_path}/scaler.pkl", "rb") as file:
             scaler = pickle.load(file)
@@ -235,7 +242,7 @@ class SARIMA_Predictor(Predictor):
         """
         Plots the SARIMA model predictions against the test data.
 
-        :param predictions: The predictions made by the SARIMA model.
+        :param predictions: The predictions made by the SARIMA model
         """
         test = self.test[:self.steps_ahead][self.target_column]
         plt.plot(test.index, test, 'b-', label='Test Set')

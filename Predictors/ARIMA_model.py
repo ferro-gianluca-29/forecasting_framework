@@ -9,30 +9,32 @@ import pickle
 from Predictors.Predictor import Predictor
 
 class ARIMA_Predictor(Predictor):
+    """
+    A class used to predict time series data using the ARIMA model.
+    """
 
     def __init__(self, run_mode, target_column=None, 
-                 verbose=False, set_fourier=False):
+                 verbose=False):
         """
         Initializes an ARIMA_Predictor object with specified settings.
 
-        :param target_column: The target column of the DataFrame to predict.
-        :param verbose: If True, prints detailed outputs during the execution of methods.
-        :param set_fourier: Boolean, if true use Fourier transformation on the data.
+        :param run_mode: The mode in which the predictor runs
+        :param target_column: The target column of the DataFrame to predict
+        :param verbose: If True, prints detailed outputs during the execution of methods
         """
         super().__init__(verbose=verbose)  
 
         self.run_mode = run_mode
         self.verbose = verbose
         self.target_column = target_column
-        self.set_fourier = set_fourier
         self.ARIMA_order = []
         
 
     def train_model(self):
         """
-        Trains an ARIMA model using the training dataset. 
+        Trains an ARIMA model using the training dataset.
 
-        :return: A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
+        :return: A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep
         """
         try:
             
@@ -114,11 +116,13 @@ class ARIMA_Predictor(Predictor):
         
     def test_model(self, model, last_index, forecast_type, ol_refit = False):
         """
-        Tests an ARIMA model by performing one step-ahead predictions and optionally refitting the model.
+        Tests an ARIMA model by performing one-step ahead predictions and optionally refitting the model.
 
-        :param ol_refit: Boolean indicating whether to refit the model after each forecast.
-        :param last_index: index of last training/validation timestep 
-        :return: A pandas Series of the predictions.
+        :param model: The ARIMA model to be tested
+        :param last_index: Index of last training/validation timestep
+        :param forecast_type: Type of forecasting ('ol-one' for open-loop one-step ahead, 'cl-multi' for closed-loop multi-step)
+        :param ol_refit: Boolean indicating whether to refit the model after each forecast
+        :return: A pandas Series of the predictions
         """
         try:
             print("\nTesting ARIMA model...\n")
@@ -134,11 +138,12 @@ class ARIMA_Predictor(Predictor):
                 case "ol-one":
 
                     # ROLLING FORECASTS (ONE STEP-AHEAD, OPEN LOOP)
+                    predictions = []
                     for t in tqdm(range(0, self.steps_ahead), desc="Rolling Forecasts"):
                         # Forecast one step at a time
                         y_hat = model.forecast()
                         # Append the forecast to the list
-                        self.predictions.append(y_hat)
+                        predictions.append(y_hat)
                         # Take the actual value from the test set to predict the next
                         y = test.iloc[t, test.columns.get_loc(self.target_column)]
                         # Update the model with the actual value
@@ -147,7 +152,7 @@ class ARIMA_Predictor(Predictor):
                         else:
                             model = model.append([y], refit = False)
                             
-                    predictions = pd.Series(data=self.predictions, index=self.test.index[:self.steps_ahead])
+                    predictions = pd.Series(data=predictions, index=self.test.index[:self.steps_ahead])
                     print("Model testing successful.")        
                     return predictions
                 
@@ -165,6 +170,12 @@ class ARIMA_Predictor(Predictor):
         
 
     def unscale_predictions(self, predictions, folder_path):
+        """
+        Unscales the predictions using the scaler saved during model training.
+
+        :param predictions: The scaled predictions that need to be unscaled
+        :param folder_path: Path to the folder containing the scaler object
+        """
         # Load scaler for unscaling data
         with open(f"{folder_path}/scaler.pkl", "rb") as file:
             scaler = pickle.load(file)
@@ -181,7 +192,7 @@ class ARIMA_Predictor(Predictor):
         """
         Plots the ARIMA model predictions against the test data.
 
-        :param predictions: The predictions made by the ARIMA model.
+        :param predictions: The predictions made by the ARIMA model
         """
         test = self.test[:self.steps_ahead][self.target_column]
         plt.plot(test.index, test, 'b-', label='Test Set')

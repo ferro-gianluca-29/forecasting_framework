@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NAIVE Model" href="NAIVE_model.html" />
+    <link rel="prev" title="XGB Model" href="XGB_model.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -31,19 +33,52 @@
 
           <div class="body" role="main">
             
-  <section id="module-LSTM_model">
-<span id="lstm-model"></span><h1>LSTM Model<a class="headerlink" href="#module-LSTM_model" title="Link to this heading">¶</a></h1>
+  <section id="lstm-model">
+<h1>LSTM Model<a class="headerlink" href="#lstm-model" title="Link to this heading">¶</a></h1>
+<p>This module provides functionality for forecasting time series data using Long Short-Term Memory (LSTM) networks.
+It includes the <cite>LSTM_Predictor</cite> class, which employs a Keras (Tensorflow) model to make forecasts. The
+The class supports advanced features such as input and output sequence length customization,
+optional Fourier transformation for seasonality, and the capability to handle multi-step forecasts with
+seasonality adjustments.
+A data windowing method is also included, in order to give to the neural network the correct input data shape. By correct setting of
+<cite>input_len</cite> and <cite>output_len</cite> command line parameters, both one-step or multi-step ahead predictions can be done.</p>
+<section id="lstm-model-structure">
+<h2>LSTM Model Structure<a class="headerlink" href="#lstm-model-structure" title="Link to this heading">¶</a></h2>
+<p>The model consists of the following sequence of layers:</p>
+<ol class="arabic simple">
+<li><p><strong>Input Layer</strong>:</p></li>
+<li><p><strong>LSTM Layer</strong>:
+- LSTM with 40 units</p></li>
+<li><p><strong>Dropout Layer</strong>:
+- First dropout layer with rate of 0.15</p></li>
+<li><p><strong>LSTM Layer</strong>:
+- Second LSTM layer with 40 units</p></li>
+<li><p><strong>Dropout Layer</strong>:
+- Second dropout layer with rate of 0.15</p></li>
+<li><p><strong>LSTM Layer</strong>:
+- Third LSTM layer with 40 units</p></li>
+<li><p><strong>Dropout Layer</strong>:
+- Third dropout layer with rate of 0.15</p></li>
+<li><p><strong>Dense Layer</strong>:
+- Dense layer for the final output</p></li>
+</ol>
+<p>This structure of the LSTM model is configured to process temporal sequences,
+followed by multiple LSTM and dropout layers to prevent overfitting, concluding with a dense layer for output.</p>
+</section>
+<section id="lstm-predictor">
+<h2>LSTM_Predictor<a class="headerlink" href="#lstm-predictor" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="LSTM_model.LSTM_Predictor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">LSTM_model.</span></span><span class="sig-name descname"><span class="pre">LSTM_Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_fourier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#LSTM_model.LSTM_Predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Predictor</span></code></p>
+<p>A class used to predict time series data using Long Short-Term Memory (LSTM) networks.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="LSTM_model.LSTM_Predictor.data_windowing">
 <span class="sig-name descname"><span class="pre">data_windowing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#LSTM_model.LSTM_Predictor.data_windowing" title="Link to this definition">¶</a></dt>
-<dd><p>Creates data windows suitable for input into deep learning models, optionally incorporating Fourier features for seasonality.</p>
+<dd><p>Creates data windows suitable for input into LSTM models, optionally incorporating Fourier features for seasonality.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Arrays of input and output data windows for training, validation, and testing.</p>
+<dd class="field-odd"><p>Arrays of input and output data windows for training, validation, and testing</p>
 </dd>
 </dl>
 </dd></dl>
@@ -51,12 +86,12 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="LSTM_model.LSTM_Predictor.plot_predictions">
 <span class="sig-name descname"><span class="pre">plot_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_test</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#LSTM_model.LSTM_Predictor.plot_predictions" title="Link to this definition">¶</a></dt>
-<dd><p>Plots LSTM model predictions for each data window in the test set.</p>
+<dd><p>Plots LSTM model predictions against actual test data for each data window in the test set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>predictions</strong> – Predictions made by the LSTM model.</p></li>
-<li><p><strong>y_test</strong> – Actual test values corresponding to the predictions.</p></li>
+<li><p><strong>predictions</strong> – Predictions made by the LSTM model</p></li>
+<li><p><strong>y_test</strong> – Actual test values corresponding to the predictions</p></li>
 </ul>
 </dd>
 </dl>
@@ -69,14 +104,14 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X_train</strong> – Input data for training.</p></li>
-<li><p><strong>y_train</strong> – Target variable for training.</p></li>
-<li><p><strong>X_valid</strong> – Input data for validation.</p></li>
-<li><p><strong>y_valid</strong> – Target variable for validation.</p></li>
+<li><p><strong>X_train</strong> – Input data for training</p></li>
+<li><p><strong>y_train</strong> – Target variable for training</p></li>
+<li><p><strong>X_valid</strong> – Input data for validation</p></li>
+<li><p><strong>y_valid</strong> – Target variable for validation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple containing the trained LSTM model and validation metrics.</p>
+<dd class="field-even"><p>A tuple containing the trained LSTM model and validation metrics</p>
 </dd>
 </dl>
 </dd></dl>
@@ -84,10 +119,21 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="LSTM_model.LSTM_Predictor.unscale_data">
 <span class="sig-name descname"><span class="pre">unscale_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#LSTM_model.LSTM_Predictor.unscale_data" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Unscales the predictions and test data using the scaler saved during model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions</strong> – The scaled predictions that need to be unscaled</p></li>
+<li><p><strong>y_test</strong> – The scaled test data that needs to be unscaled</p></li>
+<li><p><strong>folder_path</strong> – Path to the folder containing the scaler object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
+</section>
 </section>
 
 
@@ -108,13 +154,10 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -126,13 +169,35 @@
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="XGB_model.html">XGB Model</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LSTM Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lstm-model-structure">LSTM Model Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lstm-predictor">LSTM_Predictor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NAIVE_model.html">NAIVE Model</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="XGB_model.html" title="previous chapter">XGB Model</a></li>
+      <li>Next: <a href="NAIVE_model.html" title="next chapter">NAIVE Model</a></li>
   </ul></li>
 </ul>
 </div>

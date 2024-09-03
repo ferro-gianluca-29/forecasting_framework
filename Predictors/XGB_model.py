@@ -12,16 +12,20 @@ from Predictors.Predictor import Predictor
 
 
 class XGB_Predictor(Predictor):
+    """
+    A class used to predict time series data using XGBoost, a gradient boosting framework.
+    """
 
     def __init__(self, run_mode, target_column=None, 
                  verbose=False,  seasonal_model=False, set_fourier=False):
         """
-        Initializes an XGBPredictor object with specified settings.
+        Constructs all the necessary attributes for the XGB_Predictor object.
 
-        :param target_column: The target column of the DataFrame to predict.
-        :param verbose: If True, prints detailed outputs during the execution of methods.
-        :param seasonal_model: Boolean, if true include seasonal adjustments like Fourier features.
-        :param set_fourier: Boolean, if true use Fourier transformation on the data.
+        :param run_mode: The mode in which the predictor runs
+        :param target_column: The target column of the DataFrame to predict
+        :param verbose: If True, prints detailed outputs during the execution of methods
+        :param seasonal_model: Boolean, if true include seasonal adjustments like Fourier features
+        :param set_fourier: Boolean, if true use Fourier transformation on the data
         """
 
         super().__init__(verbose=verbose)  
@@ -35,65 +39,65 @@ class XGB_Predictor(Predictor):
 
 
     def create_time_features(self, df, lags = [1, 2, 3, 24], rolling_window = 24):
-            """
-            Create time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.
+        """
+        Creates time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.
 
-            :param df: DataFrame to modify with time-based features.
-            :param lags: List of integers representing lag periods to generate features for.
-            :param rolling_window: Window size for generating rolling mean and standard deviation.
-            :return: Modified DataFrame with new features, optionally including target column labels.
-            """
+        :param df: DataFrame to modify with time-based features
+        :param lags: List of integers representing lag periods to generate features for
+        :param rolling_window: Window size for generating rolling mean and standard deviation
+        :return: Modified DataFrame with new features, optionally including target column labels
+        """
 
-            label = self.target_column
+        label = self.target_column
 
-            df['date'] = df.index
-            df['hour'] = df['date'].dt.hour
-            df['dayofweek'] = df['date'].dt.dayofweek
-            df['quarter'] = df['date'].dt.quarter
-            df['month'] = df['date'].dt.month
-            df['year'] = df['date'].dt.year
-            df['dayofyear'] = df['date'].dt.dayofyear
-            df['dayofmonth'] = df['date'].dt.day
-            df['weekofyear'] = df['date'].dt.isocalendar().week  # Changed liner
+        df['date'] = df.index
+        df['hour'] = df['date'].dt.hour
+        df['dayofweek'] = df['date'].dt.dayofweek
+        df['quarter'] = df['date'].dt.quarter
+        df['month'] = df['date'].dt.month
+        df['year'] = df['date'].dt.year
+        df['dayofyear'] = df['date'].dt.dayofyear
+        df['dayofmonth'] = df['date'].dt.day
+        df['weekofyear'] = df['date'].dt.isocalendar().week  # Changed liner
 
-            if self.seasonal_model:
+        if self.seasonal_model:
 
-                if self.set_fourier:
+            if self.set_fourier:
 
-                    # Fourier features for daily, weekly, and yearly seasonality
-                    for period in [24, 7, 365]:
-                        df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
-                        df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
+                # Fourier features for daily, weekly, and yearly seasonality
+                for period in [24, 7, 365]:
+                    df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
+                    df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
 
-                else:
-                    # Lagged features
-                    for lag in lags:
-                        df[f'lag_{lag}'] = df[label].shift(lag)
-
-                    # Rolling window features
-                    df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
-                    df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
-
-                df = df.dropna()  # Drop rows with NaN values resulting from lag/rolling operations
-                X = df.drop(['date', label], axis=1, errors='ignore')
             else:
-                X = df[['hour','dayofweek','quarter','month','year',
-                    'dayofyear','dayofmonth','weekofyear']]
-            if label:
-                y = df[label]
-                return X, y
-            return X
+                # Lagged features
+                for lag in lags:
+                    df[f'lag_{lag}'] = df[label].shift(lag)
+
+                # Rolling window features
+                df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
+                df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
+
+            df = df.dropna()  # Drop rows with NaN values resulting from lag/rolling operations
+            X = df.drop(['date', label], axis=1, errors='ignore')
+        else:
+            X = df[['hour','dayofweek','quarter','month','year',
+                'dayofyear','dayofmonth','weekofyear']]
+        if label:
+            y = df[label]
+            return X, y
+        return X
     
     def train_model(self, X_train, y_train, X_valid, y_valid):
 
         """
         Trains an XGBoost model using the training and validation datasets.
 
-        :param X_train: Input data for training.
-        :param y_train: Target variable for training.
-        :param X_valid: Input data for validation.
-        :param y_valid: Target variable for validation.
-        :return: A tuple containing the trained XGBoost model and validation metrics.
+        :param X_train: Input data for training
+        :param y_train: Target variable for training
+        :param X_valid: Input data for validation
+        :param y_valid: Target variable for validation
+        :return: A tuple containing the trained XGBoost model and validation metrics
         """
 
         try:
@@ -132,6 +136,14 @@ class XGB_Predictor(Predictor):
          
 
     def unscale_data(self, predictions, y_test, folder_path):
+        
+        """
+        Unscales the predictions and test data using the scaler saved during model training.
+
+        :param predictions: The scaled predictions that need to be unscaled
+        :param y_test: The scaled test data that needs to be unscaled
+        :param folder_path: Path to the folder containing the scaler object
+        """
         # Load scaler for unscaling data
         with open(f"{folder_path}/scaler.pkl", "rb") as file:
             scaler = pickle.load(file)
@@ -147,13 +159,15 @@ class XGB_Predictor(Predictor):
 
 
     def plot_predictions(self, predictions, test, time_values):
+
         """
         Plots predictions made by an XGBoost model against the test data.
 
-        :param test: The actual test data.
-        :param predictions: The predictions made by the model.
-        :param time_values: Time values corresponding to the test data.
+        :param predictions: Predictions made by the XGBoost model
+        :param test: The actual test data
+        :param time_values: Time values corresponding to the test data
         """
+
         title = f"Predictions made by XGB model"
         plt.figure(figsize=(16,4))
         plt.plot(time_values, test, color='blue',label='Actual values')

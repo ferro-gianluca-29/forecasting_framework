@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Performance Measurement" href="performance_measurement.html" />
+    <link rel="prev" title="Data Loader" href="data_loader.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -33,6 +35,15 @@
             
   <section id="data-preprocessing">
 <h1>Data Preprocessing<a class="headerlink" href="#data-preprocessing" title="Link to this heading">¶</a></h1>
+<p>This module is equipped with the <cite>DataPreprocessor</cite> class, specifically designed for the preprocessing of time series data
+for machine learning models.
+A method for data splitting is present, that uses processed dates coming from the <cite>DataLoader</cite> object.
+The class contains also specific methods for tasks such as managing missing values,
+removing non-numeric columns, managing outliers, and appropriately scaling data.
+These methods are designed taking into account the sequential nature of time series data, providing moving windows for outlier detection
+and making sure that, if a dataset with a large sequence of NaN is detected, the code stops working due to the lack of
+useful data. Also, data scaling is applied to the test set by using statistics from the training set, avoiding thus data leakage.
+The class supports various operational modes like training, testing, and fine-tuning.</p>
 <dl class="py class" id="module-data_preprocessing">
 <dt class="sig sig-object py" id="data_preprocessing.DataPreprocessor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data_preprocessing.</span></span><span class="sig-name descname"><span class="pre">DataPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_ext</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#data_preprocessing.DataPreprocessor" title="Link to this definition">¶</a></dt>
@@ -198,13 +209,16 @@ the given percentage sizes.</p>
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_framework.html">Forecasting Framework</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Preprocessing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data_preprocessing.DataPreprocessor"><code class="docutils literal notranslate"><span class="pre">DataPreprocessor</span></code></a></li>
+</ul>
+</li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -216,13 +230,31 @@ the given percentage sizes.</p>
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="XGB_model.html">XGB Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NAIVE_model.html">NAIVE Model</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="data_loader.html" title="previous chapter">Data Loader</a></li>
+      <li>Next: <a href="performance_measurement.html" title="next chapter">Performance Measurement</a></li>
   </ul></li>
 </ul>
 </div>

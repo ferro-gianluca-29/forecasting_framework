@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="LSTM Model" href="LSTM_model.html" />
+    <link rel="prev" title="SARIMA Model" href="SARIMA_model.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -31,26 +33,36 @@
 
           <div class="body" role="main">
             
-  <section id="module-XGB_model">
-<span id="xgb-model"></span><h1>XGB Model<a class="headerlink" href="#module-XGB_model" title="Link to this heading">¶</a></h1>
+  <section id="xgb-model">
+<h1>XGB Model<a class="headerlink" href="#xgb-model" title="Link to this heading">¶</a></h1>
+<p>This module encapsulates the XGB_Predictor class, which leverages the XGBoost machine learning library to forecast
+time series data.
+The class is specifically designed to incorporate extensive
+feature engineering including lag features, rolling window statistics, and optional Fourier transformations to capture
+seasonal patterns. It focuses on using these enhanced datasets to train and evaluate
+XGBoost models for precise predictions, offering functionalities for scaling, plotting, and performance assessment
+tailored to time series forecasting.</p>
+<section id="xgb-predictor">
+<h2>XGB_Predictor<a class="headerlink" href="#xgb-predictor" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="XGB_model.XGB_Predictor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">XGB_model.</span></span><span class="sig-name descname"><span class="pre">XGB_Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seasonal_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_fourier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#XGB_model.XGB_Predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Predictor</span></code></p>
+<p>A class used to predict time series data using XGBoost, a gradient boosting framework.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="XGB_model.XGB_Predictor.create_time_features">
 <span class="sig-name descname"><span class="pre">create_time_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">24]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rolling_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#XGB_model.XGB_Predictor.create_time_features" title="Link to this definition">¶</a></dt>
-<dd><p>Create time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.</p>
+<dd><p>Creates time-based features for a DataFrame, optionally including Fourier features and rolling window statistics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> – DataFrame to modify with time-based features.</p></li>
-<li><p><strong>lags</strong> – List of integers representing lag periods to generate features for.</p></li>
-<li><p><strong>rolling_window</strong> – Window size for generating rolling mean and standard deviation.</p></li>
+<li><p><strong>df</strong> – DataFrame to modify with time-based features</p></li>
+<li><p><strong>lags</strong> – List of integers representing lag periods to generate features for</p></li>
+<li><p><strong>rolling_window</strong> – Window size for generating rolling mean and standard deviation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Modified DataFrame with new features, optionally including target column labels.</p>
+<dd class="field-even"><p>Modified DataFrame with new features, optionally including target column labels</p>
 </dd>
 </dl>
 </dd></dl>
@@ -62,9 +74,9 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> – The actual test data.</p></li>
-<li><p><strong>predictions</strong> – The predictions made by the model.</p></li>
-<li><p><strong>time_values</strong> – Time values corresponding to the test data.</p></li>
+<li><p><strong>predictions</strong> – Predictions made by the XGBoost model</p></li>
+<li><p><strong>test</strong> – The actual test data</p></li>
+<li><p><strong>time_values</strong> – Time values corresponding to the test data</p></li>
 </ul>
 </dd>
 </dl>
@@ -77,14 +89,14 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X_train</strong> – Input data for training.</p></li>
-<li><p><strong>y_train</strong> – Target variable for training.</p></li>
-<li><p><strong>X_valid</strong> – Input data for validation.</p></li>
-<li><p><strong>y_valid</strong> – Target variable for validation.</p></li>
+<li><p><strong>X_train</strong> – Input data for training</p></li>
+<li><p><strong>y_train</strong> – Target variable for training</p></li>
+<li><p><strong>X_valid</strong> – Input data for validation</p></li>
+<li><p><strong>y_valid</strong> – Target variable for validation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple containing the trained XGBoost model and validation metrics.</p>
+<dd class="field-even"><p>A tuple containing the trained XGBoost model and validation metrics</p>
 </dd>
 </dl>
 </dd></dl>
@@ -92,10 +104,21 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="XGB_model.XGB_Predictor.unscale_data">
 <span class="sig-name descname"><span class="pre">unscale_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_test</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#XGB_model.XGB_Predictor.unscale_data" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Unscales the predictions and test data using the scaler saved during model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions</strong> – The scaled predictions that need to be unscaled</p></li>
+<li><p><strong>y_test</strong> – The scaled test data that needs to be unscaled</p></li>
+<li><p><strong>folder_path</strong> – Path to the folder containing the scaler object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
+</section>
 </section>
 
 
@@ -116,13 +139,13 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_framework.html">Forecasting Framework</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -134,13 +157,34 @@
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">XGB Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#xgb-predictor">XGB_Predictor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NAIVE_model.html">NAIVE Model</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="SARIMA_model.html" title="previous chapter">SARIMA Model</a></li>
+      <li>Next: <a href="LSTM_model.html" title="next chapter">LSTM Model</a></li>
   </ul></li>
 </ul>
 </div>

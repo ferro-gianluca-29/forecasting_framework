@@ -65,21 +65,21 @@ def main():
     parser.add_argument('--time_column_index', type=int, required=False, default=0, help='Index of the column containing the timestamps')
 
     # Model arguments
-    parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMAX, PROPHET, CONV, LSTM, CNN_LSTM)')
+    parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMA, LSTM, XGB)')
+    
     # Statistical models
-    parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead. Not necessary for PROPHET')
+    parser.add_argument('--forecast_type', type=str, required=False, help='Type of forecast: ol-multi= open-loop multi step ahead; ol-one= open loop one step ahead, cl-multi= closed-loop multi step ahead')
     parser.add_argument('--valid_steps', type=int, required=False, default=10, help='Number of time steps to use during validation')
     parser.add_argument('--steps_jump', type=int, required=False, default=50, help='Number of steps to skip in open loop multi step predictions')
     parser.add_argument('--exog', nargs='+', type=str, required=False, default = None, help='Exogenous columns for the SARIMAX model')
     parser.add_argument('--period', type=int, required=False, default=24, help='Seasonality period')  
     parser.add_argument('--set_fourier', action='store_true', required=False, default=False, help='If True, Fourier exogenous variables are used')
+    
     # Other models
     parser.add_argument('--seasonal_model', action='store_true', help='If True, in the case of LSTM the seasonal component is fed into the model, while for XGB models Fourier features are added')
     parser.add_argument('--input_len', type=int, required=False, default=24, help='Number of timesteps to use for prediction in each window in LSTM')
     parser.add_argument('--output_len', type=int, required=False, default=1, help='Number of timesteps to predict in each window in LSTM')
     
-    #parser.add_argument('--seq_len', type=int, required=False, default=10, help='Input sequence length for predictions')
-
     # Test and fine tuning arguments    
     parser.add_argument('--model_path', type=str, required=False, default=None, help='Path of the pre-trained model' )    
     parser.add_argument('--ol_refit', action='store_true', required=False, default=False, help='For ARIMA and SARIMAX models: If specified, in OL forecasts the model is retrained for each added observation ')
@@ -135,7 +135,7 @@ def main():
 
             case 'ARIMA':
                 arima = ARIMA_Predictor(args.run_mode, args.target_column, 
-                args.verbose, args.set_fourier)
+                args.verbose)
 
             case 'SARIMA':
                 sarima = SARIMA_Predictor(args.run_mode, args.target_column, args.period,
@@ -187,7 +187,7 @@ def main():
                     train = []
                     valid = []
                     xgb.prepare_data(train, valid, test)
-                    X_test, y_test = data_preprocessor.create_time_features(test)
+                    X_test, y_test = xgb.create_time_features(test)
                 
 
 

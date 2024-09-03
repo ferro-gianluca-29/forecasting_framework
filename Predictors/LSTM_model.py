@@ -15,18 +15,22 @@ from Predictors.Predictor import Predictor
 
 
 class LSTM_Predictor(Predictor):
+    """
+    A class used to predict time series data using Long Short-Term Memory (LSTM) networks.
+    """
 
     def __init__(self, run_mode, target_column=None, 
                  verbose=False, input_len=None, output_len=None, seasonal_model=False, set_fourier=False):
         """
-        Initializes an LSTMPredictor object with specified settings.
+        Constructs all the necessary attributes for the LSTM_Predictor object.
 
-        :param target_column: The target column of the DataFrame to predict.
-        :param verbose: If True, prints detailed outputs during the execution of methods.
-        :param input_len: Number of past observations to consider for each input sequence.
-        :param output_len: Number of future observations to predict.
-        :param seasonal_model: Boolean, if true include seasonal adjustments like Fourier features.
-        :param set_fourier: Boolean, if true use Fourier transformation on the data.
+        :param run_mode: The mode in which the predictor runs
+        :param target_column: The target column of the DataFrame to predict
+        :param verbose: If True, prints detailed outputs during the execution of methods
+        :param input_len: Number of past observations to consider for each input sequence
+        :param output_len: Number of future observations to predict
+        :param seasonal_model: Boolean, if true include seasonal adjustments like Fourier features
+        :param set_fourier: Boolean, if true use Fourier transformation on the data
         """
         super().__init__(verbose=verbose)  
 
@@ -41,10 +45,9 @@ class LSTM_Predictor(Predictor):
     
     def data_windowing(self):
         """
-        Creates data windows suitable for input into deep learning models, optionally incorporating Fourier features for seasonality.
+        Creates data windows suitable for input into LSTM models, optionally incorporating Fourier features for seasonality.
 
-
-        :return: Arrays of input and output data windows for training, validation, and testing.
+        :return: Arrays of input and output data windows for training, validation, and testing
         """
 
         input_len, output_len = self.input_len, self.output_len
@@ -72,7 +75,7 @@ class LSTM_Predictor(Predictor):
                 first_window = True
 
 
-                stride = stride_train
+                
                 for i in range(0, len(dataset) - input_len - output_len + 1, stride_train):
                     X.append(dataset[input_columns].iloc[i:i + input_len].values)
                     y.append(dataset[self.target_column].iloc[i + input_len:i + input_len + output_len].values)
@@ -92,7 +95,7 @@ class LSTM_Predictor(Predictor):
             input_columns = [self.target_column] + fourier_columns if set_fourier else [self.target_column]
             first_window = True
 
-            stride = stride_test
+            
             for i in range(0, len(test) - input_len - output_len + 1, stride_test):
                 X_test.append(test[input_columns].iloc[i:i + input_len].values)
                 y_test.append(test[self.target_column].iloc[i + input_len:i + input_len + output_len].values)
@@ -125,11 +128,11 @@ class LSTM_Predictor(Predictor):
         """
         Trains an LSTM model using the training and validation datasets.
 
-        :param X_train: Input data for training.
-        :param y_train: Target variable for training.
-        :param X_valid: Input data for validation.
-        :param y_valid: Target variable for validation.
-        :return: A tuple containing the trained LSTM model and validation metrics.
+        :param X_train: Input data for training
+        :param y_train: Target variable for training
+        :param X_valid: Input data for validation
+        :param y_valid: Target variable for validation
+        :return: A tuple containing the trained LSTM model and validation metrics
         """
         try:
             
@@ -195,6 +198,13 @@ class LSTM_Predictor(Predictor):
             return None
         
     def unscale_data(self, predictions, y_test, folder_path):
+        """
+        Unscales the predictions and test data using the scaler saved during model training.
+
+        :param predictions: The scaled predictions that need to be unscaled
+        :param y_test: The scaled test data that needs to be unscaled
+        :param folder_path: Path to the folder containing the scaler object
+        """
 
         # Load scaler for unscaling data
         with open(f"{folder_path}/scaler.pkl", "rb") as file:
@@ -214,10 +224,10 @@ class LSTM_Predictor(Predictor):
 
     def plot_predictions(self, predictions, y_test):
         """
-        Plots LSTM model predictions for each data window in the test set.
+        Plots LSTM model predictions against actual test data for each data window in the test set.
 
-        :param predictions: Predictions made by the LSTM model.
-        :param y_test: Actual test values corresponding to the predictions.
+        :param predictions: Predictions made by the LSTM model
+        :param y_test: Actual test values corresponding to the predictions
         """
         
         for window_num in range(0, y_test.shape[0]):

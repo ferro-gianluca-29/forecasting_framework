@@ -63,7 +63,7 @@
 
 
 \title{Forecasting framework}
-\date{Aug 19, 2024}
+\date{Sep 03, 2024}
 \release{1}
 \author{Gianluca Ferro}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -89,10 +89,12 @@
 \label{\detokenize{index:introduction}}
 \sphinxAtStartPar
 This framework is designed to provide the main blocks for implementing and using many types of machine learning models for time series forecasting, including
-statistical models, neural networks, and Extreme Gradient Boosting (XGB) models.
+statistical models (ARIMA and SARIMA), Long Short Term Memory (LSTM) neural networks, and Extreme Gradient Boosting (XGB) models.
 Other models can also be integrated, by incorporating the corresponding tools into each respective block of the framework.
 The data preprocessing block makes possible to train and test the models on datasets with varying structures and formats, allowing a robust
-support for handling NaN values and outliers. The framework comprises a main file that orchestrates the various implementation phases of the models, with initial settings provided as
+support for handling NaN values and outliers.
+The framework comprises a main file that orchestrates the various implementation phases of the models,
+with initial settings provided as
 command\sphinxhyphen{}line arguments using a parser (whose parameters are presented in the Appendix).
 The code supports four distinct modes of operation: training, testing, combined training and testing, and fine tuning.
 Various configurations of the framework, using different terminal arguments, are present in the JSON files (\sphinxtitleref{launch.json} for debug and \sphinxtitleref{tasks.json} for
@@ -104,116 +106,33 @@ by passing parameters directly through the terminal.
 \label{\detokenize{index:framework-architecture}}
 \sphinxAtStartPar
 The main blocks of the framework are data loading, data preprocessing, training, testing, and performance measurement.
-Each block makes use of classes and functions from a corresponding file located in the \sphinxtitleref{classes} folder,
-in order to implement the time series forecasting models features.
-For time series analysis and functions for loading/saving data there are two respective files in the \sphinxtitleref{utils} folder.
-Below is the structure of the framework.
+Once the model is selected, the  file located in the \sphinxtitleref{Predictors} folder corresponding to that model will be used.
+Each of these files contains the classes that implement the training and testing phases of the model.
+The blocks of the main code also use classes and functions from a corresponding file located in the \sphinxtitleref{tools} folder,
+that includes functionalities as data loading, data preprocessing, optional time series analysis and performance measurement.
+
+
+\chapter{Framework Tools}
+\label{\detokenize{index:framework-tools}}
+\sphinxAtStartPar
+Below are reported the classes from the \sphinxtitleref{tools} folder.
 
 \sphinxstepscope
 
 
-\section{Main Code}
-\label{\detokenize{docs/main_code:module-main_code}}\label{\detokenize{docs/main_code:main-code}}\label{\detokenize{docs/main_code::doc}}\index{module@\spxentry{module}!main\_code@\spxentry{main\_code}}\index{main\_code@\spxentry{main\_code}!module@\spxentry{module}}\index{main() (in module main\_code)@\spxentry{main()}\spxextra{in module main\_code}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/main_code:main_code.main}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxcode{\sphinxupquote{main\_code.}}\sphinxbfcode{\sphinxupquote{main}}}{}{}
-\pysigstopsignatures
+\section{Data Loader}
+\label{\detokenize{docs/data_loader:data-loader}}\label{\detokenize{docs/data_loader::doc}}
 \sphinxAtStartPar
-Main function to execute time series forecasting tasks based on user\sphinxhyphen{}specified arguments.
-This function handles the entire workflow from data loading, preprocessing, model training, testing,
-and evaluation, based on the configuration provided via command\sphinxhyphen{}line arguments.
-
-\end{fulllineitems}
-
-
-\sphinxAtStartPar
-The main code is divided into the following sections: ciaoooooooooooo
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Data loading}
-
-\end{itemize}
-
-\sphinxAtStartPar
-Loads data from the specified dataset path using the DataLoader class.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Preprocessing and dataset split}
-
-\end{itemize}
-
-\sphinxAtStartPar
-Handling data preprocessing and dataset splitting based on the specified model type and runtime configurations.
-For test\sphinxhyphen{}only run mode, only the test set will be created.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Optional time series analysis}
-
-\end{itemize}
-
-\sphinxAtStartPar
-Performs additional time series analysis if specified with the parser argument \sphinxtitleref{\textendash{}ts\_analysis}.
-Functions used in this section include plotting the ACF and PACF diagrams to have an early estimate of the AR and MA parameters,
-as well as statistic tests for stationarity. For seasonal models, a seasonal\sphinxhyphen{}trend decomposition of the series can be performed.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Model loading for test or fine\sphinxhyphen{}tuning}
-
-\end{itemize}
-
-\sphinxAtStartPar
-Depending on the run mode, loads a pre\sphinxhyphen{}trained model to perform fine\sphinxhyphen{}tuning or to handle the test\sphinxhyphen{}only mode.
-For statistical models, some operations on the index of the training and test set are required, to ensure that the endogenous
-and exogenous variables passed to the model during training have indexes that are contiguous to those of the pre\sphinxhyphen{}trained model.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Model training}
-
-\end{itemize}
-
-\sphinxAtStartPar
-The training of the model is done using the corresponding method of the \sphinxtitleref{ModelTraining} class.
-A buffer containing the last \sphinxtitleref{buffer\_size} elements of the training set is created, which can be used for
-further test or to create naive benchmark models. After the training phase data (including the model itself and validation metrics)
-are saved in the model’s directory.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Model testing}
-
-\end{itemize}
-
-\sphinxAtStartPar
-The class ModelTest is used in order to generate the predictions of the trained model.
-\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Plot of predictions versus real data}
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstylestrong{Performance measurement and saving}
-
-\end{itemize}
-
-\sphinxAtStartPar
-After computing the metrics of the model, the performance is stored into a text file.
-
-\sphinxAtStartPar
-The \sphinxtitleref{main} function orchestrates the loading, preprocessing, training/testing of models, optionally fine\sphinxhyphen{}tuning, and plotting of predictions.
-
-\sphinxstepscope
-
-
-\section{Data Loader Module}
-\label{\detokenize{docs/data_loader:data-loader-module}}\label{\detokenize{docs/data_loader::doc}}\index{module@\spxentry{module}!data\_loader@\spxentry{data\_loader}}\index{data\_loader@\spxentry{data\_loader}!module@\spxentry{module}}\index{DataLoader (class in data\_loader)@\spxentry{DataLoader}\spxextra{class in data\_loader}}\phantomsection\label{\detokenize{docs/data_loader:module-data_loader}}
+This module contains the \sphinxtitleref{DataLoader} class, specifically crafted to load and preprocess datasets
+for various types of machine learning models, including LSTM, XGB, ARIMA and SARIMA.
+The class efficiently handles datasets from multiple file formats and prepares them for model\sphinxhyphen{}specific requirements.
+It is essential to specify the correct date format present in the dataset using the \sphinxtitleref{\textendash{}date\_format} parser argument
+to avoid errors during data loading.
+If the date column is not the first column in the dataset, its index must be specified using the \sphinxtitleref{\textendash{}time\_column\_index} command
+to ensure accurate processing.
+The \sphinxtitleref{load\_data} method converts date columns to datetime objects and adjusts dataset indices to align with the chosen model type.
+Additionally, the class utilizes specific dates provided through the \sphinxtitleref{\textendash{}date\_list} input, filtering and structuring the data accordingly.
+\index{module@\spxentry{module}!data\_loader@\spxentry{data\_loader}}\index{data\_loader@\spxentry{data\_loader}!module@\spxentry{module}}\index{DataLoader (class in data\_loader)@\spxentry{DataLoader}\spxextra{class in data\_loader}}\phantomsection\label{\detokenize{docs/data_loader:module-data_loader}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{docs/data_loader:data_loader.DataLoader}}
@@ -288,17 +207,22 @@ A tuple containing the dataframe and the indices of the dates if provided in \sp
 \end{fulllineitems}
 
 
-\sphinxAtStartPar
-Class for loading data from various file formats. If the parameter \textendash{}time\_column\_index is not specified,
-the code expects that the time column is the first of the dataset.
-For statistical models, the end date of the training set must be equal to the start date of the validation set;
-the same holds for validation and test set.
-
 \sphinxstepscope
 
 
 \section{Data Preprocessing}
-\label{\detokenize{docs/data_preprocessing:data-preprocessing}}\label{\detokenize{docs/data_preprocessing::doc}}\index{module@\spxentry{module}!data\_preprocessing@\spxentry{data\_preprocessing}}\index{data\_preprocessing@\spxentry{data\_preprocessing}!module@\spxentry{module}}\index{DataPreprocessor (class in data\_preprocessing)@\spxentry{DataPreprocessor}\spxextra{class in data\_preprocessing}}\phantomsection\label{\detokenize{docs/data_preprocessing:module-data_preprocessing}}
+\label{\detokenize{docs/data_preprocessing:data-preprocessing}}\label{\detokenize{docs/data_preprocessing::doc}}
+\sphinxAtStartPar
+This module is equipped with the \sphinxtitleref{DataPreprocessor} class, specifically designed for the preprocessing of time series data
+for machine learning models.
+A method for data splitting is present, that uses processed dates coming from the \sphinxtitleref{DataLoader} object.
+The class contains also specific methods for tasks such as managing missing values,
+removing non\sphinxhyphen{}numeric columns, managing outliers, and appropriately scaling data.
+These methods are designed taking into account the sequential nature of time series data, providing moving windows for outlier detection
+and making sure that, if a dataset with a large sequence of NaN is detected, the code stops working due to the lack of
+useful data. Also, data scaling is applied to the test set by using statistics from the training set, avoiding thus data leakage.
+The class supports various operational modes like training, testing, and fine\sphinxhyphen{}tuning.
+\index{module@\spxentry{module}!data\_preprocessing@\spxentry{data\_preprocessing}}\index{data\_preprocessing@\spxentry{data\_preprocessing}!module@\spxentry{module}}\index{DataPreprocessor (class in data\_preprocessing)@\spxentry{DataPreprocessor}\spxextra{class in data\_preprocessing}}\phantomsection\label{\detokenize{docs/data_preprocessing:module-data_preprocessing}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{docs/data_preprocessing:data_preprocessing.DataPreprocessor}}
@@ -392,96 +316,6 @@ Print messages conditionally based on the verbose attribute.
 \sphinxstyleliteralstrong{\sphinxupquote{kwargs}} \textendash{} Keyword arguments to be printed
 
 \end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{create\_time\_features() (data\_preprocessing.DataPreprocessor method)@\spxentry{create\_time\_features()}\spxextra{data\_preprocessing.DataPreprocessor method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/data_preprocessing:data_preprocessing.DataPreprocessor.create_time_features}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{create\_time\_features}}}{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{label}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{seasonal\_model}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lags}\DUrole{o}{=}\DUrole{default_value}{{[}1, 2, 3, 24{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{rolling\_window}\DUrole{o}{=}\DUrole{default_value}{24}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Create time\sphinxhyphen{}based features for a DataFrame, optionally including Fourier features and rolling window statistics.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{df}} \textendash{} DataFrame to modify with time\sphinxhyphen{}based features.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{label}} \textendash{} Label column name for generating features.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{seasonal\_model}} \textendash{} Boolean indicating whether to add Fourier features for seasonal models.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{lags}} \textendash{} List of integers representing lag periods to generate features for.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{rolling\_window}} \textendash{} Window size for generating rolling mean and standard deviation.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-Modified DataFrame with new features, optionally including target column labels.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{data\_windowing() (data\_preprocessing.DataPreprocessor method)@\spxentry{data\_windowing()}\spxextra{data\_preprocessing.DataPreprocessor method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/data_preprocessing:data_preprocessing.DataPreprocessor.data_windowing}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{data\_windowing}}}{\sphinxparam{\DUrole{n}{train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{input\_len}}\sphinxparamcomma \sphinxparam{\DUrole{n}{output\_len}}\sphinxparamcomma \sphinxparam{\DUrole{n}{seasonal\_model}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Creates data windows suitable for input into deep learning models, optionally incorporating Fourier features for seasonality.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} Training dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{valid}} \textendash{} Validation dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} Test dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{input\_len}} \textendash{} Length of the input data window.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{output\_len}} \textendash{} Length of the output data window.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{seasonal\_model}} \textendash{} Flag to include Fourier features for seasonal predictions.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{set\_fourier}} \textendash{} Flag to set Fourier transformation features.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-Arrays of input and output data windows for training, validation, and testing.
 
 \end{description}\end{quote}
 
@@ -657,498 +491,6 @@ Splits the dataset at a significant NaN hole into two separate files.
 \end{fulllineitems}
 
 
-\sphinxAtStartPar
-Class for preprocessing data for machine learning models.
-
-\sphinxstepscope
-
-
-\section{Training Module}
-\label{\detokenize{docs/training_module:module-training_module}}\label{\detokenize{docs/training_module:training-module}}\label{\detokenize{docs/training_module::doc}}\index{module@\spxentry{module}!training\_module@\spxentry{training\_module}}\index{training\_module@\spxentry{training\_module}!module@\spxentry{module}}\index{ModelTraining (class in training\_module)@\spxentry{ModelTraining}\spxextra{class in training\_module}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/training_module:training_module.ModelTraining}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{training\_module.}}\sphinxbfcode{\sphinxupquote{ModelTraining}}}{\sphinxparam{\DUrole{n}{model\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{str}}\sphinxparamcomma \sphinxparam{\DUrole{n}{train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{valid}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{valid\_steps}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Bases: \sphinxcode{\sphinxupquote{object}}
-
-\sphinxAtStartPar
-Class for training various types of machine learning models based on the \textendash{}model\_type argument.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{model\_type}} \textendash{} Specifies the type of model to train (e.g., ‘ARIMA’, ‘SARIMAX’, ‘LSTM’, ‘XGB’).
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} Training dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{valid}} \textendash{} Optional validation dataset for model evaluation.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_column}} \textendash{} The name of the target variable in the dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{verbose}} \textendash{} If True, enables verbose output during model training.
-
-\end{itemize}
-
-\end{description}\end{quote}
-\index{train\_ARIMA\_model() (training\_module.ModelTraining method)@\spxentry{train\_ARIMA\_model()}\spxextra{training\_module.ModelTraining method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/training_module:training_module.ModelTraining.train_ARIMA_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_ARIMA\_model}}}{}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Trains an ARIMA model using the training dataset.
-\begin{quote}\begin{description}
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{train\_LSTM\_model() (training\_module.ModelTraining method)@\spxentry{train\_LSTM\_model()}\spxextra{training\_module.ModelTraining method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/training_module:training_module.ModelTraining.train_LSTM_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_LSTM\_model}}}{\sphinxparam{\DUrole{n}{X\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{X\_valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{output\_len}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Trains an LSTM model using the training and validation datasets.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{X\_train}} \textendash{} Input data for training.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{y\_train}} \textendash{} Target variable for training.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{X\_valid}} \textendash{} Input data for validation.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{y\_valid}} \textendash{} Target variable for validation.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{output\_len}} \textendash{} The length of the output sequence for the LSTM model.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A tuple containing the trained LSTM model and validation metrics.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{train\_SARIMAX\_model() (training\_module.ModelTraining method)@\spxentry{train\_SARIMAX\_model()}\spxextra{training\_module.ModelTraining method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/training_module:training_module.ModelTraining.train_SARIMAX_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_SARIMAX\_model}}}{\sphinxparam{\DUrole{n}{target\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{exog\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{exog\_valid}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_Fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Trains a SARIMAX model using the training dataset and exogenous variables.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_train}} \textendash{} Training dataset containing the target variable.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{exog\_train}} \textendash{} Training dataset containing the exogenous variables.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{exog\_valid}} \textendash{} Optional validation dataset containing the exogenous variables for model evaluation.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} Seasonal period of the SARIMAX model.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{set\_Fourier}} \textendash{} Boolean flag to determine if Fourier terms should be included.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A tuple containing the trained model, validation metrics and the index of last training/validation timestep.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{train\_XGB\_model() (training\_module.ModelTraining method)@\spxentry{train\_XGB\_model()}\spxextra{training\_module.ModelTraining method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/training_module:training_module.ModelTraining.train_XGB_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_XGB\_model}}}{\sphinxparam{\DUrole{n}{X\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{X\_valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_valid}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Trains an XGBoost model using the training and validation datasets.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{X\_train}} \textendash{} Input data for training.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{y\_train}} \textendash{} Target variable for training.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{X\_valid}} \textendash{} Input data for validation.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{y\_valid}} \textendash{} Target variable for validation.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A tuple containing the trained XGBoost model and validation metrics.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-
-\end{fulllineitems}
-
-
-\sphinxAtStartPar
-Class for training time series forecasting models.
-
-\sphinxstepscope
-
-
-\section{Testing Module}
-\label{\detokenize{docs/model_testing:module-model_testing}}\label{\detokenize{docs/model_testing:testing-module}}\label{\detokenize{docs/model_testing::doc}}\index{module@\spxentry{module}!model\_testing@\spxentry{model\_testing}}\index{model\_testing@\spxentry{model\_testing}!module@\spxentry{module}}\index{ModelTest (class in model\_testing)@\spxentry{ModelTest}\spxextra{class in model\_testing}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{model\_testing.}}\sphinxbfcode{\sphinxupquote{ModelTest}}}{\sphinxparam{\DUrole{n}{model\_type}}\sphinxparamcomma \sphinxparam{\DUrole{n}{model}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}}\sphinxparamcomma \sphinxparam{\DUrole{n}{forecast\_type}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Bases: \sphinxcode{\sphinxupquote{object}}
-
-\sphinxAtStartPar
-A class for testing and visualizing the predictions of various types of forecasting models.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{model\_type}} \textendash{} The type of model to test (‘ARIMA’, ‘SARIMAX’, etc.).
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{model}} \textendash{} The model object to be tested.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_column}} \textendash{} The target column in the dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{forecast\_type}} \textendash{} The type of forecasting to be performed (‘ol\sphinxhyphen{}one’, etc.).
-
-\end{itemize}
-
-\end{description}\end{quote}
-\index{ARIMA\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{ARIMA\_plot\_pred()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.ARIMA_plot_pred}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{ARIMA\_plot\_pred}}}{\sphinxparam{\DUrole{n}{best\_order}}\sphinxparamcomma \sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{naive\_predictions}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Plots the ARIMA model predictions against the test data and optionally against naive predictions.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{best\_order}} \textendash{} The order of the ARIMA model used.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The predictions made by the ARIMA model.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{naive\_predictions}} \textendash{} Optional naive predictions for comparison.
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{LSTM\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{LSTM\_plot\_pred()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.LSTM_plot_pred}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{LSTM\_plot\_pred}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_test}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Plots LSTM model predictions for each data window in the test set.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} Predictions made by the LSTM model.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{y\_test}} \textendash{} Actual test values corresponding to the predictions.
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{NAIVE\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{NAIVE\_plot\_pred()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.NAIVE_plot_pred}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{NAIVE\_plot\_pred}}}{\sphinxparam{\DUrole{n}{naive\_predictions}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Plots naive predictions against the test data.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{naive\_predictions}} \textendash{} The naive predictions to plot.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{XGB\_plot\_pred() (model\_testing.ModelTest method)@\spxentry{XGB\_plot\_pred()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.XGB_plot_pred}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{XGB\_plot\_pred}}}{\sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{time\_values}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Plots predictions made by an XGBoost model against the test data.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The actual test data.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The predictions made by the model.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{time\_values}} \textendash{} Time values corresponding to the test data.
-
-\end{itemize}
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{naive\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_forecast()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.naive_forecast}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{naive\_forecast}}}{\sphinxparam{\DUrole{n}{train}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Performs a naive forecast using the last observed value from the training set.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} The training set.
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of naive forecasts.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{naive\_mean\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_mean\_forecast()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.naive_mean_forecast}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{naive\_mean\_forecast}}}{\sphinxparam{\DUrole{n}{train}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Performs a naive forecast using the mean value of the training set.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} The training set.
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of naive forecasts using the mean.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{naive\_seasonal\_forecast() (model\_testing.ModelTest method)@\spxentry{naive\_seasonal\_forecast()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.naive_seasonal_forecast}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{naive\_seasonal\_forecast}}}{\sphinxparam{\DUrole{n}{train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Performs a seasonal naive forecast using the last observed seasonal cycle.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} The training set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_test}} \textendash{} The test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} The seasonal period to consider for the forecast.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of naive seasonal forecasts.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{test\_ARIMA\_model() (model\_testing.ModelTest method)@\spxentry{test\_ARIMA\_model()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.test_ARIMA_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{test\_ARIMA\_model}}}{\sphinxparam{\DUrole{n}{last\_index}}\sphinxparamcomma \sphinxparam{\DUrole{n}{steps\_jump}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ol\_refit}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Tests an ARIMA model by performing one step\sphinxhyphen{}ahead predictions and optionally refitting the model.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{steps\_jump}} \textendash{} Optional parameter to skip steps in the forecasting.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{ol\_refit}} \textendash{} Boolean indicating whether to refit the model after each forecast.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{last\_index}} \textendash{} index of last training/validation timestep
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of the predictions.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{test\_SARIMAX\_model() (model\_testing.ModelTest method)@\spxentry{test\_SARIMAX\_model()}\spxextra{model\_testing.ModelTest method}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/model_testing:model_testing.ModelTest.test_SARIMAX_model}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{test\_SARIMAX\_model}}}{\sphinxparam{\DUrole{n}{last\_index}}\sphinxparamcomma \sphinxparam{\DUrole{n}{steps\_jump}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{exog\_test}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ol\_refit}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_Fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Tests a SARIMAX model by performing one\sphinxhyphen{}step or multi\sphinxhyphen{}step ahead predictions, optionally using exogenous variables or applying refitting.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{last\_index}} \textendash{} Index of the last training/validation timestep.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{steps\_jump}} \textendash{} Optional parameter to skip steps in the forecasting.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{exog\_test}} \textendash{} Optional exogenous variables for the test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{ol\_refit}} \textendash{} Boolean indicating whether to refit the model after each forecast.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} The period for Fourier terms if set\_Fourier is True.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{set\_Fourier}} \textendash{} Boolean flag to determine if Fourier terms should be included.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of the predictions.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-
-\end{fulllineitems}
-
-
-\sphinxAtStartPar
-Class for testing models.
-
 \sphinxstepscope
 
 
@@ -1161,37 +503,7 @@ Class for testing models.
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{performance\_measurement.}}\sphinxbfcode{\sphinxupquote{PerfMeasure}}}{\sphinxparam{\DUrole{n}{model\_type}}\sphinxparamcomma \sphinxparam{\DUrole{n}{model}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}}\sphinxparamcomma \sphinxparam{\DUrole{n}{forecast\_type}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
-Bases: \sphinxcode{\sphinxupquote{ModelTest}}
-
-\sphinxAtStartPar
-Class that extends ModelTest to provide additional methods for measuring and plotting performance
-metrics of forecasting models. It calculates and returns various performance metrics
-for a given set of actual and predicted values.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{model\_type}} \textendash{} The type of model to test (‘ARIMA’, ‘SARIMAX’, etc.).
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{model}} \textendash{} The model object to be tested.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_column}} \textendash{} The target column in the dataset.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{forecast\_type}} \textendash{} The type of forecasting to be performed (‘ol\sphinxhyphen{}one’, etc.).
-
-\end{itemize}
-
-\end{description}\end{quote}
+Bases: \sphinxcode{\sphinxupquote{object}}
 \index{get\_performance\_metrics() (performance\_measurement.PerfMeasure method)@\spxentry{get\_performance\_metrics()}\spxextra{performance\_measurement.PerfMeasure method}}
 
 \begin{fulllineitems}
@@ -1228,9 +540,6 @@ A dictionary of performance metrics including MSE, RMSE, MAPE, MSPE, MAE, and R\
 
 \end{fulllineitems}
 
-
-\sphinxAtStartPar
-Class for measuring the performance of forecasting models.
 
 \sphinxstepscope
 
@@ -1552,9 +861,6 @@ Performs a comprehensive time series analysis including plotting, stationarity t
 \end{fulllineitems}
 
 
-\sphinxAtStartPar
-Functions for time series analysis, statistic tests and optimizing statistical models.
-
 \sphinxstepscope
 
 
@@ -1612,84 +918,6 @@ Loads a trained model and its configuration from the selected directory.
 \sphinxlineitem{Returns}
 \sphinxAtStartPar
 A tuple containing the loaded model and its order (if applicable).
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{naive\_forecast() (in module utilities)@\spxentry{naive\_forecast()}\spxextra{in module utilities}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/utilities:utilities.naive_forecast}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxcode{\sphinxupquote{utilities.}}\sphinxbfcode{\sphinxupquote{naive\_forecast}}}{\sphinxparam{\DUrole{n}{train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}}\sphinxparamcomma \sphinxparam{\DUrole{n}{steps\_ahead}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Performs a naive forecast using the last observed value from the training set.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} The training set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_column}} \textendash{} Column name for the target variable.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{steps\_ahead}} \textendash{} Number of steps to forecast ahead, if not set, matches the test set length.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of naive forecasts.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{naive\_seasonal\_forecast() (in module utilities)@\spxentry{naive\_seasonal\_forecast()}\spxextra{in module utilities}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{docs/utilities:utilities.naive_seasonal_forecast}}
-\pysigstartsignatures
-\pysiglinewithargsret{\sphinxcode{\sphinxupquote{utilities.}}\sphinxbfcode{\sphinxupquote{naive\_seasonal\_forecast}}}{\sphinxparam{\DUrole{n}{train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}}\sphinxparamcomma \sphinxparam{\DUrole{n}{steps\_ahead}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}}{}
-\pysigstopsignatures
-\sphinxAtStartPar
-Performs a seasonal naive forecast using the last observed seasonal cycle.
-\begin{quote}\begin{description}
-\sphinxlineitem{Parameters}\begin{itemize}
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} The training set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The test set.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{target\_column}} \textendash{} Column name for the target variable.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{steps\_ahead}} \textendash{} Number of steps to forecast ahead, if not set, matches the test set length.
-
-\item {} 
-\sphinxAtStartPar
-\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} The seasonal period to consider for the forecast.
-
-\end{itemize}
-
-\sphinxlineitem{Returns}
-\sphinxAtStartPar
-A pandas Series of naive seasonal forecasts.
 
 \end{description}\end{quote}
 
@@ -1794,8 +1022,804 @@ Saves various types of data to files based on the specified mode.
 \end{fulllineitems}
 
 
+
+\chapter{Framework Models}
+\label{\detokenize{index:framework-models}}
 \sphinxAtStartPar
-Functions for loading or saving models and training data.
+In the following are documented the models used inside the framework.
+
+\sphinxstepscope
+
+
+\section{ARIMA Model}
+\label{\detokenize{docs/ARIMA_model:arima-model}}\label{\detokenize{docs/ARIMA_model::doc}}
+\sphinxAtStartPar
+This module is designed to make forecasts on time series through ARIMA (Autoregressive Integrated Moving Average) models,
+encapsulated in the \sphinxtitleref{ARIMA\_Predictor} class. The model used comes from the \sphinxtitleref{Statsmodels} library, and the optimization of the hyperparameters
+is done through grid search, by finding the model with the best AIC score.
+This class provides methods for predictive analysis of univariate time series,
+and is designed for both one\sphinxhyphen{}step ahead or multi\sphinxhyphen{}step ahead forecasts.
+One\sphinxhyphen{}step ahead predictions can be done in open loop mode, i.e. by updating at
+each forecast the model with the present observation,
+in order to make the model suitable for online learning settings.
+
+
+\subsection{ARIMA\_Predictor}
+\label{\detokenize{docs/ARIMA_model:module-ARIMA_model}}\label{\detokenize{docs/ARIMA_model:arima-predictor}}\index{module@\spxentry{module}!ARIMA\_model@\spxentry{ARIMA\_model}}\index{ARIMA\_model@\spxentry{ARIMA\_model}!module@\spxentry{module}}\index{ARIMA\_Predictor (class in ARIMA\_model)@\spxentry{ARIMA\_Predictor}\spxextra{class in ARIMA\_model}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/ARIMA_model:ARIMA_model.ARIMA_Predictor}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{ARIMA\_model.}}\sphinxbfcode{\sphinxupquote{ARIMA\_Predictor}}}{\sphinxparam{\DUrole{n}{run\_mode}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Predictor}}
+
+\sphinxAtStartPar
+A class used to predict time series data using the ARIMA model.
+\index{plot\_predictions() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/ARIMA_model:ARIMA_model.ARIMA_Predictor.plot_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{plot\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Plots the ARIMA model predictions against the test data.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The predictions made by the ARIMA model
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{test\_model() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{test\_model()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/ARIMA_model:ARIMA_model.ARIMA_Predictor.test_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{test\_model}}}{\sphinxparam{\DUrole{n}{model}}\sphinxparamcomma \sphinxparam{\DUrole{n}{last\_index}}\sphinxparamcomma \sphinxparam{\DUrole{n}{forecast\_type}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ol\_refit}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Tests an ARIMA model by performing one\sphinxhyphen{}step ahead predictions and optionally refitting the model.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{model}} \textendash{} The ARIMA model to be tested
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{last\_index}} \textendash{} Index of last training/validation timestep
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{forecast\_type}} \textendash{} Type of forecasting (‘ol\sphinxhyphen{}one’ for open\sphinxhyphen{}loop one\sphinxhyphen{}step ahead, ‘cl\sphinxhyphen{}multi’ for closed\sphinxhyphen{}loop multi\sphinxhyphen{}step)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{ol\_refit}} \textendash{} Boolean indicating whether to refit the model after each forecast
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A pandas Series of the predictions
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{train\_model() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{train\_model()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/ARIMA_model:ARIMA_model.ARIMA_Predictor.train_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_model}}}{}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Trains an ARIMA model using the training dataset.
+\begin{quote}\begin{description}
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{unscale\_predictions() (ARIMA\_model.ARIMA\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{ARIMA\_model.ARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/ARIMA_model:ARIMA_model.ARIMA_Predictor.unscale_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{unscale\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{folder\_path}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Unscales the predictions using the scaler saved during model training.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The scaled predictions that need to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{folder\_path}} \textendash{} Path to the folder containing the scaler object
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+\sphinxstepscope
+
+
+\section{SARIMA Model}
+\label{\detokenize{docs/SARIMA_model:sarima-model}}\label{\detokenize{docs/SARIMA_model::doc}}
+\sphinxAtStartPar
+This module implements Seasonal ARIMA (SARIMA) models for time series forecasting.
+It features the \sphinxtitleref{SARIMA\_Predictor} class, which leverages seasonal differencing and potentially exogenous variables,
+like Fourier terms for capturing seasonality.
+The model used comes from the \sphinxtitleref{Statsmodels} library, and the optimization of the hyperparameters
+is done through grid search, by finding the model with the best AIC score.
+This model is used for univariate time series, and is designed for both one\sphinxhyphen{}step ahead or multi\sphinxhyphen{}step ahead forecasts.
+Like the ARIMA model, one\sphinxhyphen{}step ahead predictions can be done in open loop mode, i.e. by updating at each forecast the
+model with the present observation, in order to make the model suitable for online learning settings.
+For datasets with high frequency, like solar panel production with 15 min timesteps, the model may
+not be able to be trained or optimized with daily or weekly seasonality, due to high memory requirements.
+For this reason, a setting with additional Fourier terms as exogenous variable is present, and the choice of the hyperparameters could be done
+by inspection of the ACF and PACF plots.
+An optional rolling window cross validation technique is also implemented in the class.
+
+
+\subsection{SARIMA\_Predictor}
+\label{\detokenize{docs/SARIMA_model:module-SARIMA_model}}\label{\detokenize{docs/SARIMA_model:sarima-predictor}}\index{module@\spxentry{module}!SARIMA\_model@\spxentry{SARIMA\_model}}\index{SARIMA\_model@\spxentry{SARIMA\_model}!module@\spxentry{module}}\index{SARIMA\_Predictor (class in SARIMA\_model)@\spxentry{SARIMA\_Predictor}\spxextra{class in SARIMA\_model}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/SARIMA_model:SARIMA_model.SARIMA_Predictor}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{SARIMA\_model.}}\sphinxbfcode{\sphinxupquote{SARIMA\_Predictor}}}{\sphinxparam{\DUrole{n}{run\_mode}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Predictor}}
+
+\sphinxAtStartPar
+A class used to predict time series data using Seasonal ARIMA (SARIMA) models.
+\index{plot\_predictions() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/SARIMA_model:SARIMA_model.SARIMA_Predictor.plot_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{plot\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Plots the SARIMA model predictions against the test data.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The predictions made by the SARIMA model
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{test\_model() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{test\_model()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/SARIMA_model:SARIMA_model.SARIMA_Predictor.test_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{test\_model}}}{\sphinxparam{\DUrole{n}{model}}\sphinxparamcomma \sphinxparam{\DUrole{n}{last\_index}}\sphinxparamcomma \sphinxparam{\DUrole{n}{forecast\_type}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ol\_refit}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_Fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Tests a SARIMAX model by performing one\sphinxhyphen{}step or multi\sphinxhyphen{}step ahead predictions, optionally using exogenous variables or applying refitting.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{model}} \textendash{} The SARIMAX model to be tested
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{last\_index}} \textendash{} Index of the last training/validation timestep
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{forecast\_type}} \textendash{} Type of forecasting (‘ol\sphinxhyphen{}one’ for open\sphinxhyphen{}loop one\sphinxhyphen{}step ahead, ‘cl\sphinxhyphen{}multi’ for closed\sphinxhyphen{}loop multi\sphinxhyphen{}step)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{ol\_refit}} \textendash{} Boolean indicating whether to refit the model after each forecast
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} The period for Fourier terms if set\_fourier is true
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{set\_fourier}} \textendash{} Boolean flag to determine if Fourier terms should be included
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A pandas Series of the predictions
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{train\_model() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{train\_model()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/SARIMA_model:SARIMA_model.SARIMA_Predictor.train_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_model}}}{}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Trains a SARIMAX model using the training dataset and exogenous variables, if specified.
+\begin{quote}\begin{description}
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{unscale\_predictions() (SARIMA\_model.SARIMA\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{SARIMA\_model.SARIMA\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/SARIMA_model:SARIMA_model.SARIMA_Predictor.unscale_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{unscale\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{folder\_path}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Unscales the predictions using the scaler saved during model training.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The scaled predictions that need to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{folder\_path}} \textendash{} Path to the folder containing the scaler object
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+\sphinxstepscope
+
+
+\section{XGB Model}
+\label{\detokenize{docs/XGB_model:xgb-model}}\label{\detokenize{docs/XGB_model::doc}}
+\sphinxAtStartPar
+This module encapsulates the XGB\_Predictor class, which leverages the XGBoost machine learning library to forecast
+time series data.
+The class is specifically designed to incorporate extensive
+feature engineering including lag features, rolling window statistics, and optional Fourier transformations to capture
+seasonal patterns. It focuses on using these enhanced datasets to train and evaluate
+XGBoost models for precise predictions, offering functionalities for scaling, plotting, and performance assessment
+tailored to time series forecasting.
+
+
+\subsection{XGB\_Predictor}
+\label{\detokenize{docs/XGB_model:xgb-predictor}}\index{XGB\_Predictor (class in XGB\_model)@\spxentry{XGB\_Predictor}\spxextra{class in XGB\_model}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/XGB_model:XGB_model.XGB_Predictor}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{XGB\_model.}}\sphinxbfcode{\sphinxupquote{XGB\_Predictor}}}{\sphinxparam{\DUrole{n}{run\_mode}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{seasonal\_model}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Predictor}}
+
+\sphinxAtStartPar
+A class used to predict time series data using XGBoost, a gradient boosting framework.
+\index{create\_time\_features() (XGB\_model.XGB\_Predictor method)@\spxentry{create\_time\_features()}\spxextra{XGB\_model.XGB\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/XGB_model:XGB_model.XGB_Predictor.create_time_features}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{create\_time\_features}}}{\sphinxparam{\DUrole{n}{df}}\sphinxparamcomma \sphinxparam{\DUrole{n}{lags}\DUrole{o}{=}\DUrole{default_value}{{[}1, 2, 3, 24{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{rolling\_window}\DUrole{o}{=}\DUrole{default_value}{24}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Creates time\sphinxhyphen{}based features for a DataFrame, optionally including Fourier features and rolling window statistics.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{df}} \textendash{} DataFrame to modify with time\sphinxhyphen{}based features
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lags}} \textendash{} List of integers representing lag periods to generate features for
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{rolling\_window}} \textendash{} Window size for generating rolling mean and standard deviation
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+Modified DataFrame with new features, optionally including target column labels
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{plot\_predictions() (XGB\_model.XGB\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{XGB\_model.XGB\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/XGB_model:XGB_model.XGB_Predictor.plot_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{plot\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{time\_values}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Plots predictions made by an XGBoost model against the test data.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} Predictions made by the XGBoost model
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} The actual test data
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{time\_values}} \textendash{} Time values corresponding to the test data
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{train\_model() (XGB\_model.XGB\_Predictor method)@\spxentry{train\_model()}\spxextra{XGB\_model.XGB\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/XGB_model:XGB_model.XGB_Predictor.train_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_model}}}{\sphinxparam{\DUrole{n}{X\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{X\_valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_valid}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Trains an XGBoost model using the training and validation datasets.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{X\_train}} \textendash{} Input data for training
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_train}} \textendash{} Target variable for training
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{X\_valid}} \textendash{} Input data for validation
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_valid}} \textendash{} Target variable for validation
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A tuple containing the trained XGBoost model and validation metrics
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{unscale\_data() (XGB\_model.XGB\_Predictor method)@\spxentry{unscale\_data()}\spxextra{XGB\_model.XGB\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/XGB_model:XGB_model.XGB_Predictor.unscale_data}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{unscale\_data}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{folder\_path}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Unscales the predictions and test data using the scaler saved during model training.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The scaled predictions that need to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_test}} \textendash{} The scaled test data that needs to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{folder\_path}} \textendash{} Path to the folder containing the scaler object
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+\sphinxstepscope
+
+
+\section{LSTM Model}
+\label{\detokenize{docs/LSTM_model:lstm-model}}\label{\detokenize{docs/LSTM_model::doc}}
+\sphinxAtStartPar
+This module provides functionality for forecasting time series data using Long Short\sphinxhyphen{}Term Memory (LSTM) networks.
+It includes the \sphinxtitleref{LSTM\_Predictor} class, which employs a Keras (Tensorflow) model to make forecasts.
+The class supports advanced features such as input and output sequence length customization,
+optional Fourier transformation for seasonality, and the capability to handle multi\sphinxhyphen{}step forecasts with
+seasonality adjustments.
+A data windowing method is also included, in order to give to the neural network the correct input data shape. By correct setting of
+\sphinxtitleref{input\_len} and \sphinxtitleref{output\_len} command line parameters, both one\sphinxhyphen{}step or multi\sphinxhyphen{}step ahead predictions can be done.
+
+
+\subsection{LSTM Model Structure}
+\label{\detokenize{docs/LSTM_model:lstm-model-structure}}
+\sphinxAtStartPar
+The model consists of the following sequence of layers:
+\begin{enumerate}
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Input Layer}:
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{LSTM Layer}:
+\sphinxhyphen{} LSTM with 40 units
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Dropout Layer}:
+\sphinxhyphen{} First dropout layer with rate of 0.15
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{LSTM Layer}:
+\sphinxhyphen{} Second LSTM layer with 40 units
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Dropout Layer}:
+\sphinxhyphen{} Second dropout layer with rate of 0.15
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{LSTM Layer}:
+\sphinxhyphen{} Third LSTM layer with 40 units
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Dropout Layer}:
+\sphinxhyphen{} Third dropout layer with rate of 0.15
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Dense Layer}:
+\sphinxhyphen{} Dense layer for the final output
+
+\end{enumerate}
+
+\sphinxAtStartPar
+This structure of the LSTM model is configured to process temporal sequences,
+followed by multiple LSTM and dropout layers to prevent overfitting, concluding with a dense layer for output.
+
+
+\subsection{LSTM\_Predictor}
+\label{\detokenize{docs/LSTM_model:lstm-predictor}}\index{LSTM\_Predictor (class in LSTM\_model)@\spxentry{LSTM\_Predictor}\spxextra{class in LSTM\_model}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/LSTM_model:LSTM_model.LSTM_Predictor}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{LSTM\_model.}}\sphinxbfcode{\sphinxupquote{LSTM\_Predictor}}}{\sphinxparam{\DUrole{n}{run\_mode}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{input\_len}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{output\_len}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{seasonal\_model}\DUrole{o}{=}\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_fourier}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Predictor}}
+
+\sphinxAtStartPar
+A class used to predict time series data using Long Short\sphinxhyphen{}Term Memory (LSTM) networks.
+\index{data\_windowing() (LSTM\_model.LSTM\_Predictor method)@\spxentry{data\_windowing()}\spxextra{LSTM\_model.LSTM\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/LSTM_model:LSTM_model.LSTM_Predictor.data_windowing}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{data\_windowing}}}{}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Creates data windows suitable for input into LSTM models, optionally incorporating Fourier features for seasonality.
+\begin{quote}\begin{description}
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+Arrays of input and output data windows for training, validation, and testing
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{plot\_predictions() (LSTM\_model.LSTM\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{LSTM\_model.LSTM\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/LSTM_model:LSTM_model.LSTM_Predictor.plot_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{plot\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_test}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Plots LSTM model predictions against actual test data for each data window in the test set.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} Predictions made by the LSTM model
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_test}} \textendash{} Actual test values corresponding to the predictions
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{train\_model() (LSTM\_model.LSTM\_Predictor method)@\spxentry{train\_model()}\spxextra{LSTM\_model.LSTM\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/LSTM_model:LSTM_model.LSTM_Predictor.train_model}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{train\_model}}}{\sphinxparam{\DUrole{n}{X\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_train}}\sphinxparamcomma \sphinxparam{\DUrole{n}{X\_valid}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_valid}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Trains an LSTM model using the training and validation datasets.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{X\_train}} \textendash{} Input data for training
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_train}} \textendash{} Target variable for training
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{X\_valid}} \textendash{} Input data for validation
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_valid}} \textendash{} Target variable for validation
+
+\end{itemize}
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A tuple containing the trained LSTM model and validation metrics
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{unscale\_data() (LSTM\_model.LSTM\_Predictor method)@\spxentry{unscale\_data()}\spxextra{LSTM\_model.LSTM\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/LSTM_model:LSTM_model.LSTM_Predictor.unscale_data}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{unscale\_data}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{y\_test}}\sphinxparamcomma \sphinxparam{\DUrole{n}{folder\_path}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Unscales the predictions and test data using the scaler saved during model training.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The scaled predictions that need to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{y\_test}} \textendash{} The scaled test data that needs to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{folder\_path}} \textendash{} Path to the folder containing the scaler object
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
+\sphinxstepscope
+
+
+\section{NAIVE Model}
+\label{\detokenize{docs/NAIVE_model:naive-model}}\label{\detokenize{docs/NAIVE_model::doc}}
+\sphinxAtStartPar
+This module introduces the \sphinxtitleref{NAIVE\_Predictor} class, designed to implement naive forecasting
+techniques for time series data to be used as a benchmark for analyzing the performance of the machine learning models.
+The class is constructed to provide basic prediction strategies, such as using the last observed value,
+the mean of the dataset, or the last observed seasonal value as forecasts.
+It is also useful for initial assessments of time series forecasting tasks,
+offering various naive methods to quickly generate forecasts without complex modeling.
+
+
+\subsection{NAIVE\_Predictor}
+\label{\detokenize{docs/NAIVE_model:module-NAIVE_model}}\label{\detokenize{docs/NAIVE_model:naive-predictor}}\index{module@\spxentry{module}!NAIVE\_model@\spxentry{NAIVE\_model}}\index{NAIVE\_model@\spxentry{NAIVE\_model}!module@\spxentry{module}}\index{NAIVE\_Predictor (class in NAIVE\_model)@\spxentry{NAIVE\_Predictor}\spxextra{class in NAIVE\_model}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{NAIVE\_model.}}\sphinxbfcode{\sphinxupquote{NAIVE\_Predictor}}}{\sphinxparam{\DUrole{n}{run\_mode}}\sphinxparamcomma \sphinxparam{\DUrole{n}{target\_column}}\sphinxparamcomma \sphinxparam{\DUrole{n}{verbose}\DUrole{o}{=}\DUrole{default_value}{False}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{object}}
+
+\sphinxAtStartPar
+A class used to predict time series data using simple naive methods.
+\index{forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.forecast}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{forecast}}}{\sphinxparam{\DUrole{n}{forecast\_type}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Performs a naive forecast using the last observed value from the training set or the immediate previous value from the test set.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{forecast\_type}} \textendash{} Type of forecasting (‘cl\sphinxhyphen{}multi’ for using the training set mean, else uses the last known values)
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A pandas Series of naive forecasts.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{mean\_forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{mean\_forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.mean_forecast}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{mean\_forecast}}}{}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Performs a naive forecast using the mean value of the training set.
+\begin{quote}\begin{description}
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A pandas Series of naive forecasts using the mean.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{plot\_predictions() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{plot\_predictions()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.plot_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{plot\_predictions}}}{\sphinxparam{\DUrole{n}{naive\_predictions}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Plots naive predictions against the test data.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{naive\_predictions}} \textendash{} The naive predictions to plot.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{prepare\_data() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{prepare\_data()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.prepare_data}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{prepare\_data}}}{\sphinxparam{\DUrole{n}{train}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{valid}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{test}\DUrole{o}{=}\DUrole{default_value}{None}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Prepares the data for the naive forecasting model.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{train}} \textendash{} Training dataset
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{valid}} \textendash{} Validation dataset (optional)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{test}} \textendash{} Testing dataset
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{seasonal\_forecast() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{seasonal\_forecast()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.seasonal_forecast}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{seasonal\_forecast}}}{\sphinxparam{\DUrole{n}{period}\DUrole{o}{=}\DUrole{default_value}{24}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Performs a seasonal naive forecast using the last observed seasonal cycle.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{period}} \textendash{} The seasonal period to consider for the forecast.
+
+\sphinxlineitem{Returns}
+\sphinxAtStartPar
+A pandas Series of naive seasonal forecasts.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{unscale\_predictions() (NAIVE\_model.NAIVE\_Predictor method)@\spxentry{unscale\_predictions()}\spxextra{NAIVE\_model.NAIVE\_Predictor method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{docs/NAIVE_model:NAIVE_model.NAIVE_Predictor.unscale_predictions}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{unscale\_predictions}}}{\sphinxparam{\DUrole{n}{predictions}}\sphinxparamcomma \sphinxparam{\DUrole{n}{folder\_path}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Unscales the predictions using the scaler saved during model training.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{predictions}} \textendash{} The scaled predictions that need to be unscaled
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{folder\_path}} \textendash{} Path to the folder containing the scaler object
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
 
 
 \chapter{Appendix}
@@ -1809,12 +1833,11 @@ Here are presented all the parameters that can be given to the argument parser, 
 \section{Parser Arguments}
 \label{\detokenize{docs/parser_arguments:parser-arguments}}\label{\detokenize{docs/parser_arguments::doc}}
 \sphinxAtStartPar
-The command\sphinxhyphen{}line parser manages the framework settings, allowing different implementations and uses of the models.
-It provides many options to customize time series analysis or training and testing of models.
+The command\sphinxhyphen{}line parser in the forecasting framework configures settings for various model implementations and applications. It provides multiple options to tailor the time series analysis, model training, and testing processes.
 
 
-\subsection{Parameters}
-\label{\detokenize{docs/parser_arguments:parameters}}\begin{description}
+\subsection{General Arguments}
+\label{\detokenize{docs/parser_arguments:general-arguments}}\begin{description}
 \sphinxlineitem{\sphinxstylestrong{\textendash{}verbose}}
 \sphinxAtStartPar
 Minimizes the additional information provided during the program’s execution if specified. Default: \sphinxcode{\sphinxupquote{False}}.
@@ -1827,91 +1850,154 @@ If \sphinxcode{\sphinxupquote{True}}, performs an analysis on the time series. D
 \sphinxAtStartPar
 Specifies the running mode, which must be one of ‘training’, ‘testing’, ‘both’, or ‘fine tuning’. This parameter is required.
 
+\end{description}
+
+
+\subsection{Dataset Arguments}
+\label{\detokenize{docs/parser_arguments:dataset-arguments}}\begin{description}
 \sphinxlineitem{\sphinxstylestrong{\textendash{}dataset\_path}}
 \sphinxAtStartPar
 Specifies the file path to the dataset. This parameter is required.
 
+\sphinxlineitem{\sphinxstylestrong{\textendash{}date\_format}}
+\sphinxAtStartPar
+Specifies the date format in the dataset, crucial for correct datetime parsing. This parameter is required.
+
 \sphinxlineitem{\sphinxstylestrong{\textendash{}date\_list}}
 \sphinxAtStartPar
-If the “\textendash{}validation” argument is True, provides start and end dates for training, validation, and test sets, otherwise gives start and end dates for training and test.
-In test\sphinxhyphen{}only mode, only the first two dates are used as test set start and end.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}seasonal\_split}}
-\sphinxAtStartPar
-If \sphinxcode{\sphinxupquote{True}}, adjusts the data split to account for seasonality. Default: \sphinxcode{\sphinxupquote{False}}.
+Provides a list of dates defining the start and end for training, validation, and testing phases, tailored to the model’s needs.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}train\_size}}
 \sphinxAtStartPar
-Sets the proportion of data to be used for training. Default: \sphinxcode{\sphinxupquote{0.7}}.
+Sets the proportion of the dataset to be used for training. Default: \sphinxcode{\sphinxupquote{0.7}}.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}val\_size}}
 \sphinxAtStartPar
-Sets the proportion of data to be used for validation. Default: \sphinxcode{\sphinxupquote{0.2}}.
+Sets the proportion of the dataset to be used for validation. Default: \sphinxcode{\sphinxupquote{0.2}}.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}test\_size}}
 \sphinxAtStartPar
-Sets the proportion of data to be used for testing. Default: \sphinxcode{\sphinxupquote{0.1}}.
+Sets the proportion of the dataset to be used for testing. Default: \sphinxcode{\sphinxupquote{0.1}}.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}scaling}}
 \sphinxAtStartPar
-If \sphinxcode{\sphinxupquote{True}}, scales the data. This parameter is required.
+If \sphinxcode{\sphinxupquote{True}}, scales the data. This is essential for models sensitive to the magnitude of data.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}validation}}
 \sphinxAtStartPar
-If \sphinxcode{\sphinxupquote{True}}, includes validation set creation in the data preparation process (not applicable for ARIMA\sphinxhyphen{}SARIMAX models). Default: \sphinxcode{\sphinxupquote{False}}.
+If \sphinxcode{\sphinxupquote{True}}, includes a validation set in the data preparation process. Default: \sphinxcode{\sphinxupquote{False}}.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}target\_column}}
 \sphinxAtStartPar
-Specifies the column name to be used as the target variable for forecasting. This parameter is required.
+Specifies the column to be forecasted. This parameter is required.
 
 \sphinxlineitem{\sphinxstylestrong{\textendash{}time\_column\_index}}
 \sphinxAtStartPar
-Specifies the index of the timestamp column in the dataset. Default: \sphinxcode{\sphinxupquote{0}}.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}model\_type}}
-\sphinxAtStartPar
-Specifies the type of model to be used. Options include ‘ARIMA’, ‘SARIMAX’, ‘PROPHET’, ‘CONV’, ‘LSTM’, ‘CNN\_LSTM’. This parameter is required.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}forecast\_type}}
-\sphinxAtStartPar
-Specifies the type of forecast; options are ‘ol\sphinxhyphen{}multi’, ‘ol\sphinxhyphen{}one’, ‘cl\sphinxhyphen{}multi’. Not necessary for ‘PROPHET’.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}steps\_ahead}}
-\sphinxAtStartPar
-Defines the number of time steps to forecast ahead. Default: \sphinxcode{\sphinxupquote{10}}.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}steps\_jump}}
-\sphinxAtStartPar
-Specifies the number of time steps to skip. Default: \sphinxcode{\sphinxupquote{50}}.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}exog}}
-\sphinxAtStartPar
-Specifies exogenous columns for the SARIMAX model. Accepts multiple values.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}period}}
-\sphinxAtStartPar
-Defines the seasonality period for the SARIMAX model. Default: \sphinxcode{\sphinxupquote{24}}.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}seasonal\_model}}
-\sphinxAtStartPar
-If \sphinxcode{\sphinxupquote{True}}, performs a seasonal decomposition, and the seasonal component is fed into the LSTM model.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}model\_path}}
-\sphinxAtStartPar
-Specifies the path of the pre\sphinxhyphen{}trained model for fine\sphinxhyphen{}tuning. Default: \sphinxcode{\sphinxupquote{None}}.
-
-\sphinxlineitem{\sphinxstylestrong{\textendash{}ol\_refit}}
-\sphinxAtStartPar
-For ARIMA and SARIMAX models, if specified, the model is retrained for each added observation in open\sphinxhyphen{}loop forecasts. Default: \sphinxcode{\sphinxupquote{False}}.
+Specifies the index of the column containing timestamps. Default: \sphinxcode{\sphinxupquote{0}}.
 
 \end{description}
 
 
-\subsection{Usage Example}
-\label{\detokenize{docs/parser_arguments:usage-example}}
+\subsection{Model Arguments}
+\label{\detokenize{docs/parser_arguments:model-arguments}}\begin{description}
+\sphinxlineitem{\sphinxstylestrong{\textendash{}model\_type}}
 \sphinxAtStartPar
-To run the application in training mode with an ARIMA model with validation, use:
-{\color{red}\bfseries{}\textasciigrave{}\textasciigrave{}}python main\_code.py \textendash{}run\_mode training \textendash{}dataset\_path ‘/path/to/dataset.csv’ \textendash{}target\_column ‘open’ \textendash{}model\_type “ARIMA” \textendash{}scaling \textendash{}validation \textasciigrave{}\textasciigrave{}
+Indicates the type of model to be used. This parameter is required.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}forecast\_type}}
+\sphinxAtStartPar
+Defines the forecast strategy: ‘ol\sphinxhyphen{}multi’ (open\sphinxhyphen{}loop multi\sphinxhyphen{}step), ‘ol\sphinxhyphen{}one’ (open loop one\sphinxhyphen{}step), or ‘cl\sphinxhyphen{}multi’ (closed\sphinxhyphen{}loop multi\sphinxhyphen{}step).
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}valid\_steps}}
+\sphinxAtStartPar
+Number of time steps to use during the validation phase. Default: \sphinxcode{\sphinxupquote{10}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}steps\_jump}}
+\sphinxAtStartPar
+Specifies the number of time steps to skip during open\sphinxhyphen{}loop multi\sphinxhyphen{}step predictions. Default: \sphinxcode{\sphinxupquote{50}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}exog}}
+\sphinxAtStartPar
+Defines one or more exogenous variables for models like SARIMAX, enhancing model predictions.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}period}}
+\sphinxAtStartPar
+Sets the seasonality period, critical for models handling seasonal variations. Default: \sphinxcode{\sphinxupquote{24}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}set\_fourier}}
+\sphinxAtStartPar
+If \sphinxcode{\sphinxupquote{True}}, incorporates Fourier terms as exogenous variables, useful for capturing seasonal patterns in data.
+
+\end{description}
+
+
+\subsection{Other Arguments}
+\label{\detokenize{docs/parser_arguments:other-arguments}}\begin{description}
+\sphinxlineitem{\sphinxstylestrong{\textendash{}seasonal\_model}}
+\sphinxAtStartPar
+Activates the inclusion of a seasonal component in models like LSTM or XGB.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}input\_len}}
+\sphinxAtStartPar
+Specifies the number of timesteps for input in models like LSTM. Default: \sphinxcode{\sphinxupquote{24}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}output\_len}}
+\sphinxAtStartPar
+Defines the number of timesteps to predict in each window for LSTM models. Default: \sphinxcode{\sphinxupquote{1}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}model\_path}}
+\sphinxAtStartPar
+Provides the path to a pre\sphinxhyphen{}trained model, facilitating fine\sphinxhyphen{}tuning or continued training from a saved state.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}ol\_refit}}
+\sphinxAtStartPar
+For ARIMA and SARIMA models, allows the model to be retrained for each new observation during open\sphinxhyphen{}loop forecasts. Default: \sphinxcode{\sphinxupquote{False}}.
+
+\sphinxlineitem{\sphinxstylestrong{\textendash{}unscale\_predictions}}
+\sphinxAtStartPar
+If specified, predictions and test data are unscaled, essential for interpreting results in their original scale.
+
+\end{description}
+
+
+\section{Usage Examples}
+\label{\detokenize{docs/parser_arguments:usage-examples}}\begin{enumerate}
+\sphinxsetlistlabels{\arabic}{enumi}{enumii}{}{.}%
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Training an ARIMA Model with Data Scaling and Validation}
+
+\sphinxAtStartPar
+This example sets up the framework to train an ARIMA model, applying data scaling and including a validation dataset.
+Use the command below to execute the training process:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+python\PYG{+w}{ }main\PYGZus{}code.py\PYG{+w}{ }\PYGZhy{}\PYGZhy{}run\PYGZus{}mode\PYG{+w}{ }training\PYG{+w}{ }\PYGZhy{}\PYGZhy{}dataset\PYGZus{}path\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}/path/to/dataset.csv\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}date\PYGZus{}format\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}\PYGZpc{}Y\PYGZhy{}\PYGZpc{}m\PYGZhy{}\PYGZpc{}d\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}target\PYGZus{}column\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}sales\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}model\PYGZus{}type\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}ARIMA\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}scaling\PYG{+w}{ }\PYGZhy{}\PYGZhy{}validation\PYG{+w}{ }\PYGZhy{}\PYGZhy{}date\PYGZus{}list\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}01\PYGZhy{}01\PYGZsq{}}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}06\PYGZhy{}30\PYGZsq{}}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}07\PYGZhy{}01\PYGZsq{}}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}08\PYGZhy{}31\PYGZsq{}}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}09\PYGZhy{}01\PYGZsq{}}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}2022\PYGZhy{}09\PYGZhy{}30\PYGZsq{}}
+\end{sphinxVerbatim}
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Fine\sphinxhyphen{}Tuning a Pre\sphinxhyphen{}trained LSTM Model for Multi\sphinxhyphen{}step Forecasting}
+
+\sphinxAtStartPar
+Demonstrates how to fine\sphinxhyphen{}tune an LSTM model for multi\sphinxhyphen{}step forecasting, specifying the length of input and output sequences. This setup also includes enabling a seasonal component for the LSTM model:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+python\PYG{+w}{ }main\PYGZus{}code.py\PYG{+w}{ }\PYGZhy{}\PYGZhy{}run\PYGZus{}mode\PYG{+w}{ }fine\PYGZus{}tuning\PYG{+w}{ }\PYGZhy{}\PYGZhy{}dataset\PYGZus{}path\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}/path/to/dataset.csv\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}date\PYGZus{}format\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}\PYGZpc{}Y\PYGZhy{}\PYGZpc{}m\PYGZhy{}\PYGZpc{}d\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}target\PYGZus{}column\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}temperature\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}model\PYGZus{}type\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}LSTM\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}model\PYGZus{}path\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}/path/to/pretrained\PYGZus{}model\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}input\PYGZus{}len\PYG{+w}{ }\PYG{l+m}{24}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}output\PYGZus{}len\PYG{+w}{ }\PYG{l+m}{3}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}seasonal\PYGZus{}model
+\end{sphinxVerbatim}
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstylestrong{Testing an XGBoost Model with Feature Engineering}
+
+\sphinxAtStartPar
+This example showcases testing an XGBoost model that incorporates Fourier features as part of its feature engineering process to capture seasonal patterns.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+python\PYG{+w}{ }main\PYGZus{}code.py\PYG{+w}{ }\PYGZhy{}\PYGZhy{}run\PYGZus{}mode\PYG{+w}{ }testing\PYG{+w}{ }\PYGZhy{}\PYGZhy{}dataset\PYGZus{}path\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}/path/to/dataset.csv\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}date\PYGZus{}format\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}\PYGZpc{}Y\PYGZhy{}\PYGZpc{}m\PYGZhy{}\PYGZpc{}d\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}target\PYGZus{}column\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}energy\PYGZus{}consumption\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}model\PYGZus{}type\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}XGB\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}seasonal\PYGZus{}model\PYG{+w}{ }\PYGZhy{}\PYGZhy{}set\PYGZus{}fourier\PYG{+w}{ }\PYGZhy{}\PYGZhy{}model\PYGZus{}path\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}/path/to/pretrained\PYGZus{}model\PYGZsq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}unscale\PYGZus{}predictions
+\end{sphinxVerbatim}
+
+\end{enumerate}
 
 
 \chapter{References}
@@ -1941,20 +2027,24 @@ To run the application in training mode with an ARIMA model with validation, use
 \renewcommand{\indexname}{Python Module Index}
 \begin{sphinxtheindex}
 \let\bigletter\sphinxstyleindexlettergroup
+\bigletter{a}
+\item\relax\sphinxstyleindexentry{ARIMA\_model}\sphinxstyleindexpageref{docs/ARIMA_model:\detokenize{module-ARIMA_model}}
+\indexspace
 \bigletter{d}
 \item\relax\sphinxstyleindexentry{data\_loader}\sphinxstyleindexpageref{docs/data_loader:\detokenize{module-data_loader}}
 \item\relax\sphinxstyleindexentry{data\_preprocessing}\sphinxstyleindexpageref{docs/data_preprocessing:\detokenize{module-data_preprocessing}}
 \indexspace
-\bigletter{m}
-\item\relax\sphinxstyleindexentry{main\_code}\sphinxstyleindexpageref{docs/main_code:\detokenize{module-main_code}}
-\item\relax\sphinxstyleindexentry{model\_testing}\sphinxstyleindexpageref{docs/model_testing:\detokenize{module-model_testing}}
+\bigletter{n}
+\item\relax\sphinxstyleindexentry{NAIVE\_model}\sphinxstyleindexpageref{docs/NAIVE_model:\detokenize{module-NAIVE_model}}
 \indexspace
 \bigletter{p}
 \item\relax\sphinxstyleindexentry{performance\_measurement}\sphinxstyleindexpageref{docs/performance_measurement:\detokenize{module-performance_measurement}}
 \indexspace
+\bigletter{s}
+\item\relax\sphinxstyleindexentry{SARIMA\_model}\sphinxstyleindexpageref{docs/SARIMA_model:\detokenize{module-SARIMA_model}}
+\indexspace
 \bigletter{t}
 \item\relax\sphinxstyleindexentry{time\_series\_analysis}\sphinxstyleindexpageref{docs/time_series_analysis:\detokenize{module-time_series_analysis}}
-\item\relax\sphinxstyleindexentry{training\_module}\sphinxstyleindexpageref{docs/training_module:\detokenize{module-training_module}}
 \indexspace
 \bigletter{u}
 \item\relax\sphinxstyleindexentry{utilities}\sphinxstyleindexpageref{docs/utilities:\detokenize{module-utilities}}

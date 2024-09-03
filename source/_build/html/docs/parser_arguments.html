@@ -14,7 +14,7 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="NAIVE Model" href="NAIVE_model.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,10 +34,9 @@
             
   <section id="parser-arguments">
 <h1>Parser Arguments<a class="headerlink" href="#parser-arguments" title="Link to this heading">¶</a></h1>
-<p>The command-line parser manages the framework settings, allowing different implementations and uses of the models.
-It provides many options to customize time series analysis or training and testing of models.</p>
-<section id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<p>The command-line parser in the forecasting framework configures settings for various model implementations and applications. It provides multiple options to tailor the time series analysis, model training, and testing processes.</p>
+<section id="general-arguments">
+<h2>General Arguments<a class="headerlink" href="#general-arguments" title="Link to this heading">¶</a></h2>
 <dl class="simple">
 <dt><strong>–verbose</strong></dt><dd><p>Minimizes the additional information provided during the program’s execution if specified. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd>
@@ -45,52 +44,93 @@ It provides many options to customize time series analysis or training and testi
 </dd>
 <dt><strong>–run_mode</strong></dt><dd><p>Specifies the running mode, which must be one of ‘training’, ‘testing’, ‘both’, or ‘fine tuning’. This parameter is required.</p>
 </dd>
+</dl>
+</section>
+<section id="dataset-arguments">
+<h2>Dataset Arguments<a class="headerlink" href="#dataset-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
 <dt><strong>–dataset_path</strong></dt><dd><p>Specifies the file path to the dataset. This parameter is required.</p>
 </dd>
-<dt><strong>–date_list</strong></dt><dd><p>If the “–validation” argument is True, provides start and end dates for training, validation, and test sets, otherwise gives start and end dates for training and test.
-In test-only mode, only the first two dates are used as test set start and end.</p>
+<dt><strong>–date_format</strong></dt><dd><p>Specifies the date format in the dataset, crucial for correct datetime parsing. This parameter is required.</p>
 </dd>
-<dt><strong>–seasonal_split</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, adjusts the data split to account for seasonality. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dt><strong>–date_list</strong></dt><dd><p>Provides a list of dates defining the start and end for training, validation, and testing phases, tailored to the model’s needs.</p>
 </dd>
-<dt><strong>–train_size</strong></dt><dd><p>Sets the proportion of data to be used for training. Default: <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
+<dt><strong>–train_size</strong></dt><dd><p>Sets the proportion of the dataset to be used for training. Default: <code class="docutils literal notranslate"><span class="pre">0.7</span></code>.</p>
 </dd>
-<dt><strong>–val_size</strong></dt><dd><p>Sets the proportion of data to be used for validation. Default: <code class="docutils literal notranslate"><span class="pre">0.2</span></code>.</p>
+<dt><strong>–val_size</strong></dt><dd><p>Sets the proportion of the dataset to be used for validation. Default: <code class="docutils literal notranslate"><span class="pre">0.2</span></code>.</p>
 </dd>
-<dt><strong>–test_size</strong></dt><dd><p>Sets the proportion of data to be used for testing. Default: <code class="docutils literal notranslate"><span class="pre">0.1</span></code>.</p>
+<dt><strong>–test_size</strong></dt><dd><p>Sets the proportion of the dataset to be used for testing. Default: <code class="docutils literal notranslate"><span class="pre">0.1</span></code>.</p>
 </dd>
-<dt><strong>–scaling</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, scales the data. This parameter is required.</p>
+<dt><strong>–scaling</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, scales the data. This is essential for models sensitive to the magnitude of data.</p>
 </dd>
-<dt><strong>–validation</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, includes validation set creation in the data preparation process (not applicable for ARIMA-SARIMAX models). Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dt><strong>–validation</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, includes a validation set in the data preparation process. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd>
-<dt><strong>–target_column</strong></dt><dd><p>Specifies the column name to be used as the target variable for forecasting. This parameter is required.</p>
+<dt><strong>–target_column</strong></dt><dd><p>Specifies the column to be forecasted. This parameter is required.</p>
 </dd>
-<dt><strong>–time_column_index</strong></dt><dd><p>Specifies the index of the timestamp column in the dataset. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
-</dd>
-<dt><strong>–model_type</strong></dt><dd><p>Specifies the type of model to be used. Options include ‘ARIMA’, ‘SARIMAX’, ‘PROPHET’, ‘CONV’, ‘LSTM’, ‘CNN_LSTM’. This parameter is required.</p>
-</dd>
-<dt><strong>–forecast_type</strong></dt><dd><p>Specifies the type of forecast; options are ‘ol-multi’, ‘ol-one’, ‘cl-multi’. Not necessary for ‘PROPHET’.</p>
-</dd>
-<dt><strong>–steps_ahead</strong></dt><dd><p>Defines the number of time steps to forecast ahead. Default: <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p>
-</dd>
-<dt><strong>–steps_jump</strong></dt><dd><p>Specifies the number of time steps to skip. Default: <code class="docutils literal notranslate"><span class="pre">50</span></code>.</p>
-</dd>
-<dt><strong>–exog</strong></dt><dd><p>Specifies exogenous columns for the SARIMAX model. Accepts multiple values.</p>
-</dd>
-<dt><strong>–period</strong></dt><dd><p>Defines the seasonality period for the SARIMAX model. Default: <code class="docutils literal notranslate"><span class="pre">24</span></code>.</p>
-</dd>
-<dt><strong>–seasonal_model</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, performs a seasonal decomposition, and the seasonal component is fed into the LSTM model.</p>
-</dd>
-<dt><strong>–model_path</strong></dt><dd><p>Specifies the path of the pre-trained model for fine-tuning. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt><strong>–ol_refit</strong></dt><dd><p>For ARIMA and SARIMAX models, if specified, the model is retrained for each added observation in open-loop forecasts. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dt><strong>–time_column_index</strong></dt><dd><p>Specifies the index of the column containing timestamps. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
 </dd>
 </dl>
 </section>
-<section id="usage-example">
-<h2>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading">¶</a></h2>
-<p>To run the application in training mode with an ARIMA model with validation, use:
-<a href="#id1"><span class="problematic" id="id2">``</span></a>python main_code.py –run_mode training –dataset_path ‘/path/to/dataset.csv’ –target_column ‘open’ –model_type “ARIMA” –scaling –validation ``</p>
+<section id="model-arguments">
+<h2>Model Arguments<a class="headerlink" href="#model-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>–model_type</strong></dt><dd><p>Indicates the type of model to be used. This parameter is required.</p>
+</dd>
+<dt><strong>–forecast_type</strong></dt><dd><p>Defines the forecast strategy: ‘ol-multi’ (open-loop multi-step), ‘ol-one’ (open loop one-step), or ‘cl-multi’ (closed-loop multi-step).</p>
+</dd>
+<dt><strong>–valid_steps</strong></dt><dd><p>Number of time steps to use during the validation phase. Default: <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p>
+</dd>
+<dt><strong>–steps_jump</strong></dt><dd><p>Specifies the number of time steps to skip during open-loop multi-step predictions. Default: <code class="docutils literal notranslate"><span class="pre">50</span></code>.</p>
+</dd>
+<dt><strong>–exog</strong></dt><dd><p>Defines one or more exogenous variables for models like SARIMAX, enhancing model predictions.</p>
+</dd>
+<dt><strong>–period</strong></dt><dd><p>Sets the seasonality period, critical for models handling seasonal variations. Default: <code class="docutils literal notranslate"><span class="pre">24</span></code>.</p>
+</dd>
+<dt><strong>–set_fourier</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, incorporates Fourier terms as exogenous variables, useful for capturing seasonal patterns in data.</p>
+</dd>
+</dl>
 </section>
+<section id="other-arguments">
+<h2>Other Arguments<a class="headerlink" href="#other-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt><strong>–seasonal_model</strong></dt><dd><p>Activates the inclusion of a seasonal component in models like LSTM or XGB.</p>
+</dd>
+<dt><strong>–input_len</strong></dt><dd><p>Specifies the number of timesteps for input in models like LSTM. Default: <code class="docutils literal notranslate"><span class="pre">24</span></code>.</p>
+</dd>
+<dt><strong>–output_len</strong></dt><dd><p>Defines the number of timesteps to predict in each window for LSTM models. Default: <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+</dd>
+<dt><strong>–model_path</strong></dt><dd><p>Provides the path to a pre-trained model, facilitating fine-tuning or continued training from a saved state.</p>
+</dd>
+<dt><strong>–ol_refit</strong></dt><dd><p>For ARIMA and SARIMA models, allows the model to be retrained for each new observation during open-loop forecasts. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>–unscale_predictions</strong></dt><dd><p>If specified, predictions and test data are unscaled, essential for interpreting results in their original scale.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="usage-examples">
+<h1>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h1>
+<ol class="arabic">
+<li><p><strong>Training an ARIMA Model with Data Scaling and Validation</strong></p>
+<p>This example sets up the framework to train an ARIMA model, applying data scaling and including a validation dataset.
+Use the command below to execute the training process:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>main_code.py<span class="w"> </span>--run_mode<span class="w"> </span>training<span class="w"> </span>--dataset_path<span class="w"> </span><span class="s1">&#39;/path/to/dataset.csv&#39;</span><span class="w"> </span>--date_format<span class="w"> </span><span class="s1">&#39;%Y-%m-%d&#39;</span><span class="w"> </span>--target_column<span class="w"> </span><span class="s1">&#39;sales&#39;</span><span class="w"> </span>--model_type<span class="w"> </span><span class="s1">&#39;ARIMA&#39;</span><span class="w"> </span>--scaling<span class="w"> </span>--validation<span class="w"> </span>--date_list<span class="w"> </span><span class="s1">&#39;2022-01-01&#39;</span><span class="w"> </span><span class="s1">&#39;2022-06-30&#39;</span><span class="w"> </span><span class="s1">&#39;2022-07-01&#39;</span><span class="w"> </span><span class="s1">&#39;2022-08-31&#39;</span><span class="w"> </span><span class="s1">&#39;2022-09-01&#39;</span><span class="w"> </span><span class="s1">&#39;2022-09-30&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Fine-Tuning a Pre-trained LSTM Model for Multi-step Forecasting</strong></p>
+<p>Demonstrates how to fine-tune an LSTM model for multi-step forecasting, specifying the length of input and output sequences. This setup also includes enabling a seasonal component for the LSTM model:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>main_code.py<span class="w"> </span>--run_mode<span class="w"> </span>fine_tuning<span class="w"> </span>--dataset_path<span class="w"> </span><span class="s1">&#39;/path/to/dataset.csv&#39;</span><span class="w"> </span>--date_format<span class="w"> </span><span class="s1">&#39;%Y-%m-%d&#39;</span><span class="w"> </span>--target_column<span class="w"> </span><span class="s1">&#39;temperature&#39;</span><span class="w"> </span>--model_type<span class="w"> </span><span class="s1">&#39;LSTM&#39;</span><span class="w"> </span>--model_path<span class="w"> </span><span class="s1">&#39;/path/to/pretrained_model&#39;</span><span class="w"> </span>--input_len<span class="w"> </span><span class="m">24</span><span class="w"> </span>--output_len<span class="w"> </span><span class="m">3</span><span class="w"> </span>--seasonal_model
+</pre></div>
+</div>
+</li>
+<li><p><strong>Testing an XGBoost Model with Feature Engineering</strong></p>
+<p>This example showcases testing an XGBoost model that incorporates Fourier features as part of its feature engineering process to capture seasonal patterns.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>main_code.py<span class="w"> </span>--run_mode<span class="w"> </span>testing<span class="w"> </span>--dataset_path<span class="w"> </span><span class="s1">&#39;/path/to/dataset.csv&#39;</span><span class="w"> </span>--date_format<span class="w"> </span><span class="s1">&#39;%Y-%m-%d&#39;</span><span class="w"> </span>--target_column<span class="w"> </span><span class="s1">&#39;energy_consumption&#39;</span><span class="w"> </span>--model_type<span class="w"> </span><span class="s1">&#39;XGB&#39;</span><span class="w"> </span>--seasonal_model<span class="w"> </span>--set_fourier<span class="w"> </span>--model_path<span class="w"> </span><span class="s1">&#39;/path/to/pretrained_model&#39;</span><span class="w"> </span>--unscale_predictions
+</pre></div>
+</div>
+</li>
+</ol>
 </section>
 
 
@@ -111,19 +151,10 @@ In test-only mode, only the first two dates are used as test set start and end.<
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="training_module.html">Training Module</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="model_testing.html">Testing Module</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -134,19 +165,37 @@ In test-only mode, only the first two dates are used as test set start and end.<
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="XGB_model.html">XGB Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="NAIVE_model.html">NAIVE Model</a></li>
+</ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Parser Arguments</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#general-arguments">General Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dataset-arguments">Dataset Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-arguments">Model Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-arguments">Other Arguments</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="utilities.html" title="previous chapter">Utilities</a></li>
+      <li>Previous: <a href="NAIVE_model.html" title="previous chapter">NAIVE Model</a></li>
   </ul></li>
 </ul>
 </div>

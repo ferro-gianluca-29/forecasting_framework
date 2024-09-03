@@ -126,6 +126,15 @@
       <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor.forecast">forecast() (NAIVE_model.NAIVE_Predictor method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    forecasting_framework
+
+      <ul>
+        <li><a href="docs/forecasting_framework.html#module-forecasting_framework">module</a>
+</li>
+      </ul></li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
@@ -143,17 +152,10 @@
 </li>
       <li><a href="docs/data_loader.html#data_loader.DataLoader.load_data">load_data() (data_loader.DataLoader method)</a>
 </li>
-      <li><a href="docs/utilities.html#utilities.load_trained_model">load_trained_model() (in module utilities)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    LSTM_model
-
-      <ul>
-        <li><a href="docs/LSTM_model.html#module-LSTM_model">module</a>
+      <li><a href="docs/utilities.html#utilities.load_trained_model">load_trained_model() (in module utilities)</a>
 </li>
-      </ul></li>
       <li><a href="docs/LSTM_model.html#LSTM_model.LSTM_Predictor">LSTM_Predictor (class in LSTM_model)</a>
 </li>
   </ul></td>
@@ -162,7 +164,11 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="docs/forecasting_framework.html#forecasting_framework.main">main() (in module forecasting_framework)</a>
+</li>
       <li><a href="docs/data_preprocessing.html#data_preprocessing.DataPreprocessor.manage_nan">manage_nan() (data_preprocessing.DataPreprocessor method)</a>
+</li>
+      <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor.mean_forecast">mean_forecast() (NAIVE_model.NAIVE_Predictor method)</a>
 </li>
       <li>
     module
@@ -174,7 +180,7 @@
 </li>
         <li><a href="docs/data_preprocessing.html#module-data_preprocessing">data_preprocessing</a>
 </li>
-        <li><a href="docs/LSTM_model.html#module-LSTM_model">LSTM_model</a>
+        <li><a href="docs/forecasting_framework.html#module-forecasting_framework">forecasting_framework</a>
 </li>
         <li><a href="docs/NAIVE_model.html#module-NAIVE_model">NAIVE_model</a>
 </li>
@@ -185,8 +191,6 @@
         <li><a href="docs/time_series_analysis.html#module-time_series_analysis">time_series_analysis</a>
 </li>
         <li><a href="docs/utilities.html#module-utilities">utilities</a>
-</li>
-        <li><a href="docs/XGB_model.html#module-XGB_model">XGB_model</a>
 </li>
       </ul></li>
   </ul></td>
@@ -199,8 +203,6 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor.naive_mean_forecast">naive_mean_forecast() (NAIVE_model.NAIVE_Predictor method)</a>
-</li>
       <li>
     NAIVE_model
 
@@ -211,8 +213,6 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor">NAIVE_Predictor (class in NAIVE_model)</a>
-</li>
-      <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor.naive_seasonal_forecast">naive_seasonal_forecast() (NAIVE_model.NAIVE_Predictor method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -294,6 +294,8 @@
 </li>
       <li><a href="docs/utilities.html#utilities.save_data">save_data() (in module utilities)</a>
 </li>
+      <li><a href="docs/NAIVE_model.html#NAIVE_model.NAIVE_Predictor.seasonal_forecast">seasonal_forecast() (NAIVE_model.NAIVE_Predictor method)</a>
+</li>
       <li><a href="docs/data_preprocessing.html#data_preprocessing.DataPreprocessor.split_data">split_data() (data_preprocessing.DataPreprocessor method)</a>
 </li>
       <li><a href="docs/data_preprocessing.html#data_preprocessing.DataPreprocessor.split_file_at_nanhole">split_file_at_nanhole() (data_preprocessing.DataPreprocessor method)</a>
@@ -366,15 +368,6 @@
 <h2 id="X">X</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    XGB_model
-
-      <ul>
-        <li><a href="docs/XGB_model.html#module-XGB_model">module</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="docs/XGB_model.html#XGB_model.XGB_Predictor">XGB_Predictor (class in XGB_model)</a>
 </li>
   </ul></td>
@@ -399,19 +392,10 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="docs/main_code.html">Main Code</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="docs/data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs/data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="docs/data_preprocessing.html">Data Preprocessing</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="docs/ARIMA_model.html">ARIMA Model</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="docs/XGB_model.html">XGB Model</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="docs/performance_measurement.html">Performance Measurement</a></li>
@@ -423,7 +407,23 @@
 <li class="toctree-l1"><a class="reference internal" href="docs/utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="docs/ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs/SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs/XGB_model.html">XGB Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs/LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs/NAIVE_model.html">NAIVE Model</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="docs/parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs/parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">

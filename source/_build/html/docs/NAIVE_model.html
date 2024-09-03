@@ -14,6 +14,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Parser Arguments" href="parser_arguments.html" />
+    <link rel="prev" title="LSTM Model" href="LSTM_model.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -31,19 +33,28 @@
 
           <div class="body" role="main">
             
-  <section id="module-NAIVE_model">
-<span id="naive-model"></span><h1>NAIVE Model<a class="headerlink" href="#module-NAIVE_model" title="Link to this heading">¶</a></h1>
+  <section id="naive-model">
+<h1>NAIVE Model<a class="headerlink" href="#naive-model" title="Link to this heading">¶</a></h1>
+<p>This module introduces the <cite>NAIVE_Predictor</cite> class, designed to implement naive forecasting
+techniques for time series data to be used as a benchmark for analyzing the performance of the machine learning models.
+The class is constructed to provide basic prediction strategies, such as using the last observed value,
+the mean of the dataset, or the last observed seasonal value as forecasts.
+It is also useful for initial assessments of time series forecasting tasks,
+offering various naive methods to quickly generate forecasts without complex modeling.</p>
+<section id="module-NAIVE_model">
+<span id="naive-predictor"></span><h2>NAIVE_Predictor<a class="headerlink" href="#module-NAIVE_model" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NAIVE_model.</span></span><span class="sig-name descname"><span class="pre">NAIVE_Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class used to predict time series data using simple naive methods.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.forecast">
 <span class="sig-name descname"><span class="pre">forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forecast_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.forecast" title="Link to this definition">¶</a></dt>
-<dd><p>Performs a naive forecast using the last observed value from the training set.</p>
+<dd><p>Performs a naive forecast using the last observed value from the training set or the immediate previous value from the test set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>train</strong> – The training set.</p>
+<dd class="field-odd"><p><strong>forecast_type</strong> – Type of forecasting (‘cl-multi’ for using the training set mean, else uses the last known values)</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A pandas Series of naive forecasts.</p>
@@ -52,33 +63,12 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.naive_mean_forecast">
-<span class="sig-name descname"><span class="pre">naive_mean_forecast</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.naive_mean_forecast" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.mean_forecast">
+<span class="sig-name descname"><span class="pre">mean_forecast</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.mean_forecast" title="Link to this definition">¶</a></dt>
 <dd><p>Performs a naive forecast using the mean value of the training set.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>train</strong> – The training set.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pandas Series of naive forecasts using the mean.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.naive_seasonal_forecast">
-<span class="sig-name descname"><span class="pre">naive_seasonal_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.naive_seasonal_forecast" title="Link to this definition">¶</a></dt>
-<dd><p>Performs a seasonal naive forecast using the last observed seasonal cycle.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – The training set.</p></li>
-<li><p><strong>target_test</strong> – The test set.</p></li>
-<li><p><strong>period</strong> – The seasonal period to consider for the forecast.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pandas Series of naive seasonal forecasts.</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A pandas Series of naive forecasts using the mean.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -97,15 +87,49 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.prepare_data">
 <span class="sig-name descname"><span class="pre">prepare_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.prepare_data" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Prepares the data for the naive forecasting model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – Training dataset</p></li>
+<li><p><strong>valid</strong> – Validation dataset (optional)</p></li>
+<li><p><strong>test</strong> – Testing dataset</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.seasonal_forecast">
+<span class="sig-name descname"><span class="pre">seasonal_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.seasonal_forecast" title="Link to this definition">¶</a></dt>
+<dd><p>Performs a seasonal naive forecast using the last observed seasonal cycle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>period</strong> – The seasonal period to consider for the forecast.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pandas Series of naive seasonal forecasts.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NAIVE_model.NAIVE_Predictor.unscale_predictions">
 <span class="sig-name descname"><span class="pre">unscale_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NAIVE_model.NAIVE_Predictor.unscale_predictions" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Unscales the predictions using the scaler saved during model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions</strong> – The scaled predictions that need to be unscaled</p></li>
+<li><p><strong>folder_path</strong> – Path to the folder containing the scaler object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
+</section>
 </section>
 
 
@@ -126,13 +150,13 @@
 
 <h3>Navigation</h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="main_code.html">Main Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_framework.html">Forecasting Framework</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_loader.html">Data Loader</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_preprocessing.html">Data Preprocessing</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="performance_measurement.html">Performance Measurement</a></li>
@@ -144,13 +168,34 @@
 <li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ARIMA_model.html">ARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="SARIMA_model.html">SARIMA Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="XGB_model.html">XGB Model</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="LSTM_model.html">LSTM Model</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">NAIVE Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-NAIVE_model">NAIVE_Predictor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="parser_arguments.html">Parser Arguments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parser_arguments.html#usage-examples">Usage Examples</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="LSTM_model.html" title="previous chapter">LSTM Model</a></li>
+      <li>Next: <a href="parser_arguments.html" title="next chapter">Parser Arguments</a></li>
   </ul></li>
 </ul>
 </div>
