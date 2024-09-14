@@ -113,7 +113,7 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose
         d = 1
         D = 1
 
-        p = q = P = Q = range(0, 4)
+        p = q = P = Q = range(0, 3)
         griglia_param_SARIMAX = list(product(p, [d], q, P, [D], Q))
         result_df = optimize_SARIMAX(train, griglia_param_SARIMAX, period, exog)
         conditional_print(verbose, result_df)
