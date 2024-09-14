@@ -82,6 +82,7 @@ def ARIMA_optimizer(train, target_column=None, verbose=False):
         :param verbose: If set to True, prints the process of optimization.
         :return: The best (p, d, q) order for the ARIMA model.
         """
+        
         d = adf_test(df=train[target_column], verbose=verbose)
 
         p = range(0, 5)
@@ -106,10 +107,13 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose
         :return: The best (p, d, q, P, D, Q) parameters for the SARIMAX model.
         """
         
-        d = adf_test(train[target_column], verbose=verbose)
-        D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
+        #d = adf_test(train[target_column], verbose=verbose)
+        #D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
 
-        p = q = P = Q = range(0, 2)
+        d = 1
+        D = 1
+
+        p = q = P = Q = range(0, 4)
         griglia_param_SARIMAX = list(product(p, [d], q, P, [D], Q))
         result_df = optimize_SARIMAX(train, griglia_param_SARIMAX, period, exog)
         conditional_print(verbose, result_df)
@@ -212,9 +216,6 @@ def multiple_STL(dataframe,target_column):
     plt.show()
 
 
-
-
-
 def prepare_seasonal_sets(train, valid, test, target_column, period):
     """
     Decomposes the datasets into seasonal and residual components based on the specified period.
@@ -228,7 +229,7 @@ def prepare_seasonal_sets(train, valid, test, target_column, period):
     """
     
     # Seasonal and residual components of the training set
-    train_seasonal = pd.DataFrame(seasonal_decompose(train[target_column], model='additive', period=period).seasonal) # Assuming daily seasonality.seasonal)
+    train_seasonal = pd.DataFrame(seasonal_decompose(train[target_column], model='additive', period=period).seasonal) 
     train_seasonal.rename(columns = {'seasonal': target_column}, inplace = True)
     train_seasonal = train_seasonal.dropna()
     train_residual = pd.DataFrame(seasonal_decompose(train[target_column], model='additive', period=period).resid)
@@ -307,9 +308,11 @@ def time_s_analysis(df, target_column, seasonal_period):
     ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
     plt.show()
 
+
     df_diff = df.diff()
 
-    # ACF and PACF plots od differentiated time series
+
+    # ACF and PACF plots of differentiated time series
     print("\n===== ACF and PACF Plots =====")
     fig, ax = plt.subplots()
     plot_acf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)

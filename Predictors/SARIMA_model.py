@@ -46,10 +46,10 @@ class SARIMA_Predictor(Predictor):
             period = self.period    
             target_train = self.train[[self.target_column]]
             
-            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
+            best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
 
             #if optimizer is too slow, set the order after plotting ACF and PACF:  
-            best_order = (4,1,4,4,1,4)
+            #best_order = (2,1,2,2,1,2)
 
             self.SARIMA_order = best_order
             print("\nTraining the SARIMAX model...")
@@ -162,6 +162,7 @@ class SARIMA_Predictor(Predictor):
             test.index = range(test_start_index, test_end_index)
             self.steps_ahead = self.test.shape[0]
             self.forecast_type = forecast_type
+            
 
             if set_Fourier:
                 K = 3
@@ -173,6 +174,8 @@ class SARIMA_Predictor(Predictor):
 
                 case "ol-one":
 
+                    predictions = []
+
                     if set_Fourier:
                         # ROLLING FORECASTS (ONE STEP-AHEAD OPEN LOOP)
 
@@ -180,7 +183,7 @@ class SARIMA_Predictor(Predictor):
 
                             y_hat = model.forecast(exog = test_fourier_terms.iloc[t:t+1])
                             # Insert the forecast into the list
-                            self.predictions.append(y_hat)
+                            predictions.append(y_hat)
                             # Take the actual value from the test set to predict the next
                             y = test.iloc[t, test.columns.get_loc(self.target_column)]
                             # Update the model with the actual value and exogenous
@@ -193,7 +196,7 @@ class SARIMA_Predictor(Predictor):
                         for t in tqdm(range(0, self.steps_ahead), desc="Rolling Forecasts"):
                             y_hat = model.forecast()
                             # Insert the forecast into the list
-                            self.predictions.append(y_hat)
+                            predictions.append(y_hat)
                             # Take the actual value from the test set to predict the next
                             y = test.iloc[t, test.columns.get_loc(self.target_column)]
                             # Update the model with the actual value and exogenous
@@ -202,7 +205,7 @@ class SARIMA_Predictor(Predictor):
                             else:
                                 model = model.append([y], refit=False)
 
-                    predictions = pd.Series(data=self.predictions, index=test.index[:self.steps_ahead])
+                    predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
                     print("Model testing successful.")
                     return predictions
                 

@@ -74,8 +74,6 @@ class LSTM_Predictor(Predictor):
                 input_columns = [self.target_column] + fourier_columns if set_fourier else [self.target_column]
                 first_window = True
 
-
-                
                 for i in range(0, len(dataset) - input_len - output_len + 1, stride_train):
                     X.append(dataset[input_columns].iloc[i:i + input_len].values)
                     y.append(dataset[self.target_column].iloc[i + input_len:i + input_len + output_len].values)
@@ -229,39 +227,38 @@ class LSTM_Predictor(Predictor):
         :param predictions: Predictions made by the LSTM model
         :param y_test: Actual test values corresponding to the predictions
         """
+        # Select the window for y_test and predictions
+        window_num = 0
+        test_window = y_test[window_num, :]
+        pred_window = predictions[window_num, :]
+        # Assuming 'date' is the column containing datetime in the 'test_data' DataFrame
+        # And each point in the test window corresponds to a record in the DataFrame
+        start_date = self.test['date'].iloc[0]
+        # Create a date range for the x-axis with a frequency of 15 minutes
+        date_range = pd.date_range(start=start_date, periods=len(test_window), freq='H')
+
+        # Initialize the plot
+        plt.figure(figsize=(12, 6))
+        # Plot the actual test data
+        plt.plot(date_range, test_window, 'b-', label='Test Set', linewidth=2)
+        # Plot the LSTM predictions
+        plt.plot(date_range, pred_window, 'r--', label='LSTM Predictions', linewidth=2)
         
-        for window_num in range(0, y_test.shape[0]):
-            # Select the window for y_test and predictions
-            test_window = y_test[window_num, :]
-            pred_window = predictions[window_num, :]
-            # Assuming 'date' is the column containing datetime in the 'test_data' DataFrame
-            # And each point in the test window corresponds to a record in the DataFrame
-            start_date = self.test['date'].iloc[0]
-            # Create a date range for the x-axis with a frequency of 15 minutes
-            date_range = pd.date_range(start=start_date, periods=len(test_window), freq='15T')
+        # Set the title and labels
+        plt.title(f"LSTM Prediction for Window {window_num}")
+        plt.xlabel('Date and Time')
+        plt.ylabel('Value')
+        # Display the legend
+        plt.legend()
+        # Add grid
+        plt.grid(True)
 
-            # Initialize the plot
-            plt.figure(figsize=(12, 6))
-            # Plot the actual test data
-            plt.plot(date_range, test_window, 'b-', label='Test Set', linewidth=2)
-            # Plot the LSTM predictions
-            plt.plot(date_range, pred_window, 'r--', label='LSTM Predictions', linewidth=2)
-            
-            # Set the title and labels
-            plt.title('LSTM Prediction for First Window')
-            plt.xlabel('Date and Time')
-            plt.ylabel('Value')
-            # Display the legend
-            plt.legend()
-            # Add grid
-            plt.grid(True)
+        # Set the format for the x-axis dates to include day, month, hour, and minutes
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m %H:%M'))
+        # Automatically format the x-axis labels to be more readable
+        plt.gcf().autofmt_xdate()
 
-            # Set the format for the x-axis dates to include day, month, hour, and minutes
-            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m %H:%M'))
-            # Automatically format the x-axis labels to be more readable
-            plt.gcf().autofmt_xdate()
-
-            # Ensure the layout fits well
-            plt.tight_layout()
-            # Show the plot
-            plt.show()
+        # Ensure the layout fits well
+        plt.tight_layout()
+        # Show the plot
+        plt.show()
