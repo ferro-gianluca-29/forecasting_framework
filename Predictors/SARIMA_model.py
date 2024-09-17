@@ -46,10 +46,10 @@ class SARIMA_Predictor(Predictor):
             period = self.period    
             target_train = self.train[[self.target_column]]
             
-            best_order = SARIMAX_optimizer(target_train, self.target_column, period, verbose = self.verbose)
+            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, d = 0, D = 0, verbose = self.verbose)
 
             #if optimizer is too slow, set the order after plotting ACF and PACF:  
-            #best_order = (2,1,2,2,1,2)
+            best_order = (0,1,0,2,1,2)
 
             self.SARIMA_order = best_order
             print("\nTraining the SARIMAX model...")
@@ -209,6 +209,26 @@ class SARIMA_Predictor(Predictor):
                     print("Model testing successful.")
                     return predictions
                 
+                case "ol-multi":
+                    
+                    predictions = []
+                    for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
+                        # Forecast a period of steps at a time
+                        y_hat = model.forecast(steps=period)
+                        # Append the forecasts to the list
+                        predictions.extend(y_hat)
+                        # Take the actual value from the test set to predict the next period
+                        y = test.iloc[t, test.columns.get_loc(self.target_column)]
+                        # Update the model with the actual value
+                        if ol_refit:
+                            model = model.append([y], refit=True)
+                        else:
+                            model = model.append([y], refit=False)
+
+                    predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
+                    print("Model testing successful.")
+                    return predictions
+                
                 case "cl-multi":
                     if set_Fourier:
                         predictions = model.forecast(steps = self.steps_ahead, exog = test_fourier_terms)
@@ -239,6 +259,8 @@ class SARIMA_Predictor(Predictor):
         predictions = scaler.inverse_transform(predictions) 
         predictions = predictions.flatten()
         predictions = pd.Series(predictions) 
+
+        return predictions
 
 
     def plot_predictions(self, predictions):

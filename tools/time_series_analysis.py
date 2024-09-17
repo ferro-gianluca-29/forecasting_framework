@@ -94,7 +94,7 @@ def ARIMA_optimizer(train, target_column=None, verbose=False):
         print(f"\nThe optimal parameters for the ARIMA model are: {best_order}\n")
         return best_order
 
-def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, verbose=False):
+def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, d = 0, D = 0, verbose=False):
         
         """
         Identifies the optimal parameters for a SARIMAX model.
@@ -188,6 +188,7 @@ def multiple_STL(dataframe,target_column):
     :param dataframe: The DataFrame containing the time series data.
     :param target_column: The column in the DataFrame to be decomposed.
     """
+    
     mstl = MSTL(dataframe[target_column], periods=[24, 24 * 7, 24 * 7 * 4])
     res = mstl.fit()
 
@@ -265,68 +266,59 @@ def prepare_seasonal_sets(train, valid, test, target_column, period):
 
     return train_decomposed, valid_decomposed, test_decomposed
 
-def time_s_analysis(df, target_column, seasonal_period):
+def time_s_analysis(df, target_column, seasonal_period, d = 0, D = 0):
     """
-    Performs a comprehensive time series analysis including plotting, stationarity testing, and decomposition.
+    Performs ACF and PACF analysis on the original and differentiated time series based on provided orders of differencing.
 
     :param df: The DataFrame containing the time series data.
     :param target_column: The column in the DataFrame representing the time series to analyze.
     :param seasonal_period: The period to consider for seasonal decomposition and autocorrelation analysis.
+    :param d: Order of non-seasonal differencing.
+    :param D: Order of seasonal differencing.
     """
 
-    # Plot the time series
-    plt.plot(df.index, df[target_column], 'b')
-    plt.title('Time Series')
-    plt.xlabel('Time series index')
-    plt.legend(loc='best')
+    adf_d = adf_test(df=df[target_column], verbose=True)
+    print(f"Suggested d from Dickey-Fuller Test: {adf_d}")
+    
+    # Plot ACF and PACF for the original series
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    plot_acf(df[target_column], lags=seasonal_period + 4, ax=axes[0, 0])
+    axes[0, 0].set_title('ACF of Original Series')
+    axes[0, 0].set_xlabel('Lags')
+    axes[0, 0].set_ylabel('Autocorrelation')
+
+    plot_pacf(df[target_column], lags=seasonal_period + 4, ax=axes[0, 1])
+    axes[0, 1].set_title('PACF of Original Series')
+    axes[0, 1].set_xlabel('Lags')
+    axes[0, 1].set_ylabel('Partial Autocorrelation')
+    
+    # Applying non-seasonal differencing
+    differenced_series = df[target_column].copy()
+    for _ in range(d):
+        differenced_series = differenced_series.diff().dropna()
+
+    # Applying seasonal differencing
+    for _ in range(D):
+        differenced_series = differenced_series.diff(seasonal_period).dropna()
+
+    # Ensure data cleaning after differencing
+    differenced_series.dropna(inplace=True)
+    
+    # ACF and PACF plots for the differentiated series
+    plot_acf(differenced_series, lags=seasonal_period + 4, ax=axes[1, 0])
+    axes[1, 0].set_title(f'ACF of Differenced Series (d = {d}, D = {D})')
+    axes[1, 0].set_xlabel('Lags')
+    axes[1, 0].set_ylabel('Autocorrelation')
+
+    plot_pacf(differenced_series, lags=seasonal_period + 4, ax=axes[1, 1])
+    axes[1, 1].set_title(f'PACF of Differenced Series (d = {d}, D = {D})')
+    axes[1, 1].set_xlabel('Lags')
+    axes[1, 1].set_ylabel('Partial Autocorrelation')
+
     plt.tight_layout()
     plt.show()
 
-    # ADF test for stationarity
-    #df[target_column] = df[target_column].str.replace(',', '.').astype(float)
-    adf_result = adfuller(df[target_column].dropna())
-    p_value = adf_result[1]
-    adf_statistic = adf_result[0]
-    alpha = 0.05
-   
-    if p_value < alpha and adf_statistic < adf_result[4]['5%']:
-        print("The series is stationary.")
-    else:
-        print("The series is not stationary.")
 
-    # ACF and PACF plots
-    print("\n===== ACF and PACF Plots =====")
-    fig, ax = plt.subplots()
-    plot_acf(df[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
-    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
-    ax.set_ylabel('Autocorrelation')  # Imposta l'etichetta dell'asse Y
-    plt.show()
-
-    fig, ax = plt.subplots()
-    plot_pacf(df[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
-    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
-    ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
-    plt.show()
-
-
-    df_diff = df.diff()
-
-
-    # ACF and PACF plots of differentiated time series
-    print("\n===== ACF and PACF Plots =====")
-    fig, ax = plt.subplots()
-    plot_acf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
-    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
-    ax.set_ylabel('Autocorrelation')  # Imposta l'etichetta dell'asse Y
-    ax.set_title('Differentiated Series ACF')  # Imposta il titolo del plot
-    plt.show()
-
-    fig, ax = plt.subplots()
-    plot_pacf(df_diff[target_column].dropna(), lags = seasonal_period + 4, ax=ax)
-    ax.set_xlabel('Lags')  # Imposta l'etichetta dell'asse X
-    ax.set_ylabel('Partial Autocorrelation')  # Imposta l'etichetta dell'asse Y
-    ax.set_title('Differentiated Series PACF')  # Imposta il titolo del plot
-    plt.show()
 
     """
 

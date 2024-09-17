@@ -55,7 +55,7 @@ class LSTM_Predictor(Predictor):
         set_fourier = self.set_fourier
         seasonal_model = self.seasonal_model
         stride_train = 1
-        stride_test = 1
+        stride_test = input_len
         train = self.train
         valid = self.valid
         test = self.test
@@ -170,7 +170,7 @@ class LSTM_Predictor(Predictor):
                                loss="MSE",
                                metrics=[MeanAbsoluteError(), MeanAbsolutePercentageError(), RootMeanSquaredError()])
             
-            history= lstm_model.fit(X_train, y_train, epochs=100, validation_data=(X_valid, y_valid), batch_size=1000)
+            history= lstm_model.fit(X_train, y_train, epochs=100, validation_data=(X_valid, y_valid), batch_size=400)
             my_loss= lstm_model.history.history['loss']
             
             valid_metrics = {}
@@ -218,7 +218,9 @@ class LSTM_Predictor(Predictor):
         num_samples, num_timesteps = y_test.shape
         y_test = y_test.reshape(-1, 1)
         y_test = scaler.inverse_transform(y_test)
-        y_test = y_test.reshape(num_samples, num_timesteps)                    
+        y_test = y_test.reshape(num_samples, num_timesteps)    
+
+        return predictions, y_test                
 
     def plot_predictions(self, predictions, y_test):
         """

@@ -10,16 +10,16 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/malaysia_data.csv",
-                "--date_format", "%m/%d/%y %H:%M",
-                "--date_list", "01/01/09 01:00", "02/03/09 01:00", "02/04/09 01:00", "02/05/09 00:00",
-                "--target_column", "load",
+                "--dataset_path", "./data/Dataset/data_spatial_TotalKW.csv",
+                "--date_format", "%m/%d/%Y %H:%M",
+                "--date_list", "5/31/2018 0:00", "6/30/2018 23:00", "7/1/2018 0:00", "7/3/2018 0:00",
+                "--target_column", "Global_active_power",
                 "--model_type", "SARIMA",
                 "--period", "24",
                // "--set_fourier",
-               // "--scaling", 
-                "--forecast_type", "ol-one", 
-               // "--unscale_predictions",
+                "--scaling", 
+                "--forecast_type", "ol-multi", 
+                "--unscale_predictions",
             ]
         },
         {
@@ -51,17 +51,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--dataset_path", "./data/Dataset/Produzione_PV.csv",
-                "--model_path","./data/models/SARIMA_2024-08-30_16-28-34",
-                "--date_format", "%d/%m/%Y %H:%M:%S",
-                "--date_list",  "08/01/2019 00:15:00", "11/01/2019 00:15:00",
-                "--target_column", "Producer 3 (kW)",
+                "--dataset_path", "./data/Dataset/malaysia_data.csv",
+                "--date_format", "%m/%d/%y %H:%M",
+                "--date_list", "01/01/10 01:00", "03/01/10 00:00",
+                "--target_column", "load",
+                "--model_path","./data/models/SARIMA_2024-09-14_18-16-04",
                 "--model_type", "SARIMA",
-                "--period", "96",
-                "--set_fourier",
                 "--scaling", 
-                "--unscale_predictions",
-                "--forecast_type","cl-multi",
+                "--forecast_type", "ol-one", 
             ]
         },
         {
@@ -73,13 +70,14 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "fine_tuning",
-                "--dataset_path", "./data/Dataset/panama.csv",
+                "--dataset_path", "./data/Dataset/malaysia_data.csv",
+                "--date_format", "%m/%d/%y %H:%M",
+                "--date_list", "01/01/09 01:00", "12/31/09 23:00", "01/01/10 01:00", "01/01/11 00:00",
+                "--target_column", "load",
                 "--model_path", "./data/models/ARIMA_2024-05-30_11-27-39",
-                "--target_column", "nat_demand",
-                "--model_type", "ARIMA",
+                "--model_type", "SARIMA",
                 "--scaling", 
                 "--validation",
-                "--date_list", "2016-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-04 00:00:00", "2020-01-01 00:00:00", "2020-01-04 00:00:00", "2020-06-27 00:00:00",
             ]
         }
     ]

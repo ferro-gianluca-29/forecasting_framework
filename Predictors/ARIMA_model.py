@@ -187,6 +187,8 @@ class ARIMA_Predictor(Predictor):
         predictions = predictions.flatten()
         predictions = pd.Series(predictions) 
 
+        return predictions
+
 
     def plot_predictions(self, predictions):
         """

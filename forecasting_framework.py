@@ -115,12 +115,11 @@ def main():
                                              args.scaling, args.validation, args.train_size, args.val_size, args.test_size, 
                                              folder_path, args.model_path, verbose)
 
-        # Preprocessing and split 
-
+         
         ############### Optional time series analysis ############
         
         if args.ts_analysis:
-            time_s_analysis(df, args.target_column, args.period)
+            time_s_analysis(df, args.target_column, args.period, d = 1, D = 1)
             train, test, exit = data_preprocessor.preprocess_data()
             
             multiple_STL(train, args.target_column)
@@ -328,7 +327,7 @@ def main():
 
                         # Update the indices so that they are contiguous to those of the pre-trained model
 
-                        test_start_index = test.index[0] + last_train_index
+                        test_start_index = last_train_index
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
 
@@ -338,7 +337,8 @@ def main():
                         if args.run_mode == "fine_tuning":
                             
                             train.index = range(train_start_index, train_start_index + len(train))  
-                            model = pre_trained_model.append(train[args.target_column], refit = True)          
+                            model = pre_trained_model.append(train[args.target_column], refit = False)    
+
                         elif args.run_mode == "test":
                             # Load the model 
                             model = pre_trained_model   
@@ -352,7 +352,7 @@ def main():
 
                         # Update the indices so that the the indices are contiguous to those of the pre-trained model
                         
-                        test_start_index = test.index[0] + last_train_index
+                        test_start_index = last_train_index
                         test_end_index = test_start_index + len(test)
                         test.index = range(test_start_index, test_end_index)
                         target_test.index = range(test_start_index, test_end_index)
@@ -367,7 +367,11 @@ def main():
                             train.index = range(train_start_index, train_start_index + len(train)) 
                             exog_train.index = range(train_start_index, train_start_index + len(train))  
                             if args.model_type == 'SARIMA':
-                                model = pre_trained_model.append(train[args.target_column], refit = True)
+                                new_data = df[args.target_column][10174:12382]
+                                model = pre_trained_model.append(new_data, refit = False)
+                                save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
+                                    end_index = len(train),  valid_metrics = valid_metrics)
+                                return
                             elif args.model_type == 'SARIMAX':
                                 model = pre_trained_model.append(train[args.target_column], exog = exog_train, refit = True)
                         elif args.run_mode == "test":
@@ -481,7 +485,7 @@ def main():
                             path = folder_path
                         else:
                             path = args.model_path
-                        arima.unscale_predictions(predictions, path)
+                        predictions = arima.unscale_predictions(predictions, path)
 
                         # Unscale test data
                         # Load scaler for unscaling test data
@@ -502,7 +506,7 @@ def main():
                             path = folder_path
                         else:
                             path = args.model_path
-                        sarima.unscale_predictions(predictions, path)
+                        predictions = sarima.unscale_predictions(predictions, path)
 
                         # Unscale test data
                         # Load scaler for unscaling test data
@@ -519,7 +523,7 @@ def main():
                     predictions = model.predict(X_test)
 
                     if args.unscale_predictions:
-                        lstm.unscale_data(predictions, y_test, folder_path)
+                        predictions, y_test = lstm.unscale_data(predictions, y_test, folder_path)
                     pd.Series(predictions.flatten()).to_csv('raw_data.csv', index = False)
 
 
@@ -528,7 +532,7 @@ def main():
                     predictions = model.predict(X_test)
                     
                     if args.unscale_predictions:
-                        xgb.unscale_data(predictions, y_test, folder_path)
+                        predictions, y_test = xgb.unscale_data(predictions, y_test, folder_path)
                     pd.Series(predictions.flatten()).to_csv('raw_data.csv', index = False)
 
                         

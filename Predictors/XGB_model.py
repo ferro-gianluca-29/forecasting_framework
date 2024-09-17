@@ -157,6 +157,8 @@ class XGB_Predictor(Predictor):
         y_test = scaler.inverse_transform(y_test)
         y_test = pd.Series(y_test.flatten())
 
+        return predictions, y_test
+
 
     def plot_predictions(self, predictions, test, time_values):
 
