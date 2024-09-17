@@ -38,7 +38,9 @@ class ARIMA_Predictor(Predictor):
         """
         try:
             
-            best_order = list(ARIMA_optimizer(self.train, self.target_column, self.verbose))
+            d = 1
+
+            best_order = list(ARIMA_optimizer(self.train, self.target_column, d, self.verbose))
             best_order[1] = 1
             # for debug: 
             #best_order = (2,2,2)
@@ -114,7 +116,7 @@ class ARIMA_Predictor(Predictor):
             return None
         
         
-    def test_model(self, model, last_index, forecast_type, ol_refit = False):
+    def test_model(self, model, last_index, forecast_type, period = None, ol_refit = False):
         """
         Tests an ARIMA model by performing one-step ahead predictions and optionally refitting the model.
 
@@ -154,6 +156,26 @@ class ARIMA_Predictor(Predictor):
                             
                     predictions = pd.Series(data=predictions, index=self.test.index[:self.steps_ahead])
                     print("Model testing successful.")        
+                    return predictions
+                
+                case "ol-multi":
+                    
+                    predictions = []
+                    for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
+                        # Forecast a period of steps at a time
+                        y_hat = model.forecast(steps=period)
+                        # Append the forecasts to the list
+                        predictions.extend(y_hat)
+                        # Take the actual value from the test set to predict the next period
+                        y = test.iloc[t, test.columns.get_loc(self.target_column)]
+                        # Update the model with the actual value
+                        if ol_refit:
+                            model = model.append([y], refit=True)
+                        else:
+                            model = model.append([y], refit=False)
+
+                    predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
+                    print("Model testing successful.")
                     return predictions
                 
                 case "cl-multi":

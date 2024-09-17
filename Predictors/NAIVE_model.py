@@ -138,6 +138,8 @@ class NAIVE_Predictor():
         predictions = predictions.flatten()
         predictions = pd.Series(predictions) 
 
+        return predictions
+
     def plot_predictions(self, naive_predictions):
         """
         Plots naive predictions against the test data.

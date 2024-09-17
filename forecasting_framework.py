@@ -477,7 +477,7 @@ def main():
 
                 case 'ARIMA':
                     # Model testing
-                    predictions = arima.test_model(model, last_index, args.forecast_type, args.ol_refit)    
+                    predictions = arima.test_model(model, last_index, args.forecast_type, args.period, args.ol_refit)    
 
                     if args.unscale_predictions:
 
@@ -546,7 +546,7 @@ def main():
 
                         # Unscale predictions
 
-                        naive.unscale_predictions(predictions, folder_path)
+                        predictions = naive.unscale_predictions(predictions, folder_path)
 
                         # Unscale test data
                         # Load scaler for unscaling test data

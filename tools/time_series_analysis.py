@@ -73,7 +73,7 @@ def adf_test(df, alpha=0.05, verbose=False):
 
     return d
 
-def ARIMA_optimizer(train, target_column=None, verbose=False):
+def ARIMA_optimizer(train, target_column=None, d = 0, verbose=False):
         """
         Determines the optimal parameters for an ARIMA model based on the Akaike Information Criterion (AIC).
 
@@ -83,7 +83,7 @@ def ARIMA_optimizer(train, target_column=None, verbose=False):
         :return: The best (p, d, q) order for the ARIMA model.
         """
         
-        d = adf_test(df=train[target_column], verbose=verbose)
+        
 
         p = range(0, 5)
         q = range(0, 5)

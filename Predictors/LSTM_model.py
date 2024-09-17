@@ -55,7 +55,7 @@ class LSTM_Predictor(Predictor):
         set_fourier = self.set_fourier
         seasonal_model = self.seasonal_model
         stride_train = 1
-        stride_test = input_len
+        stride_test = 1
         train = self.train
         valid = self.valid
         test = self.test
