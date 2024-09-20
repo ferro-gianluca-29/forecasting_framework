@@ -277,6 +277,15 @@ def time_s_analysis(df, target_column, seasonal_period, d = 0, D = 0):
     :param D: Order of seasonal differencing.
     """
 
+    # Plot the time series
+    plt.plot(df['date'], df[target_column], 'b')
+    plt.title('Time Series')
+    plt.xlabel('Time series index')
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
+
+
     adf_d = adf_test(df=df[target_column], verbose=True)
     print(f"Suggested d from Dickey-Fuller Test: {adf_d}")
     
@@ -318,12 +327,8 @@ def time_s_analysis(df, target_column, seasonal_period, d = 0, D = 0):
     plt.tight_layout()
     plt.show()
 
-
-
-    """
-
     # Time series decomposition into its trend, seasonality, and residuals components
-    decomposition = STL(df[target_column], period=seasonal_period).fit()
+    decomposition = STL(df[target_column][:seasonal_period*30], period=seasonal_period).fit()
     
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(10,8))
 
@@ -344,4 +349,27 @@ def time_s_analysis(df, target_column, seasonal_period, d = 0, D = 0):
     # Add title
     plt.suptitle(f"Time Series Decomposition with period {seasonal_period}")
     plt.show()
-    """
+
+    # Time series decomposition into its trend, seasonality, and residuals components
+    decomposition = STL(differenced_series[:seasonal_period*30], period=seasonal_period).fit()
+    
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, sharex=True, figsize=(10,8))
+
+    ax1.plot(decomposition.observed)
+    ax1.set_ylabel('Observed')
+
+    ax2.plot(decomposition.trend)
+    ax2.set_ylabel('Trend')
+
+    ax3.plot(decomposition.seasonal)
+    ax3.set_ylabel('Seasonal')
+
+    ax4.plot(decomposition.resid)
+    ax4.set_ylabel('Residuals')
+
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    # Add title
+    plt.suptitle(f"Time Series Decomposition of differenced series with period {seasonal_period}")
+    plt.show()
+    

@@ -160,6 +160,8 @@ class ARIMA_Predictor(Predictor):
                 
                 case "ol-multi":
                     
+                    # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
+                    
                     predictions = []
                     for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
                         # Forecast a period of steps at a time

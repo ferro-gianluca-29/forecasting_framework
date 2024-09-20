@@ -55,7 +55,7 @@ class LSTM_Predictor(Predictor):
         set_fourier = self.set_fourier
         seasonal_model = self.seasonal_model
         stride_train = 1
-        stride_test = 1
+        stride_test = self.input_len 
         train = self.train
         valid = self.valid
         test = self.test
@@ -170,7 +170,7 @@ class LSTM_Predictor(Predictor):
                                loss="MSE",
                                metrics=[MeanAbsoluteError(), MeanAbsolutePercentageError(), RootMeanSquaredError()])
             
-            history= lstm_model.fit(X_train, y_train, epochs=100, validation_data=(X_valid, y_valid), batch_size=1000)
+            history= lstm_model.fit(X_train, y_train, epochs=150, validation_data=(X_valid, y_valid), batch_size=400)
             my_loss= lstm_model.history.history['loss']
             
             valid_metrics = {}
@@ -233,9 +233,9 @@ class LSTM_Predictor(Predictor):
         window_num = 0
         test_window = y_test[window_num, :]
         pred_window = predictions[window_num, :]
-        # Assuming 'date' is the column containing datetime in the 'test_data' DataFrame
-        # And each point in the test window corresponds to a record in the DataFrame
-        start_date = self.test['date'].iloc[0]
+
+        # Output predictions begin after input_len test timesteps
+        start_date = self.test.index[self.input_len]
         # Create a date range for the x-axis with a frequency of 15 minutes
         date_range = pd.date_range(start=start_date, periods=len(test_window), freq='H')
 

@@ -277,8 +277,8 @@ def main():
                         else:
 
                             # LSTM stagionale con decomposizione STL
-                            train_decomposed, train_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
-                            lstm.prepare_data(train_decomposed, train_decomposed, test_decomposed)
+                            train_decomposed, valid_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
+                            lstm.prepare_data(train_decomposed, valid_decomposed, test_decomposed)
 
                             X_train, y_train, X_valid, y_valid, X_test, y_test = lstm.data_windowing()
                         

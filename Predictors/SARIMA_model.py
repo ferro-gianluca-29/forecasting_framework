@@ -210,6 +210,8 @@ class SARIMA_Predictor(Predictor):
                     return predictions
                 
                 case "ol-multi":
+
+                    # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
                     
                     predictions = []
                     for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
