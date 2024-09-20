@@ -40,10 +40,10 @@ class ARIMA_Predictor(Predictor):
             
             d = 1
 
-            best_order = list(ARIMA_optimizer(self.train, self.target_column, d, self.verbose))
-            best_order[1] = 1
+            #best_order = list(ARIMA_optimizer(self.train, self.target_column, d, self.verbose))
+            #best_order[1] = 1
             # for debug: 
-            #best_order = (2,2,2)
+            best_order = (4,1,3)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 
@@ -168,13 +168,13 @@ class ARIMA_Predictor(Predictor):
                         y_hat = model.forecast(steps=period)
                         # Append the forecasts to the list
                         predictions.extend(y_hat)
-                        # Take the actual value from the test set to predict the next period
-                        y = test.iloc[t, test.columns.get_loc(self.target_column)]
+                        # Take the actual values from the test set to predict the next period
+                        y = test.iloc[t:t+period][self.target_column]
                         # Update the model with the actual value
                         if ol_refit:
-                            model = model.append([y], refit=True)
+                            model = model.append(y, refit=True)
                         else:
-                            model = model.append([y], refit=False)
+                            model = model.append(y, refit=False)
 
                     predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
                     print("Model testing successful.")

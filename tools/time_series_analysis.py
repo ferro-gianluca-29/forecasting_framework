@@ -83,8 +83,6 @@ def ARIMA_optimizer(train, target_column=None, d = 0, verbose=False):
         :return: The best (p, d, q) order for the ARIMA model.
         """
         
-        
-
         p = range(0, 5)
         q = range(0, 5)
         griglia_param_ARIMA = list(product(p, [d], q))

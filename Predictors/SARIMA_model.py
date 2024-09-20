@@ -197,13 +197,13 @@ class SARIMA_Predictor(Predictor):
                             y_hat = model.forecast()
                             # Insert the forecast into the list
                             predictions.append(y_hat)
-                            # Take the actual value from the test set to predict the next
-                            y = test.iloc[t, test.columns.get_loc(self.target_column)]
-                            # Update the model with the actual value and exogenous
+                            # Take the actual values from the test set to predict the next period
+                            y = test.iloc[t:t+period][self.target_column]
+                            # Update the model with the actual value
                             if ol_refit:
-                                model = model.append([y], refit=True)
+                                model = model.append(y, refit=True)
                             else:
-                                model = model.append([y], refit=False)
+                                model = model.append(y, refit=False)
 
                     predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
                     print("Model testing successful.")
