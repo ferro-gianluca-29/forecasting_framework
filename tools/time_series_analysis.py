@@ -108,8 +108,6 @@ def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, d = 0, 
         #d = adf_test(train[target_column], verbose=verbose)
         #D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
 
-        d = 1
-        D = 1
 
         p = q = P = Q = range(0, 3)
         griglia_param_SARIMAX = list(product(p, [d], q, P, [D], Q))

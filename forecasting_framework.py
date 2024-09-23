@@ -119,7 +119,7 @@ def main():
         ############### Optional time series analysis ############
         
         if args.ts_analysis:
-            time_s_analysis(df, args.target_column, args.period, d = 1, D = 0)
+            time_s_analysis(df, args.target_column, args.period, d = 0, D = 0)
             train, test, exit = data_preprocessor.preprocess_data()
             
             multiple_STL(train, args.target_column)

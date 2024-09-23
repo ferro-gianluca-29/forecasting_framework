@@ -55,7 +55,10 @@ class LSTM_Predictor(Predictor):
         set_fourier = self.set_fourier
         seasonal_model = self.seasonal_model
         stride_train = 1
-        stride_test = self.input_len 
+        if self.output_len == 1:
+            stride_test = 1 
+        else:
+            stride_test = self.input_len
         train = self.train
         valid = self.valid
         test = self.test
@@ -140,7 +143,6 @@ class LSTM_Predictor(Predictor):
             else:
                 ret_seq_flag = True
             
-
             lstm_model = Sequential()
 
             lstm_model.add(LSTM(40,activation="tanh",return_sequences=True, 

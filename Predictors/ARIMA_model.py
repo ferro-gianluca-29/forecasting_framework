@@ -40,10 +40,10 @@ class ARIMA_Predictor(Predictor):
             
             d = 1
 
-            #best_order = list(ARIMA_optimizer(self.train, self.target_column, d, self.verbose))
+            best_order = list(ARIMA_optimizer(self.train, self.target_column, d, self.verbose))
             #best_order[1] = 1
             # for debug: 
-            best_order = (4,1,3)
+            #best_order = (4,1,3)
             self.ARIMA_order = best_order
             print("\nTraining the ARIMA model...")
 

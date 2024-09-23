@@ -51,12 +51,13 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "test",
-                "--dataset_path", "./data/Dataset/malaysia_data.csv",
-                "--date_format", "%m/%d/%y %H:%M",
-                "--date_list", "01/01/10 01:00", "03/01/10 00:00",
-                "--target_column", "load",
-                "--model_path","./data/models/SARIMA_2024-09-14_18-16-04",
+                "--dataset_path", "./data/Dataset/opsd_germany_daily.csv",
+                "--date_format", "%Y-%m-%d",
+                "--date_list", "2012-01-01", "2015-12-31", "2016-01-01", "2017-01-01",
+                "--target_column", "Consumption",
+                "--model_path","./data/models/SARIMA_2024-09-21_18-08-10",
                 "--model_type", "SARIMA",
+                "--period","7",
                 "--scaling", 
                 "--forecast_type", "ol-one", 
             ]
