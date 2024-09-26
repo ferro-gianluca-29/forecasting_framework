@@ -24,6 +24,21 @@ from Predictors.ARIMA_model import ARIMA_Predictor
 from Predictors.SARIMA_model import SARIMA_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
 
+from xgboost import XGBRegressor
+
+from skforecast.model_selection import backtesting_forecaster
+from skforecast.ForecasterAutoreg import ForecasterAutoreg
+from skforecast.ForecasterAutoregDirect import ForecasterAutoregDirect
+
+import torch
+import os
+import sys
+import psutil
+
+import xgboost
+
+
+
 
 
 # END OF LIBRARY IMPORTS #
@@ -63,6 +78,9 @@ def main():
     parser.add_argument('--validation', action='store_true', required=False, help='If True, the validation set is created' )
     parser.add_argument('--target_column', type=str, required=True, help='Name of the target column for forecasting')
     parser.add_argument('--time_column_index', type=int, required=False, default=0, help='Index of the column containing the timestamps')
+    parser.add_argument('--data_freq', type=str, required=False, help='Time frequency of dataset. Required for XGB model')
+
+
 
     # Model arguments
     parser.add_argument('--model_type', type=str, required=True, help='Type of model to use (ARIMA, SARIMA, LSTM, XGB)')
@@ -119,7 +137,7 @@ def main():
         ############### Optional time series analysis ############
         
         if args.ts_analysis:
-            time_s_analysis(df, args.target_column, args.period, d = 0, D = 0)
+            time_s_analysis(df, args.target_column, args.period, d = 1, D = 0)
             train, test, exit = data_preprocessor.preprocess_data()
             
             multiple_STL(train, args.target_column)
@@ -146,7 +164,7 @@ def main():
 
             case 'XGB':
                 xgb = XGB_Predictor(args.run_mode, args.target_column, 
-                args.verbose, args.seasonal_model, args.set_fourier)
+                args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
 
             case 'NAIVE':
                 naive = NAIVE_Predictor(args.run_mode, args.target_column,
@@ -290,9 +308,9 @@ def main():
                         raise ValueError("Unable to preprocess dataset.")
                     
                     xgb.prepare_data(train, valid, test)
-                    X_train, y_train = xgb.create_time_features(train)
-                    X_valid, y_valid = xgb.create_time_features(valid)
-                    X_test, y_test = xgb.create_time_features(test)
+                    X_train, y_train = xgb.create_time_features(train, args.data_freq)
+                    X_valid, y_valid = xgb.create_time_features(valid, args.data_freq)
+                    X_test, y_test = xgb.create_time_features(test, args.data_freq)
 
                 case 'NAIVE':
                     train, test, exit = data_preprocessor.preprocess_data()
@@ -444,11 +462,30 @@ def main():
                                 end_index = len(train),  valid_metrics = valid_metrics)
                     
                     case 'XGB':
-                        model, valid_metrics = xgb.train_model(X_train, y_train, X_valid, y_valid)
-                        # Save training data
-                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                end_index = len(train),  valid_metrics = valid_metrics)
 
+                        print(torch.__version__)
+                        print(torch.cuda.is_available())
+
+                        
+                        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                        print('Using device:', device)
+
+                        if device.type == 'cuda':
+                            print(torch.cuda.get_device_name(0))
+                            print('Memory Usage:')
+                            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+                            print('Cached:   ', round(torch.cuda.memory_cached(0)/1024**3,1), 'GB')
+
+                        print(f"CPU RAM Free: {psutil.virtual_memory().available / 1024**3:.2f} GB")
+                        print('XGBoost version:', xgboost.__version__)
+                        
+                        y_val = pd.concat([y_train, y_valid])
+                        X_val = pd.concat([X_train, X_valid])
+
+                        model = xgb.train_model(X_train, y_train, X_valid, y_valid)
+                        #model = xgb.hyperparameter_tuning(X_val, y_val, args.input_len)
+
+                        
                 #################### END OF MODEL TRAINING ####################
                     
         if args.run_mode == "train_test" or args.run_mode == "fine_tuning" or args.run_mode == "test":
@@ -526,12 +563,20 @@ def main():
 
 
                 case 'XGB':
+
                     # Model testing
-                    predictions = model.predict(X_test)
-                    
+                    y_data = pd.concat([y_train, y_valid, y_test])
+                    X_data = pd.concat([X_train, X_valid, X_test])
+
+                    predictions = xgb.test_model(model, X_data, y_data)
+                     
+                    predictions = predictions['pred'] 
+
+
                     if args.unscale_predictions:
                         predictions, y_test = xgb.unscale_data(predictions, y_test, folder_path)
-                    pd.Series(predictions.flatten()).to_csv('raw_data.csv', index = False)
+
+                    pd.Series(predictions).to_csv('raw_data.csv', index = False)
 
                         
                 case 'NAIVE':
@@ -575,7 +620,6 @@ def main():
                     if args.output_len != 1: lstm.plot_predictions(predictions, y_test)
 
                 case 'XGB':
-                    _ = plot_importance(model, height=0.9) 
                     time_values = y_test.index   
                     xgb.plot_predictions(predictions, y_test, time_values)
 

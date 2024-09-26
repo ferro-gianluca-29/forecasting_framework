@@ -46,10 +46,10 @@ class SARIMA_Predictor(Predictor):
             period = self.period    
             target_train = self.train[[self.target_column]]
             
-            best_order = SARIMAX_optimizer(target_train, self.target_column, period, d = 1, D = 1, verbose = self.verbose)
+            #best_order = SARIMAX_optimizer(target_train, self.target_column, period, d = 1, D = 1, verbose = self.verbose)
 
             #if optimizer is too slow, set the order after plotting ACF and PACF:  
-            #best_order = (0,1,0,2,1,2)
+            best_order = (2,0,2,2,0,2)
 
             self.SARIMA_order = best_order
             print("\nTraining the SARIMAX model...")
@@ -191,6 +191,8 @@ class SARIMA_Predictor(Predictor):
                                 model = model.append([y], exog = test_fourier_terms.iloc[t:t+1], refit=True)
                             else:
                                 model = model.append([y], exog = test_fourier_terms.iloc[t:t+1], refit=False)
+
+                                
                     else:
                         # ROLLING FORECASTS (ONE STEP-AHEAD OPEN LOOP)
                         for t in tqdm(range(0, self.steps_ahead), desc="Rolling Forecasts"):
@@ -211,21 +213,44 @@ class SARIMA_Predictor(Predictor):
                 
                 case "ol-multi":
 
-                    # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
-                    
+                
                     predictions = []
-                    for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
-                        # Forecast a period of steps at a time
-                        y_hat = model.forecast(steps=period)
-                        # Append the forecasts to the list
-                        predictions.extend(y_hat)
-                        # Take the actual values from the test set to predict the next period
-                        y = test.iloc[t:t+period][self.target_column]
-                        # Update the model with the actual value
-                        if ol_refit:
-                            model = model.append(y, refit=True)
-                        else:
-                            model = model.append(y, refit=False)
+
+                    if set_Fourier:
+                        # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
+
+                        period = 12
+
+                        for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
+
+                            # Forecast a period of steps at a time
+                            y_hat = model.forecast(steps=period, exog = test_fourier_terms.iloc[t:t+period])
+                             # Append the forecasts to the list
+                            predictions.extend(y_hat)
+                            # Take the actual values from the test set to predict the next period
+                            y = test.iloc[t:t+period][self.target_column]
+                            # Update the model with the actual value and exogenous
+                            if ol_refit:
+                                model = model.append(y, exog = test_fourier_terms.iloc[t:t+period],  refit=True)
+                            else:
+                                model = model.append(y, exog = test_fourier_terms.iloc[t:t+period],  refit=False)
+
+
+                    else:
+                        # ROLLING FORECASTS (MULTI STEP-AHEAD OPEN LOOP)
+
+                        for t in tqdm(range(0, self.steps_ahead, period), desc="Rolling Forecasts"):
+                            # Forecast a period of steps at a time
+                            y_hat = model.forecast(steps=period)
+                            # Append the forecasts to the list
+                            predictions.extend(y_hat)
+                            # Take the actual values from the test set to predict the next period
+                            y = test.iloc[t:t+period][self.target_column]
+                            # Update the model with the actual value
+                            if ol_refit:
+                                model = model.append(y, refit=True)
+                            else:
+                                model = model.append(y, refit=False)
 
                     predictions = pd.Series(data=predictions, index=test.index[:self.steps_ahead])
                     print("Model testing successful.")

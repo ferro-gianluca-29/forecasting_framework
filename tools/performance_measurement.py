@@ -50,8 +50,9 @@ class PerfMeasure:
                 case 'XGB':
                     test_zero_indices = np.where(test == 0)
                     test.iloc[test_zero_indices] = 0.00000001
-                    pred_zero_indices = np.where(predictions == 0)
-                    predictions[pred_zero_indices] = 0.00000001
+                    pred_zero_indices = predictions == 0
+                    if np.any(pred_zero_indices):
+                        predictions[pred_zero_indices] = 0.00000001
 
             performance_metrics = {}
             mse = mean_squared_error(test, predictions)
