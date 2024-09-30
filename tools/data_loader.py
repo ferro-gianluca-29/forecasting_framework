@@ -82,6 +82,7 @@ class DataLoader():
                 df.drop('temp_date', axis=1, inplace=True)
 
                 df.reset_index(drop=True, inplace = True)
+
                 # Get the indexes of the sets given by the argument --date_list
                 if self.date_list is not None:
                     dates = []
@@ -90,23 +91,17 @@ class DataLoader():
                     # Convert the 'date' column to datetime
                     df['date'] = pd.to_datetime(df['date'], format=self.date_format)
                     
-                    
+
                 else:
                     df['date'] = pd.to_datetime(df['date'], format=self.date_format)
                     dates = None
 
-                match self.model_type:
-                    case 'LSTM'|'XGB':
-                        # Set the date column as index for neural network models 
-                        # (in case of statistical models it may cause index errors during forecasting)
+                # Set the date column as index
 
-                        df.set_index('date', inplace=True)
-                        # Keep the date column (so the code can use the split_data() method of DataPreprocessor without errors)
-                        df['date'] = df.index
-                        
-                    case 'ARIMA'|'SARIMA'|'SARIMAX':
-                        # Set date as the last column of the dataframe
-                        df.insert(df.columns.shape[0] - 1, 'date', df.pop('date'))
+                df.set_index('date', inplace=True)
+                # Keep the date column (so the code can use the split_data() method of DataPreprocessor without errors)
+                df['date'] = df.index
+
             else:
                  print("time column not found.")
             return df, dates

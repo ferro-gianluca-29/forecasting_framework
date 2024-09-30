@@ -29,15 +29,10 @@ class PerfMeasure:
             match self.model_type:
                 
                 case 'ARIMA'|'SARIMA'|'SARIMAX'|'NAIVE':
-                    test = test[:self.steps_ahead][self.target_column]
+                    
                     # Handle zero values in test_data for MAPE and MSPE calculations
                     test_zero_indices = np.where(test == 0)
                     test.iloc[test_zero_indices] = 0.00000001
-                   
-                    if naive == False:
-                        if self.forecast_type == 'ol-one':
-                            # predictions is a series containing a series in each element, so it must be trasformed to a simple series of values, keeping the original index
-                            predictions = pd.Series({index: item.iloc[0] for index, item in predictions.items()})
 
                     pred_zero_indices = np.where(predictions == 0)
                     predictions.iloc[pred_zero_indices] = 0.00000001

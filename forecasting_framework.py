@@ -184,7 +184,6 @@ def main():
                 case 'ARIMA':
                     arima.prepare_data(test = test)
                     
-
                 case 'SARIMA'|'SARIMAX':
                     
                     # Create the test set for target and exog variables
@@ -218,10 +217,22 @@ def main():
                         train, test, valid, exit = data_preprocessor.preprocess_data()
                         if exit:
                             raise ValueError("Unable to preprocess dataset.")
-
+                        
                     else:
                         train, test, exit = data_preprocessor.preprocess_data()
-                        valid = None      
+                        valid = None    
+
+                        #Remove date duplicates in order to avoid error from asfreq call
+                        train = train[~train.index.duplicated(keep='first')]
+                        train = train.asfreq(args.data_freq)
+
+                        train = train.interpolate()
+
+                        test = test[~test.index.duplicated(keep='first')]
+                        test = test.asfreq(args.data_freq)
+
+                        test = test.interpolate()
+
                         if exit:
                             raise ValueError("Unable to preprocess dataset.")
                         
@@ -240,8 +251,22 @@ def main():
                             raise ValueError("Unable to preprocess dataset.")
                         target_valid = valid[[args.target_column]]
                         exog_valid = valid[exog]
+
+
                     else:
                         train, test, exit = data_preprocessor.preprocess_data()
+
+                        #Remove date duplicates in order to avoid error from asfreq call
+                        train = train[~train.index.duplicated(keep='first')]
+                        train = train.asfreq(args.data_freq)
+
+                        train = train.interpolate()
+
+                        test = test[~test.index.duplicated(keep='first')]
+                        test = test.asfreq(args.data_freq)
+
+                        test = test.interpolate()
+
                         if exit:
                             raise ValueError("Unable to preprocess dataset.")
                         valid = None   
@@ -255,7 +280,7 @@ def main():
                         exog_test = test[exog]
                     else: target_test = None
 
-                    sarima.prepare_data(target_train, valid, target_test)
+                    sarima.prepare_data(train, valid, test)
 
                 case 'LSTM':
                     train, test, valid, exit = data_preprocessor.preprocess_data()
@@ -442,7 +467,7 @@ def main():
                             save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                         # Save training data 
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                best_order = best_order, end_index = model.data.row_labels[-1] + 1, valid_metrics = valid_metrics)
+                                best_order = best_order, end_index = last_index, valid_metrics = valid_metrics)
 
                     case 'SARIMAX'|'SARIMA':   
                         model, valid_metrics, last_index  = sarima.train_model()
@@ -453,7 +478,7 @@ def main():
                             save_buffer(folder_path, train, args.target_column, size = buffer_size, file_name = 'buffer.json')
                         # Save training data
                         save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                best_order = best_order, end_index = model.data.row_labels[-1] + 1,  valid_metrics = valid_metrics)
+                                best_order = best_order, end_index = last_index,  valid_metrics = valid_metrics)
                     
                     case 'LSTM':
                         model, valid_metrics = lstm.train_model(X_train, y_train, X_valid, y_valid)
@@ -483,7 +508,7 @@ def main():
                         X_val = pd.concat([X_train, X_valid])
 
                         model = xgb.train_model(X_train, y_train, X_valid, y_valid)
-                        #model = xgb.hyperparameter_tuning(X_val, y_val, args.input_len)
+                        #model = xgb.hyperparameter_tuning(X_val, y_val)
 
                         
                 #################### END OF MODEL TRAINING ####################
@@ -512,6 +537,7 @@ def main():
 
                 case 'ARIMA':
                     # Model testing
+
                     predictions = arima.test_model(model, last_index, args.forecast_type, args.period, args.ol_refit)    
 
                     if args.unscale_predictions:
@@ -520,7 +546,11 @@ def main():
                             path = folder_path
                         else:
                             path = args.model_path
-                        predictions = arima.unscale_predictions(predictions, path)
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        predictions[args.target_column] = scaler.inverse_transform(predictions[[args.target_column]])
 
                         # Unscale test data
                         # Load scaler for unscaling test data
@@ -531,9 +561,8 @@ def main():
                     predictions.to_csv('raw_data.csv', index = False)
 
                 case 'SARIMAX'|'SARIMA':
-                    last_index = model.data.row_labels[-1] + 1
                     # Model testing
-                    predictions = sarima.test_model(model, last_index, args.forecast_type, args.ol_refit, args.period, args.set_fourier)   
+                    predictions = sarima.test_model(model, last_index, args.forecast_type, args.output_len, args.ol_refit, args.period)   
 
                     if args.unscale_predictions:
 
@@ -541,16 +570,19 @@ def main():
                             path = folder_path
                         else:
                             path = args.model_path
-                        predictions = sarima.unscale_predictions(predictions, path)
+
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        predictions[args.target_column] = scaler.inverse_transform(predictions[[args.target_column]])
 
                         # Unscale test data
                         # Load scaler for unscaling test data
                         with open(f"{path}/scaler.pkl", "rb") as file:
                             scaler = pickle.load(file)
-                        
                         test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
-                        target_test[args.target_column] = scaler.inverse_transform(target_test[[args.target_column]])
-
+                        
                     predictions.to_csv('raw_data.csv', index = False)
 
                 case 'LSTM':
@@ -637,7 +669,8 @@ def main():
             
                 case 'ARIMA':
                     # Compute performance metrics
-                    metrics = perf_measure.get_performance_metrics(test, predictions) 
+
+                    metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions[args.target_column]) 
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data

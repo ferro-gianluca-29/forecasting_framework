@@ -109,7 +109,17 @@ class XGB_Predictor(Predictor):
             if X.index.duplicated().any():
                 X = X[~X.index.duplicated(keep='first')]
                 
-            X = X.asfreq(data_freq)
+
+            # Verify if the dataset changes with unexpected dimensions   (e.g. a PV dataset with daylight only hours is not continous, and pandas 
+                                                                                        # resamples including nan values for night hours)
+            # When encountering datasets with holes in datetime, the function has to behaviour differently 
+            # (this row is an example, maybe it can be improved for more general situations)
+
+            if len(X.asfreq(data_freq))  > 2 * len(X):
+                X = X.asfreq(data_freq).dropna()
+            else:
+                X = X.asfreq(data_freq)
+
             X = X.interpolate(method='time')
 
         if label:
@@ -118,7 +128,12 @@ class XGB_Predictor(Predictor):
             y.index = df['date']
             if y.index.duplicated().any():
                 y = y[~y.index.duplicated(keep='first')]
-            y = y.asfreq(data_freq)
+
+            if len(y.asfreq(data_freq))  > 2 * len(y):
+                y = y.asfreq(data_freq).dropna()
+            else:    
+                y = y.asfreq(data_freq)
+
             y = y.interpolate(method='time')
             return X, y
         return X
@@ -252,6 +267,7 @@ class XGB_Predictor(Predictor):
                                         lags          = self.input_len,
                                         transformer_y = None,
                                         n_jobs        = 'auto'
+                                        # weight_func = custom_weights  # uncomment to give zero weight to night values in PV datasets
                                     )
             
 
@@ -259,6 +275,22 @@ class XGB_Predictor(Predictor):
             #forecaster.fit(y=y_train, exog = X_train)
 
         return forecaster
+    
+    def custom_weights(index):
+        """
+        Return 0 if the time of the index is outside the 7-18 range.
+        """
+        # Genera un intervallo per ogni giorno nel periodo di interesse che esclude le ore 18-7
+        full_range = pd.date_range(start=index.min().floor('D'), end=index.max().ceil('D'), freq='H')
+        working_hours = full_range[((full_range.hour >= 7) & (full_range.hour <= 18))]
+        
+        # Converti in DatetimeIndex per usare il metodo .isin()
+        working_hours = pd.DatetimeIndex(working_hours)
+
+        # Calcola i pesi: 1 se nell'intervallo, 0 altrimenti
+        weights = np.where(index.isin(working_hours), 1, 0)
+
+        return weights
         
     def test_model(self, model, X_data, y_data):
 
@@ -322,3 +354,5 @@ class XGB_Predictor(Predictor):
         plt.xticks(rotation=45)
         plt.legend()
         plt.show()
+
+

@@ -73,103 +73,13 @@ def adf_test(df, alpha=0.05, verbose=False):
 
     return d
 
-def ARIMA_optimizer(train, target_column=None, d = 0, verbose=False):
-        """
-        Determines the optimal parameters for an ARIMA model based on the Akaike Information Criterion (AIC).
 
-        :param train: The training dataset.
-        :param target_column: The target column in the dataset that needs to be forecasted.
-        :param verbose: If set to True, prints the process of optimization.
-        :return: The best (p, d, q) order for the ARIMA model.
-        """
-        
-        p = range(0, 5)
-        q = range(0, 5)
-        griglia_param_ARIMA = list(product(p, [d], q))
-        result_df = optimize_ARIMA(train[target_column], griglia_param_ARIMA)
-        conditional_print(verbose, result_df)
-        best_order = result_df.iloc[0]['(p, d, q)']
-        print(f"\nThe optimal parameters for the ARIMA model are: {best_order}\n")
-        return best_order
-
-def SARIMAX_optimizer(train, target_column=None, period=None, exog=None, d = 0, D = 0, verbose=False):
-        
-        """
-        Identifies the optimal parameters for a SARIMAX model.
-
-        :param train: The training dataset.
-        :param target_column: The target column in the dataset.
-        :param period: The seasonal period of the dataset.
-        :param exog: The exogenous variables included in the model.
-        :param verbose: Controls the output of the optimization process.
-        :return: The best (p, d, q, P, D, Q) parameters for the SARIMAX model.
-        """
-        
-        #d = adf_test(train[target_column], verbose=verbose)
-        #D = adf_test(train[target_column].diff(period).dropna(), verbose=verbose)
-
-
-        p = q = P = Q = range(0, 3)
-        griglia_param_SARIMAX = list(product(p, [d], q, P, [D], Q))
-        result_df = optimize_SARIMAX(train, griglia_param_SARIMAX, period, exog)
-        conditional_print(verbose, result_df)
-        best_order = result_df.iloc[0]['(p, d, q, P, D, Q)']
-        print(f"\nThe optimal parameters for the SARIMAX model are: {best_order}\n")
-        return best_order
-
-def optimize_ARIMA(endog, order_list):
-    """
-    Optimizes ARIMA parameters by iterating over a list of (p, d, q) combinations to find the lowest AIC.
-
-    :param endog: The endogenous variable.
-    :param order_list: A list of (p, d, q) tuples representing different ARIMA configurations to test.
-    :return: A DataFrame containing the AIC scores for each parameter combination.
-    """
-    print("\nOptimizing ARIMA parameters in progress...\n")
-    results = []
-    
-    for order in tqdm(order_list):
-        try: 
-            model = ARIMA(endog, order=order).fit()
-            aic = model.aic
-            results.append([order, aic])
-        except:
-            continue
-    result_df = pd.DataFrame(results, columns=['(p, d, q)', 'AIC']).sort_values(by='AIC', ascending=True).reset_index(drop=True)
-    return result_df
-
-def optimize_SARIMAX(endog, order_list, s, exog = None):
-    """
-    Optimizes SARIMAX parameters by testing various combinations and selecting the one with the lowest AIC.
-
-    :param endog: The dependent variable.
-    :param order_list: A list of order tuples (p, d, q, P, D, Q) for the SARIMAX.
-    :param s: The seasonal period of the model.
-    :param exog: Optional exogenous variables.
-    :return: A DataFrame with the results of the parameter testing.
-    """
-    print("\nOptimizing SARIMAX parameters in progress...\n")
-    results = []
-    for order in tqdm(order_list):
-        try: 
-            if exog is not None:
-                model = SARIMAX(endog, exog=exog, order=(order[0], order[1], order[2]), seasonal_order=(order[3], order[4], order[5], s)).fit(disp=False)
-            else:
-                model = SARIMAX(endog, order=(order[0], order[1], order[2]), seasonal_order=(order[3], order[4], order[5], s)).fit(disp=False)
-            aic = model.aic
-            results.append([order, aic])    
-        except:
-            continue
-    result_df = pd.DataFrame(results, columns=['(p, d, q, P, D, Q)', 'AIC']).sort_values(by='AIC', ascending=True).reset_index(drop=True)
-    return result_df
-
-def ljung_box_test(model):
+def ljung_box_test(residuals):
         """
         Conducts the Ljung-Box test on the residuals of a fitted time series model to check for autocorrelation.
 
         :param model: The time series model after fitting to the data.
         """
-        residuals = model.resid
         lb_test = acorr_ljungbox(residuals, lags=[10], return_df=True)
         lb_pvalue = lb_test['lb_pvalue'].iloc[0]
         if lb_pvalue > 0.05:
