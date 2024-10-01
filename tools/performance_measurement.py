@@ -38,10 +38,8 @@ class PerfMeasure:
                     predictions.iloc[pred_zero_indices] = 0.00000001
                     
                 case 'LSTM':
-                    test_zero_indices = np.where(test == 0)
-                    test[test_zero_indices] = 0.00000001
-                    pred_zero_indices = np.where(predictions == 0)
-                    predictions[pred_zero_indices] = 0.00000001
+                    test.replace(0, 0.00000001, inplace=True)
+                    predictions.replace(0, 0.00000001, inplace=True)
                 case 'XGB':
                     test_zero_indices = np.where(test == 0)
                     test.iloc[test_zero_indices] = 0.00000001

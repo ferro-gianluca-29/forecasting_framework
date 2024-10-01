@@ -10,16 +10,19 @@
             "justMyCode": true,
             "args": [
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/AEP_hourly.csv",
-                "--date_format", "%Y-%m-%d %H:%M:%S",
-                "--date_list", "2017-01-01 00:00:00", "2017-09-11 00:00:00", "2017-09-11 00:00:00", "2018-01-01 00:00:00",
-                "--target_column", "AEP_MW",
-                "--model_type", "SARIMA",
-                "--period","24",
+                "--dataset_path", "./data/Dataset/malaysia_data.csv",
+                "--date_format", "%m/%d/%y %H:%M",
+                "--date_list", "01/01/09 01:00", "12/27/09 23:00", "12/27/09 23:00", "12/31/09 23:00", "12/31/09 23:00", "12/31/10 00:00",
+                "--target_column", "load",
                 "--data_freq", "H",
-                "--scaling",
-                "--forecast_type", "ol-one",
-               // "--unscale_predictions",
+                "--model_type", "LSTM",
+               // "--set_fourier",
+                "--input_len", "72",
+                "--output_len", "24",
+                "--scaling", 
+                "--validation",
+              //  "--seasonal_model",
+               // "--unscale_predictions"
             ]
         },
         {

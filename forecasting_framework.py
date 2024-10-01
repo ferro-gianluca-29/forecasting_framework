@@ -30,6 +30,8 @@ from skforecast.model_selection import backtesting_forecaster
 from skforecast.ForecasterAutoreg import ForecasterAutoreg
 from skforecast.ForecasterAutoregDirect import ForecasterAutoregDirect
 
+from sklearn.ensemble  import StackingRegressor
+
 import torch
 import os
 import sys
@@ -284,6 +286,21 @@ def main():
 
                 case 'LSTM':
                     train, test, valid, exit = data_preprocessor.preprocess_data()
+                    #Remove date duplicates in order to avoid error from asfreq call
+                    train = train[~train.index.duplicated(keep='first')]
+                    train = train.asfreq(args.data_freq)
+
+                    train = train.interpolate()
+
+                    valid = valid[~valid.index.duplicated(keep='first')]
+                    valid = valid.asfreq(args.data_freq)
+
+                    valid = valid.interpolate()
+
+                    test = test[~test.index.duplicated(keep='first')]
+                    test = test.asfreq(args.data_freq)
+
+                    test = test.interpolate()
                     
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
@@ -292,39 +309,12 @@ def main():
                     
                     if args.seasonal_model:
                         
-                        """ Aggiunta feature di Fourier come nel caso XGB
-                        for df in [train, test, valid]:
-                            # Add Fourier features for daily, weekly, and yearly seasonality
-                            for period in [24, 7, 365]:
-                                df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
-                                df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
-                        """
+                        # LSTM stagionale con decomposizione STL
+                        train_decomposed, valid_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
+                        lstm.prepare_data(train_decomposed, valid_decomposed, test_decomposed)
 
-                        if args.set_fourier:
-                            # Aggiunta feature di Fourier con Statsmodels
-
-                            K = 5
-                            fourier = Fourier(period=args.period, order=K)
-                            train_fourier_terms = fourier.in_sample(train.index)
-                            valid_fourier_terms = fourier.in_sample(valid.index)
-                            test_fourier_terms = fourier.in_sample(test.index)
-
-                            train[train_fourier_terms.columns] = train_fourier_terms
-                            valid[valid_fourier_terms.columns] = valid_fourier_terms
-                            test[test_fourier_terms.columns] = test_fourier_terms
-
-                            X_train, y_train, X_valid, y_valid, X_test, y_test = lstm.data_windowing()
-                        
-                        else:
-
-                            # LSTM stagionale con decomposizione STL
-                            train_decomposed, valid_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
-                            lstm.prepare_data(train_decomposed, valid_decomposed, test_decomposed)
-
-                            X_train, y_train, X_valid, y_valid, X_test, y_test = lstm.data_windowing()
-                        
-                    else:
                         X_train, y_train, X_valid, y_valid, X_test, y_test = lstm.data_windowing()
+                        
 
                 case 'XGB':
                     train, test, valid, exit = data_preprocessor.preprocess_data()
@@ -481,28 +471,12 @@ def main():
                                 best_order = best_order, end_index = last_index,  valid_metrics = valid_metrics)
                     
                     case 'LSTM':
-                        model, valid_metrics = lstm.train_model(X_train, y_train, X_valid, y_valid)
-                        # Save training data
-                        save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                end_index = len(train),  valid_metrics = valid_metrics)
+                        model = lstm.train_model()                        
                     
                     case 'XGB':
 
                         print(torch.__version__)
                         print(torch.cuda.is_available())
-
-                        
-                        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                        print('Using device:', device)
-
-                        if device.type == 'cuda':
-                            print(torch.cuda.get_device_name(0))
-                            print('Memory Usage:')
-                            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
-                            print('Cached:   ', round(torch.cuda.memory_cached(0)/1024**3,1), 'GB')
-
-                        print(f"CPU RAM Free: {psutil.virtual_memory().available / 1024**3:.2f} GB")
-                        print('XGBoost version:', xgboost.__version__)
                         
                         y_val = pd.concat([y_train, y_valid])
                         X_val = pd.concat([X_train, X_valid])
@@ -587,11 +561,31 @@ def main():
 
                 case 'LSTM':
                     # Model testing
-                    predictions = model.predict(X_test)
+
+                    predictions = lstm.test_model(model)
+
+                    predictions = predictions[args.target_column]
 
                     if args.unscale_predictions:
-                        predictions, y_test = lstm.unscale_data(predictions, y_test, folder_path)
-                    pd.Series(predictions.flatten()).to_csv('raw_data.csv', index = False)
+
+                        if args.run_mode == 'train_test':
+                            path = folder_path
+                        else:
+                            path = args.model_path
+
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        predictions[args.target_column] = scaler.inverse_transform(predictions[[args.target_column]])
+
+                        # Unscale test data
+                        # Load scaler for unscaling test data
+                        with open(f"{path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+                    
+                    pd.Series(predictions).to_csv('raw_data.csv', index = False)
 
 
                 case 'XGB':
@@ -648,8 +642,8 @@ def main():
                 case 'SARIMAX'|'SARIMA':
                     sarima.plot_predictions(predictions)
 
-                case 'LSTM':
-                    if args.output_len != 1: lstm.plot_predictions(predictions, y_test)
+                #case 'LSTM':
+                    #if args.output_len != 1: lstm.plot_predictions(predictions, y_test)
 
                 case 'XGB':
                     time_values = y_test.index   
@@ -686,7 +680,7 @@ def main():
 
                 case 'LSTM':
                     # Compute performance metrics 
-                    metrics = perf_measure.get_performance_metrics(y_test, predictions)
+                    metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions)
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
