@@ -6,7 +6,6 @@ import numpy as np
 import datetime
 import pickle
 
-from keras.models import load_model
 import xgboost as xgb
 from xgboost import plot_importance
 from statsmodels.tsa.deterministic import Fourier
@@ -23,6 +22,7 @@ from Predictors.XGB_model import XGB_Predictor
 from Predictors.ARIMA_model import ARIMA_Predictor
 from Predictors.SARIMA_model import SARIMA_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
+from Predictors.ENSEMBLE_model import ENSEMBLE_Predictor
 
 from xgboost import XGBRegressor
 
@@ -166,6 +166,10 @@ def main():
 
             case 'XGB':
                 xgb = XGB_Predictor(args.run_mode, args.target_column, 
+                args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
+
+            case 'ENSEMBLE':
+                ensemble = ENSEMBLE_Predictor(args.run_mode, args.target_column, 
                 args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
 
             case 'NAIVE':
@@ -327,6 +331,30 @@ def main():
                     X_valid, y_valid = xgb.create_time_features(valid, args.data_freq)
                     X_test, y_test = xgb.create_time_features(test, args.data_freq)
 
+
+                case 'ENSEMBLE':
+                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                    #Remove date duplicates in order to avoid error from asfreq call
+                    train = train[~train.index.duplicated(keep='first')]
+                    train = train.asfreq(args.data_freq)
+
+                    train = train.interpolate()
+
+                    valid = valid[~valid.index.duplicated(keep='first')]
+                    valid = valid.asfreq(args.data_freq)
+
+                    valid = valid.interpolate()
+
+                    test = test[~test.index.duplicated(keep='first')]
+                    test = test.asfreq(args.data_freq)
+
+                    test = test.interpolate()
+                    
+                    if exit:
+                        raise ValueError("Unable to preprocess dataset.")
+                    
+                    ensemble.prepare_data(train, valid, test)
+
                 case 'NAIVE':
                     train, test, exit = data_preprocessor.preprocess_data()
                     valid = None
@@ -439,6 +467,7 @@ def main():
                             # Save training data
                             save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
                                     end_index = len(train),  valid_metrics = valid_metrics)
+                            
 
             ######################## # END OF MODEL LOADING AND FINE TUNING ####################
     
@@ -474,15 +503,17 @@ def main():
                         model = lstm.train_model()                        
                     
                     case 'XGB':
-
-                        print(torch.__version__)
-                        print(torch.cuda.is_available())
                         
                         y_val = pd.concat([y_train, y_valid])
                         X_val = pd.concat([X_train, X_valid])
 
                         model = xgb.train_model(X_train, y_train, X_valid, y_valid)
                         #model = xgb.hyperparameter_tuning(X_val, y_val)
+
+                    case 'ENSEMBLE':
+                        model, predictions = ensemble.train_model(args.input_len, args.output_len)
+
+
 
                         
                 #################### END OF MODEL TRAINING ####################
@@ -512,7 +543,7 @@ def main():
                 case 'ARIMA':
                     # Model testing
 
-                    predictions = arima.test_model(model, last_index, args.forecast_type, args.period, args.ol_refit)    
+                    predictions = arima.test_model(model, args.forecast_type, args.output_len, args.ol_refit)    
 
                     if args.unscale_predictions:
 
@@ -604,6 +635,32 @@ def main():
 
                     pd.Series(predictions).to_csv('raw_data.csv', index = False)
 
+
+                case 'ENSEMBLE':
+
+                    predictions = predictions[args.target_column]
+
+                    if args.unscale_predictions:
+
+                        if args.run_mode == 'train_test':
+                            path = folder_path
+                        else:
+                            path = args.model_path
+
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        predictions = scaler.inverse_transform(predictions[[args.target_column]])
+
+                        # Unscale test data
+                        # Load scaler for unscaling test data
+                        with open(f"{path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+                    
+                    pd.Series(predictions).to_csv('raw_data.csv', index = False)
+
                         
                 case 'NAIVE':
                     if args.seasonal_model:
@@ -693,6 +750,14 @@ def main():
                     end_index = len(train)
                     # Save model data
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)
+
+                case 'ENSEMBLE':
+                    # Compute performance metrics 
+                    metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions)
+                    # Save the index of the last element of the training set
+                    end_index = len(train)
+                    # Save model data
+                    save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)  
 
                 case 'NAIVE':
                     metrics = None

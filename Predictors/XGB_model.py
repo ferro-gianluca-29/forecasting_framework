@@ -79,48 +79,26 @@ class XGB_Predictor(Predictor):
         df['dayofmonth'] = df['date'].dt.day
         df['weekofyear'] = df['date'].dt.isocalendar().week  # Changed liner
 
-        if self.seasonal_model:
-
-            if self.set_fourier:
-
-                # Fourier features for daily, weekly, and yearly seasonality
-                for period in [24, 7, 365]:
-                    df[f'sin_{period}'] = np.sin(df.index.dayofyear / period * 2 * np.pi)
-                    df[f'cos_{period}'] = np.cos(df.index.dayofyear / period * 2 * np.pi)
-
-            else:
-                # Lagged features
-                for lag in lags:
-                    df[f'lag_{lag}'] = df[label].shift(lag)
-
-                # Rolling window features
-                df[f'rolling_mean_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).mean()
-                df[f'rolling_std_{rolling_window}'] = df[label].shift().rolling(window=rolling_window).std()
-
-            df = df.dropna()  # Drop rows with NaN values resulting from lag/rolling operations
-            X = df.drop(['date', label], axis=1, errors='ignore')
-
             
+        X = df[['hour','dayofweek','quarter','month','year',
+            'dayofyear','dayofmonth','weekofyear']]
+        X.reset_index(drop=True, inplace=True)
+        X.set_index(df['date'], inplace=True)
+        if X.index.duplicated().any():
+            X = X[~X.index.duplicated(keep='first')]
+            
+
+        # Verify if the dataset changes with unexpected dimensions   (e.g. a PV dataset with daylight only hours is not continous, and pandas 
+                                                                                    # resamples including nan values for night hours)
+        # When encountering datasets with holes in datetime, the function has to behaviour differently 
+        # (this row is an example, maybe it can be improved for more general situations)
+
+        if len(X.asfreq(data_freq))  > 2 * len(X):
+            X = X.asfreq(data_freq).dropna()
         else:
-            X = df[['hour','dayofweek','quarter','month','year',
-                'dayofyear','dayofmonth','weekofyear']]
-            X.reset_index(drop=True, inplace=True)
-            X.set_index(df['date'], inplace=True)
-            if X.index.duplicated().any():
-                X = X[~X.index.duplicated(keep='first')]
-                
+            X = X.asfreq(data_freq)
 
-            # Verify if the dataset changes with unexpected dimensions   (e.g. a PV dataset with daylight only hours is not continous, and pandas 
-                                                                                        # resamples including nan values for night hours)
-            # When encountering datasets with holes in datetime, the function has to behaviour differently 
-            # (this row is an example, maybe it can be improved for more general situations)
-
-            if len(X.asfreq(data_freq))  > 2 * len(X):
-                X = X.asfreq(data_freq).dropna()
-            else:
-                X = X.asfreq(data_freq)
-
-            X = X.interpolate(method='time')
+        X = X.interpolate(method='time')
 
         if label:
             y = df[label]

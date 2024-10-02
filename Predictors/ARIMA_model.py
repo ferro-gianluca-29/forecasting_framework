@@ -100,7 +100,7 @@ class ARIMA_Predictor(Predictor):
             return None
         
         
-    def test_model(self, forecaster, last_index, forecast_type, output_len, ol_refit = False):
+    def test_model(self, forecaster, forecast_type, output_len, ol_refit = False):
         """
         Tests an ARIMA model by performing one-step ahead predictions and optionally refitting the model.
 
@@ -129,7 +129,7 @@ class ARIMA_Predictor(Predictor):
                     initial_train_size    = len(self.train),
                     steps                 = steps,
                     metric                = 'mean_absolute_error',
-                    refit                 = False,
+                    refit                 = ol_refit,
                     n_jobs                = "auto",
                     verbose               = True,
                     show_progress         = True
