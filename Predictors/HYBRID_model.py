@@ -13,11 +13,27 @@ import pmdarima
 from pmdarima import auto_arima
 
 
+from keras.layers import Dense,Flatten,Dropout,SimpleRNN,LSTM
+from keras.models import Sequential
+from keras.metrics import MeanAbsoluteError, MeanAbsolutePercentageError, RootMeanSquaredError
+
+from keras.optimizers import Adam
+from keras.losses import MeanSquaredError
+from keras.callbacks import EarlyStopping
+
+
+from sklearn.preprocessing import MinMaxScaler
+
+from skforecast.ForecasterRnn import ForecasterRnn
+from skforecast.ForecasterRnn.utils import create_and_compile_model
+from skforecast.model_selection_multiseries import backtesting_forecaster_multiseries
+
+
 from tqdm import tqdm
 import pickle
 from Predictors.Predictor import Predictor
 
-class SARIMA_Predictor(Predictor):
+class Hybrid_Predictor(Predictor):
     """
     A class used to predict time series data using Seasonal ARIMA (SARIMA) models.
     """
@@ -44,7 +60,7 @@ class SARIMA_Predictor(Predictor):
         self.SARIMA_order = []
         
 
-    def train_model(self):
+    def train_model(self, input_len, output_len):
         """
         Trains a SARIMAX model using the training dataset and exogenous variables, if specified.
 
@@ -73,7 +89,7 @@ class SARIMA_Predictor(Predictor):
                         stepwise=True
                         )"""
 
-            period = self.period    
+            period = self.period  
             target_train = self.train[self.target_column]
 
 
@@ -81,8 +97,8 @@ class SARIMA_Predictor(Predictor):
             seasonal_order = model.seasonal_order"""
 
             # for debug
-            order = (1,0,1)
-            seasonal_order = (1,0,1, 24)
+            order = (0,1,0)
+            seasonal_order = (2,1,2, 24)
             
             best_order = (order, seasonal_order)
             print(f"Best order found: {best_order}")
@@ -91,29 +107,85 @@ class SARIMA_Predictor(Predictor):
             self.SARIMA_order = best_order
             print("\nTraining the SARIMAX model...")
 
-            model = Sarimax( order = order,
+            sarima_model = Sarimax( order = order,
                                         seasonal_order=seasonal_order,
                                         #maxiter = 500
                                         )
-
-            forecaster = ForecasterSarimax(
-                 regressor=model,
-             )
-            forecaster.fit(y=target_train)    
-
-            residuals = forecaster.regressor.sarimax_res.resid    
-
             
-               
-            valid_metrics = None
-            
-            last_index = self.train.index[-1]
-            # Running the LJUNG-BOX test for residual correlation
-            #residuals = model.resid()
-            #ljung_box_test(residuals)
-            print("Model successfully trained.")
+            sarima_model.fit(y=target_train)    
 
-            return forecaster, valid_metrics, last_index
+            sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=['residuals'])
+   
+
+            model = create_and_compile_model(
+                        series = sarima_residuals[['residuals']], # Series used as predictors
+                        levels = 'residuals',                         # Target column to predict
+                        lags = input_len,
+                        steps = output_len,
+                        recurrent_layer = "LSTM",
+                        activation = "tanh",
+                        recurrent_units = [40,40,40],
+                        optimizer = Adam(learning_rate=0.01), 
+                        loss = MeanSquaredError()
+                                            )
+            
+            model.summary()
+
+            lstm_forecaster = ForecasterRnn(
+                                regressor = model,
+                                levels = 'residuals',
+                                transformer_series = None,
+                                fit_kwargs={
+                                    "epochs": 30,  # Number of epochs to train the model.
+                                    "batch_size": 400,  # Batch size to train the model.
+                                           },
+                                    )    
+            
+            # scale residuals before feeding them to the LSTM
+            scaler = MinMaxScaler()
+            # fit the scaler on the training set
+            sarima_residuals = sarima_residuals.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+            scaler.fit(sarima_residuals[sarima_residuals.columns])
+
+            # scale training data    
+            sarima_residuals[sarima_residuals.columns] = scaler.transform(sarima_residuals[sarima_residuals.columns])
+
+            lstm_forecaster.fit(sarima_residuals[['residuals']])
+
+            steps = output_len
+
+
+            predictions = []
+
+            for i in tqdm(range(0, len(self.test), steps), desc="Forecasting"):
+                current_steps = min(steps, len(self.test) - i)  # Adjust steps if remaining steps are less
+
+                # Forecast with SARIMA
+                sarima_pred = sarima_model.predict(steps=current_steps
+                                                        )
+
+                # Forecast residuals with LSTM
+                # Prepare residuals input for LSTM (use the latest residuals)
+
+                lstm_pred = lstm_forecaster.predict(steps=current_steps)
+                # Inverse scale the residuals
+                lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()
+
+                # Combine predictions
+                combined_pred = sarima_pred.values.flatten() + lstm_pred.flatten()
+
+                # Append combined predictions
+                predictions.extend(combined_pred)
+
+                # Update history with actual values (if available) for next iteration
+                actual_values = self.test[self.target_column].iloc[i:i+current_steps]
+                sarima_model.append(actual_values, refit=False)
+
+            prediction_index = self.test.index
+            predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)
+
+            return sarima_model, predictions_df
+
         
         except Exception as e:
                 print(f"An error occurred during the model training: {e}")
@@ -176,7 +248,7 @@ class SARIMA_Predictor(Predictor):
 
         :param predictions: The predictions made by the SARIMA model
         """
-        test = self.test[:self.steps_ahead][self.target_column]
+        test = self.test[self.target_column]
         plt.plot(test.index, test, 'b-', label='Test Set')
         plt.plot(test.index, predictions, 'k--', label='ARIMA')
         plt.title(f'SARIMA prediction for feature: {self.target_column}')
@@ -184,5 +256,6 @@ class SARIMA_Predictor(Predictor):
         plt.legend(loc='best')
         plt.tight_layout()
         plt.show()
+
 
     

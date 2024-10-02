@@ -21,8 +21,8 @@ from Predictors.LSTM_model import LSTM_Predictor
 from Predictors.XGB_model import XGB_Predictor
 from Predictors.ARIMA_model import ARIMA_Predictor
 from Predictors.SARIMA_model import SARIMA_Predictor
+from Predictors.HYBRID_model import Hybrid_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
-from Predictors.ENSEMBLE_model import ENSEMBLE_Predictor
 
 from xgboost import XGBRegressor
 
@@ -168,9 +168,9 @@ def main():
                 xgb = XGB_Predictor(args.run_mode, args.target_column, 
                 args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
 
-            case 'ENSEMBLE':
-                ensemble = ENSEMBLE_Predictor(args.run_mode, args.target_column, 
-                args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
+            case 'HYBRID':
+                hybrid = Hybrid_Predictor(args.run_mode, args.target_column, args.period,
+                args.verbose, args.set_fourier)
 
             case 'NAIVE':
                 naive = NAIVE_Predictor(args.run_mode, args.target_column,
@@ -332,18 +332,18 @@ def main():
                     X_test, y_test = xgb.create_time_features(test, args.data_freq)
 
 
-                case 'ENSEMBLE':
-                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                case 'HYBRID':
+                    train, test, exit = data_preprocessor.preprocess_data()
                     #Remove date duplicates in order to avoid error from asfreq call
                     train = train[~train.index.duplicated(keep='first')]
                     train = train.asfreq(args.data_freq)
 
                     train = train.interpolate()
 
-                    valid = valid[~valid.index.duplicated(keep='first')]
+                    """valid = valid[~valid.index.duplicated(keep='first')]
                     valid = valid.asfreq(args.data_freq)
 
-                    valid = valid.interpolate()
+                    valid = valid.interpolate()"""
 
                     test = test[~test.index.duplicated(keep='first')]
                     test = test.asfreq(args.data_freq)
@@ -353,7 +353,7 @@ def main():
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
                     
-                    ensemble.prepare_data(train, valid, test)
+                    hybrid.prepare_data(train, None, test)
 
                 case 'NAIVE':
                     train, test, exit = data_preprocessor.preprocess_data()
@@ -510,8 +510,9 @@ def main():
                         model = xgb.train_model(X_train, y_train, X_valid, y_valid)
                         #model = xgb.hyperparameter_tuning(X_val, y_val)
 
-                    case 'ENSEMBLE':
-                        model, predictions = ensemble.train_model(args.input_len, args.output_len)
+                    case 'HYBRID':
+                        model, predictions = hybrid.train_model(args.input_len, args.output_len)
+                        
 
 
 
@@ -636,7 +637,7 @@ def main():
                     pd.Series(predictions).to_csv('raw_data.csv', index = False)
 
 
-                case 'ENSEMBLE':
+                case 'HYBRID':
 
                     predictions = predictions[args.target_column]
 
@@ -706,6 +707,9 @@ def main():
                     time_values = y_test.index   
                     xgb.plot_predictions(predictions, y_test, time_values)
 
+                case 'HYBRID':
+                    hybrid.plot_predictions(predictions)
+
                 case 'NAIVE':
                     naive.plot_predictions(predictions)     
 
@@ -751,7 +755,7 @@ def main():
                     # Save model data
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, metrics, end_index = end_index)
 
-                case 'ENSEMBLE':
+                case 'HYBRID':
                     # Compute performance metrics 
                     metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions)
                     # Save the index of the last element of the training set

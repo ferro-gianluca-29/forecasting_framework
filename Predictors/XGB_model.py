@@ -144,25 +144,14 @@ class XGB_Predictor(Predictor):
             [1, 2, 3, 24, 25, 26, 168, 169, 170]  # Lag specifici: ultime ore, stesso orario del giorno precedente e della settimana precedente
         ]
 
-        if self.forecast_type == 'ol-one':
+        # Create forecaster
+        forecaster = ForecasterAutoreg(
+            regressor = reg,
+            lags      = self.input_len
+            #differentiation = 1
+        )
 
-            # Create forecaster
-            forecaster = ForecasterAutoreg(
-                regressor = reg,
-                lags      = self.input_len
-                #differentiation = 1
-            )
-
-        elif self.forecast_type == 'ol-multi':
-
-            forecaster = ForecasterAutoregDirect(
-                                        regressor     = reg,
-                                        steps         = self.output_len,
-                                        lags          = self.input_len,
-                                        transformer_y = None,
-                                        n_jobs        = 'auto'
-                                        #differentiation = 1
-                                    )
+      
 
 
         def search_space(trial):
@@ -228,29 +217,16 @@ class XGB_Predictor(Predictor):
                 early_stopping_rounds=100,
                 verbose=False  # Set to True to see training progress
             )
-        
-        if self.forecast_type == 'ol-one':
 
-            forecaster = ForecasterAutoreg(
-                regressor = reg, 
-                lags      = self.input_len,
-                #differentiation = 1
-            )
+        forecaster = ForecasterAutoreg(
+            regressor = reg, 
+            lags      = self.input_len,
+            #differentiation = 1
+        )
 
-        elif self.forecast_type == 'ol-multi':
-
-            forecaster = ForecasterAutoregDirect(
-                                        regressor     = reg,
-                                        steps         = self.output_len,
-                                        lags          = self.input_len,
-                                        transformer_y = None,
-                                        n_jobs        = 'auto'
-                                        # weight_func = custom_weights  # uncomment to give zero weight to night values in PV datasets
-                                    )
             
-
-            # this line is not necessary if backtesting is done
-            #forecaster.fit(y=y_train, exog = X_train)
+        # this line is not necessary if backtesting is done
+        #forecaster.fit(y=y_train, exog = X_train)
 
         return forecaster
     
