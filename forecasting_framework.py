@@ -32,7 +32,6 @@ from skforecast.ForecasterAutoregDirect import ForecasterAutoregDirect
 
 from sklearn.ensemble  import StackingRegressor
 
-import torch
 import os
 import sys
 import psutil
@@ -511,7 +510,14 @@ def main():
                         #model = xgb.hyperparameter_tuning(X_val, y_val)
 
                     case 'HYBRID':
-                        model, predictions = hybrid.train_model(args.input_len, args.output_len)
+                        model, predictions, scaler = hybrid.train_model(args.input_len, args.output_len)
+
+                        if args.scaling:
+
+                            predictions[predictions.columns] = scaler.transform(predictions[predictions.columns])
+
+                            test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+                            test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
                         
 
 
@@ -640,25 +646,6 @@ def main():
                 case 'HYBRID':
 
                     predictions = predictions[args.target_column]
-
-                    if args.unscale_predictions:
-
-                        if args.run_mode == 'train_test':
-                            path = folder_path
-                        else:
-                            path = args.model_path
-
-
-                        # Load scaler for unscaling data
-                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
-                            scaler = pickle.load(file)
-                        predictions = scaler.inverse_transform(predictions[[args.target_column]])
-
-                        # Unscale test data
-                        # Load scaler for unscaling test data
-                        with open(f"{path}/scaler.pkl", "rb") as file:
-                            scaler = pickle.load(file)
-                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
                     
                     pd.Series(predictions).to_csv('raw_data.csv', index = False)
 

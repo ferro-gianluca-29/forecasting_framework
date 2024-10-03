@@ -97,8 +97,8 @@ class Hybrid_Predictor(Predictor):
             seasonal_order = model.seasonal_order"""
 
             # for debug
-            order = (0,1,0)
-            seasonal_order = (2,1,2, 24)
+            order = (2,1,1)
+            seasonal_order = (2,0,1, 24)
             
             best_order = (order, seasonal_order)
             print(f"Best order found: {best_order}")
@@ -114,12 +114,12 @@ class Hybrid_Predictor(Predictor):
             
             sarima_model.fit(y=target_train)    
 
-            sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=['residuals'])
+            sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=[self.target_column])
    
 
             model = create_and_compile_model(
-                        series = sarima_residuals[['residuals']], # Series used as predictors
-                        levels = 'residuals',                         # Target column to predict
+                        series = sarima_residuals[[self.target_column]], # Series used as predictors
+                        levels = self.target_column,                         # Target column to predict
                         lags = input_len,
                         steps = output_len,
                         recurrent_layer = "LSTM",
@@ -133,11 +133,11 @@ class Hybrid_Predictor(Predictor):
 
             lstm_forecaster = ForecasterRnn(
                                 regressor = model,
-                                levels = 'residuals',
+                                levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 30,  # Number of epochs to train the model.
-                                    "batch_size": 400,  # Batch size to train the model.
+                                    "epochs": 100,  # Number of epochs to train the model.
+                                    "batch_size": 100,  # Batch size to train the model.
                                            },
                                     )    
             
@@ -147,10 +147,15 @@ class Hybrid_Predictor(Predictor):
             sarima_residuals = sarima_residuals.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             scaler.fit(sarima_residuals[sarima_residuals.columns])
 
+            # fit scaler on train data to later scale test and predictions
+            scaler_train = MinMaxScaler()
+            temp_train = self.train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+            scaler_train.fit(temp_train[temp_train.columns[0:temp_train.columns.shape[0] - 1]])
+
             # scale training data    
             sarima_residuals[sarima_residuals.columns] = scaler.transform(sarima_residuals[sarima_residuals.columns])
 
-            lstm_forecaster.fit(sarima_residuals[['residuals']])
+            lstm_forecaster.fit(sarima_residuals[[self.target_column]])
 
             steps = output_len
 
@@ -184,7 +189,7 @@ class Hybrid_Predictor(Predictor):
             prediction_index = self.test.index
             predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)
 
-            return sarima_model, predictions_df
+            return sarima_model, predictions_df, scaler_train
 
         
         except Exception as e:
