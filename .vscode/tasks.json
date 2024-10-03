@@ -111,19 +111,20 @@
             "args": [
                 "forecasting_framework.py",
                 "--run_mode", "train_test",
-                "--dataset_path", "./data/Dataset/malaysia_data.csv",
-                "--date_format", "%m/%d/%y %H:%M",
-                "--date_list", "01/01/09 01:00", "09/27/09 23:00", "09/27/09 23:00", "12/31/09 23:00", "12/31/09 23:00", "12/31/10 00:00",
-                "--target_column", "load",
-                "--data_freq", "H",
+                "--dataset_path", "./data/Dataset/Consumer_power.csv",
+                "--date_format", "%d/%m/%Y %H:%M:%S",
+                "--date_list", "01/01/2019 00:15:00", "28/11/2019 00:00:00", "28/11/2019 00:00:00", "30/11/2019 00:00:00", "30/11/2019 00:00:00", "31/12/2019 23:45:00",
+                "--target_column", "Cons 1",
+                "--data_freq", "15T",
                 "--model_type", "LSTM",
-                "--input_len", "24",
+                "--input_len", "96",
                 "--output_len", "1",
                 "--forecast_type","ol-one",
                 "--scaling", 
                 "--validation",
-              //  "--seasonal_model",
-               // "--unscale_predictions"
+                "--unscale_predictions"
+               
+
              ],
             "group": {
                 "kind": "build",

@@ -169,7 +169,7 @@ def main():
 
             case 'HYBRID':
                 hybrid = Hybrid_Predictor(args.run_mode, args.target_column, args.period,
-                args.verbose, args.set_fourier)
+                args.verbose, args.forecast_type)
 
             case 'NAIVE':
                 naive = NAIVE_Predictor(args.run_mode, args.target_column,
@@ -602,7 +602,7 @@ def main():
 
                     predictions = lstm.test_model(model)
 
-                    predictions = predictions[args.target_column]
+                    
 
                     if args.unscale_predictions:
 
@@ -622,6 +622,8 @@ def main():
                         with open(f"{path}/scaler.pkl", "rb") as file:
                             scaler = pickle.load(file)
                         test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+
+                    predictions = predictions[args.target_column]
                     
                     pd.Series(predictions).to_csv('raw_data.csv', index = False)
 

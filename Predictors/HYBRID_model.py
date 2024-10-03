@@ -39,7 +39,7 @@ class Hybrid_Predictor(Predictor):
     """
 
     def __init__(self, run_mode, target_column=None, period = 24,
-                 verbose=False, set_fourier=False):
+                 verbose=False, forecast_type='ol-one'):
         """
         Constructs all the necessary attributes for the SARIMA_Predictor object.
 
@@ -55,7 +55,7 @@ class Hybrid_Predictor(Predictor):
         self.run_mode = run_mode
         self.verbose = verbose
         self.target_column = target_column
-        self.set_fourier = set_fourier
+        self.forecast_type = forecast_type
         self.period = period
         self.SARIMA_order = []
         
@@ -136,7 +136,7 @@ class Hybrid_Predictor(Predictor):
                                 levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 100,  # Number of epochs to train the model.
+                                    "epochs": 2,  # Number of epochs to train the model.
                                     "batch_size": 100,  # Batch size to train the model.
                                            },
                                     )    
@@ -162,29 +162,53 @@ class Hybrid_Predictor(Predictor):
 
             predictions = []
 
-            for i in tqdm(range(0, len(self.test), steps), desc="Forecasting"):
-                current_steps = min(steps, len(self.test) - i)  # Adjust steps if remaining steps are less
 
-                # Forecast with SARIMA
-                sarima_pred = sarima_model.predict(steps=current_steps
-                                                        )
+            if self.forecast_type == 'ol_multi':
 
-                # Forecast residuals with LSTM
-                # Prepare residuals input for LSTM (use the latest residuals)
+                for i in tqdm(range(0, len(self.test), steps), desc="Forecasting"):
+                    current_steps = min(steps, len(self.test) - i)  # Adjust steps if remaining steps are less
 
-                lstm_pred = lstm_forecaster.predict(steps=current_steps)
-                # Inverse scale the residuals
-                lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()
+                    # Forecast with SARIMA
+                    sarima_pred = sarima_model.predict(steps=current_steps
+                                                            )
 
-                # Combine predictions
-                combined_pred = sarima_pred.values.flatten() + lstm_pred.flatten()
+                    # Forecast residuals with LSTM
+                    # Prepare residuals input for LSTM (use the latest residuals)
 
-                # Append combined predictions
-                predictions.extend(combined_pred)
+                    lstm_pred = lstm_forecaster.predict(steps=current_steps)
+                    # Inverse scale the residuals
+                    lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()
 
-                # Update history with actual values (if available) for next iteration
-                actual_values = self.test[self.target_column].iloc[i:i+current_steps]
-                sarima_model.append(actual_values, refit=False)
+                    # Combine predictions
+                    combined_pred = sarima_pred.values.flatten() + lstm_pred.flatten()
+
+                    # Append combined predictions
+                    predictions.extend(combined_pred)
+
+                    # Update history with actual values (if available) for next iteration
+                    actual_values = self.test[self.target_column].iloc[i:i+current_steps]
+                    sarima_model.append(actual_values, refit=False)
+
+            elif self.forecast_type == 'ol-one':
+                # One-step ahead forecasting loop
+                for i in tqdm(range(len(self.test)), desc="Forecasting"):
+                    # Forecast with SARIMA for one step
+                    sarima_pred = sarima_model.predict(steps=1)
+
+                    # Forecast residual with LSTM for one step
+                    lstm_pred = lstm_forecaster.predict(steps=1)
+                    # Inverse scale the residual
+                    lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()[0]
+
+                    # Combine predictions
+                    combined_pred = sarima_pred.values[0] + lstm_pred
+
+                    # Append combined prediction
+                    predictions.append(combined_pred)
+
+                    # Update history with actual value for next iteration
+                    actual_value = self.test[self.target_column].iloc[i]
+                    sarima_model.append([actual_value], refit=False)
 
             prediction_index = self.test.index
             predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)

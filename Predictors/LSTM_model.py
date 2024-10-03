@@ -85,7 +85,7 @@ class LSTM_Predictor(Predictor):
                                 levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 100,  # Number of epochs to train the model.
+                                    "epochs": 2,  # Number of epochs to train the model.
                                     "batch_size": 400,  # Batch size to train the model.
                                     "callbacks": [
                                         EarlyStopping(monitor="val_loss", patience=5)
