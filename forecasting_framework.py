@@ -611,7 +611,6 @@ def main():
                         else:
                             path = args.model_path
 
-
                         # Load scaler for unscaling data
                         with open(f"{folder_path}/scaler.pkl", "rb") as file:
                             scaler = pickle.load(file)
@@ -689,8 +688,8 @@ def main():
                 case 'SARIMAX'|'SARIMA':
                     sarima.plot_predictions(predictions)
 
-                #case 'LSTM':
-                    #if args.output_len != 1: lstm.plot_predictions(predictions, y_test)
+                case 'LSTM':
+                    lstm.plot_predictions(predictions)
 
                 case 'XGB':
                     time_values = y_test.index   

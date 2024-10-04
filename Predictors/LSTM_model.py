@@ -73,7 +73,7 @@ class LSTM_Predictor(Predictor):
                         recurrent_layer = "LSTM",
                         activation = "tanh",
                         recurrent_units = [40,40,40],
-                        optimizer = Adam(learning_rate=0.01), 
+                        optimizer = Adam(learning_rate=0.001), 
                         loss = MeanSquaredError()
                                             )
             
@@ -94,7 +94,7 @@ class LSTM_Predictor(Predictor):
                                 },
                                     )    
             
-            forecaster.fit(self.train[[self.target_column]])
+            #forecaster.fit(self.train[[self.target_column]]) not necessary if backtest is done (backtest includes training)
 
             return forecaster
         
@@ -148,45 +148,17 @@ class LSTM_Predictor(Predictor):
         return predictions, y_test                                
            
 
-    def plot_predictions(self, predictions, y_test):
+    def plot_predictions(self, predictions):
         """
-        Plots LSTM model predictions against actual test data for each data window in the test set.
+        Plots the LSTM model predictions against the test data.
 
-        :param predictions: Predictions made by the LSTM model
-        :param y_test: Actual test values corresponding to the predictions
+        :param predictions: The predictions made by the LSTM model
         """
-        # Select the window for y_test and predictions
-        window_num = 0
-        test_window = y_test[window_num, :]
-        pred_window = predictions[window_num, :]
-
-        # Output predictions begin after input_len test timesteps
-        start_date = self.test.index[self.input_len]
-        # Create a date range for the x-axis with a frequency of 15 minutes
-        date_range = pd.date_range(start=start_date, periods=len(test_window), freq='H')
-
-        # Initialize the plot
-        plt.figure(figsize=(12, 6))
-        # Plot the actual test data
-        plt.plot(date_range, test_window, 'b-', label='Test Set', linewidth=2)
-        # Plot the LSTM predictions
-        plt.plot(date_range, pred_window, 'r--', label='LSTM Predictions', linewidth=2)
-        
-        # Set the title and labels
-        plt.title(f"LSTM Prediction for Window {window_num}")
-        plt.xlabel('Date and Time')
-        plt.ylabel('Value')
-        # Display the legend
-        plt.legend()
-        # Add grid
-        plt.grid(True)
-
-        # Set the format for the x-axis dates to include day, month, hour, and minutes
-        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%m %H:%M'))
-        # Automatically format the x-axis labels to be more readable
-        plt.gcf().autofmt_xdate()
-
-        # Ensure the layout fits well
+        test = self.test[self.target_column]
+        plt.plot(test.index, test, 'b-', label='Test Set')
+        plt.plot(test.index, predictions, 'k--', label='LSTM')
+        plt.title(f'LSTM prediction for feature: {self.target_column}')
+        plt.xlabel('Time series index')
+        plt.legend(loc='best')
         plt.tight_layout()
-        # Show the plot
         plt.show()
