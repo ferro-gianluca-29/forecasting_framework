@@ -17,9 +17,10 @@
                 "--data_freq", "H",
                 "--model_type", "HYBRID",
                 "--period","24",
-                "--output_len","24",
+                "--input_len","24",
+                "--output_len","1",
                 "--data_freq", "H",
-                "--forecast_type", "ol-multi",
+                "--forecast_type", "ol-one",
             ]
         },
         {

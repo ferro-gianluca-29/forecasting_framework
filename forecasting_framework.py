@@ -21,7 +21,7 @@ from Predictors.LSTM_model import LSTM_Predictor
 from Predictors.XGB_model import XGB_Predictor
 from Predictors.ARIMA_model import ARIMA_Predictor
 from Predictors.SARIMA_model import SARIMA_Predictor
-from Predictors.HYBRID_model import Hybrid_Predictor
+from Predictors.Hybrid_2nd_config import Hybrid_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
 
 from xgboost import XGBRegressor

@@ -21,6 +21,9 @@ from keras.optimizers import Adam
 from keras.losses import MeanSquaredError
 from keras.callbacks import EarlyStopping
 
+from statsmodels.tsa.seasonal import STL
+
+
 from keras.layers import LSTM, Dropout, Dense, Reshape
 
 
@@ -74,6 +77,27 @@ class Hybrid_Predictor(Predictor):
         try:    
 
 
+            # DECOMPOSE THE TRAINING SET
+
+            #select the target column from the training set
+            target_train = self.train[self.target_column]
+
+            stl = STL(target_train, period = self.period)
+            result = stl.fit()
+
+            #result.plot()
+
+            # add trend and seasonal components
+            train_trend_seasonal = result.trend + result.seasonal
+            train_trend_seasonal.index = self.train.index
+            train_resid = result.resid
+
+            train_trend_seasonal = pd.DataFrame(train_trend_seasonal)
+            train_trend_seasonal = train_trend_seasonal.rename(columns={train_trend_seasonal.columns[0]: self.target_column})
+
+
+
+
             # CREATE SARIMA MODEL 
 
             d = 0
@@ -119,6 +143,9 @@ class Hybrid_Predictor(Predictor):
                                         #maxiter = 500
                                         )
             
+
+            # FIT SARIMA ON TREND_SEASONAL COMPONENT
+            
             sarima_model.fit(y=target_train)    
 
             sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=[self.target_column])
@@ -148,8 +175,8 @@ class Hybrid_Predictor(Predictor):
                                 levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 200,  # Number of epochs to train the model.
-                                    "batch_size": 256,  # Batch size to train the model.
+                                    "epochs": 2,  # Number of epochs to train the model.
+                                    "batch_size": 100,  # Batch size to train the model.
                                            },
                                     )    
             

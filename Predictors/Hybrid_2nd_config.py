@@ -21,6 +21,9 @@ from keras.optimizers import Adam
 from keras.losses import MeanSquaredError
 from keras.callbacks import EarlyStopping
 
+from statsmodels.tsa.seasonal import STL
+
+
 from keras.layers import LSTM, Dropout, Dense, Reshape
 
 
@@ -74,13 +77,34 @@ class Hybrid_Predictor(Predictor):
         try:    
 
 
+            # DECOMPOSE THE TRAINING SET
+
+            #select the target column from the training set
+            target_train = self.train[self.target_column]
+
+            stl = STL(target_train, period = self.period)
+            result = stl.fit()
+
+            #result.plot()
+
+            # add trend and seasonal components 
+            train_trend_seasonal = result.trend + result.seasonal
+            train_trend_seasonal = pd.DataFrame(train_trend_seasonal)
+            train_trend_seasonal = train_trend_seasonal.rename(columns={train_trend_seasonal.columns[0]: self.target_column})
+
+            # extract residual component for the LSTM
+            train_resid = result.resid
+            train_resid = pd.DataFrame(train_resid)
+            train_resid = train_resid.rename(columns={train_resid.columns[0]: self.target_column})
+
+
             # CREATE SARIMA MODEL 
 
             d = 0
             D = 0
 
             # Selection of the model with best AIC score
-            """model = auto_arima(
+            """sarima_model = auto_arima(
                         y=self.train[self.target_column],
                         start_p=0,
                         start_q=0,
@@ -97,8 +121,8 @@ class Hybrid_Predictor(Predictor):
                         stepwise=True
                         )
             
-            order = model.order
-            seasonal_order = model.seasonal_order"""
+            order = sarima_model.order
+            seasonal_order = sarima_model.seasonal_order"""
 
             period = self.period  
             target_train = self.train[self.target_column]
@@ -119,10 +143,10 @@ class Hybrid_Predictor(Predictor):
                                         #maxiter = 500
                                         )
             
-            sarima_model.fit(y=target_train)    
 
-            sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=[self.target_column])
-   
+            # FIT SARIMA ON TREND_SEASONAL COMPONENT
+            
+            sarima_model.fit(y=train_trend_seasonal[self.target_column])    
 
             # CREATE LSTM MODEL WITH KERAS FUNCTIONS
 
@@ -141,74 +165,47 @@ class Hybrid_Predictor(Predictor):
                 model.compile(optimizer=optimizer, loss=loss)
                 return model
 
-            model = build_model(self.input_len, self.output_len)
+            lstm_model = build_model(self.input_len, self.output_len)
 
             lstm_forecaster = ForecasterRnn(
-                                regressor = model,
+                                regressor = lstm_model,
                                 levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 200,  # Number of epochs to train the model.
-                                    "batch_size": 256,  # Batch size to train the model.
+                                    "epochs": 1,  # Number of epochs to train the model.
+                                    "batch_size": 100,  # Batch size to train the model.
                                            },
                                     )    
             
             # scale residuals before feeding them to the LSTM
             scaler = MinMaxScaler()
             # fit the scaler on the training set
-            sarima_residuals = sarima_residuals.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
-            scaler.fit(sarima_residuals[sarima_residuals.columns])
 
             # fit scaler on train data to later scale test and predictions
-            scaler_train = MinMaxScaler()
+            scaler = MinMaxScaler()
             temp_train = self.train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
-            scaler_train.fit(temp_train[temp_train.columns[0:temp_train.columns.shape[0] - 1]])
+            scaler.fit(temp_train[temp_train.columns[0:temp_train.columns.shape[0] - 1]])
 
-            # scale training data    
-            sarima_residuals[sarima_residuals.columns] = scaler.transform(sarima_residuals[sarima_residuals.columns])
+            # scale residual training data for the LSTM  
+            train_resid[train_resid.columns] = scaler.transform(train_resid[train_resid.columns])
 
-            lstm_forecaster.fit(sarima_residuals[[self.target_column]])
-
-            steps = output_len
+            lstm_forecaster.fit(train_resid[[self.target_column]])
 
 
             predictions = []
 
 
-            if self.forecast_type == 'ol_multi':
+            if self.forecast_type == 'ol-one':
 
-                for i in tqdm(range(0, len(self.test), steps), desc="Forecasting"):
-                    current_steps = min(steps, len(self.test) - i)  # Adjust steps if remaining steps are less
-
-                    # Forecast with SARIMA
-                    sarima_pred = sarima_model.predict(steps=current_steps
-                                                            )
-
-                    # Forecast residuals with LSTM
-                    # Prepare residuals input for LSTM (use the latest residuals)
-
-                    lstm_pred = lstm_forecaster.predict(steps=current_steps)
-                    # Inverse scale the residuals
-                    lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()
-
-                    # Combine predictions
-                    combined_pred = sarima_pred.values.flatten() + lstm_pred.flatten()
-
-                    # Append combined predictions
-                    predictions.extend(combined_pred)
-
-                    # Update history with actual values (if available) for next iteration
-                    actual_values = self.test[self.target_column].iloc[i:i+current_steps]
-                    sarima_model.append(actual_values, refit=False)
-
-            elif self.forecast_type == 'ol-one':
                 # One-step ahead forecasting loop
+
                 for i in tqdm(range(len(self.test)), desc="Forecasting"):
-                    # Forecast with SARIMA for one step
+                    # Forecast seasonal trend component with SARIMA for one step
                     sarima_pred = sarima_model.predict(steps=1)
 
-                    # Forecast residual with LSTM for one step
+                    # Forecast residual component with LSTM for one step
                     lstm_pred = lstm_forecaster.predict(steps=1)
+
                     # Inverse scale the residual
                     lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()[0]
 
@@ -225,7 +222,7 @@ class Hybrid_Predictor(Predictor):
             prediction_index = self.test.index
             predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)
 
-            return sarima_model, predictions_df, scaler_train
+            return sarima_model, predictions_df, scaler
 
         
         except Exception as e:
