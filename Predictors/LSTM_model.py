@@ -6,7 +6,9 @@ import pickle
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates  
-from keras.layers import Dense,Flatten,Dropout,SimpleRNN,LSTM
+
+
+from keras.layers import LSTM, Dropout, Dense, Reshape
 from keras.models import Sequential
 from keras.metrics import MeanAbsoluteError, MeanAbsolutePercentageError, RootMeanSquaredError
 
@@ -65,7 +67,10 @@ class LSTM_Predictor(Predictor):
         try:
 
             
-            model = create_and_compile_model(
+
+            # CREATE MODEL WITH SKFORECAST FUNCTION
+            
+            """model = create_and_compile_model(
                         series = self.train[[self.target_column]], # Series used as predictors
                         levels = self.target_column,                         # Target column to predict
                         lags = self.input_len,
@@ -77,7 +82,27 @@ class LSTM_Predictor(Predictor):
                         loss = MeanSquaredError()
                                             )
             
-            model.summary()
+            model.summary()"""
+
+
+            # CREATE MODEL WITH KERAS FUNCTIONS
+
+            def build_model(input_len, output_len, units=128, dropout_rate=0.2, learning_rate=0.001):
+                
+                optimizer = Adam(learning_rate=learning_rate)
+                loss = 'mean_squared_error'
+                input_shape = (input_len, 1)  
+                
+                model = Sequential()
+                model.add(LSTM(units, activation='tanh', return_sequences=False, input_shape=input_shape))
+                model.add(Dropout(dropout_rate)) 
+                model.add(Dense(output_len, activation='linear'))
+                model.add(Reshape((output_len, 1)))  
+
+                model.compile(optimizer=optimizer, loss=loss)
+                return model
+
+            model = build_model(self.input_len, self.output_len)
 
 
             forecaster = ForecasterRnn(
@@ -85,12 +110,8 @@ class LSTM_Predictor(Predictor):
                                 levels = self.target_column,
                                 transformer_series = None,
                                 fit_kwargs={
-                                    "epochs": 2,  # Number of epochs to train the model.
+                                    "epochs": 1,  # Number of epochs to train the model.
                                     "batch_size": 400,  # Batch size to train the model.
-                                    "callbacks": [
-                                        EarlyStopping(monitor="val_loss", patience=5)
-                                    ],  # Callback to stop training when it is no longer learning.
-                                    "series_val": self.valid[[self.target_column]],  # Validation data for model training.
                                 },
                                     )    
             

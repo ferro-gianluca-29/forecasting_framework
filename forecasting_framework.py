@@ -39,9 +39,6 @@ import psutil
 import xgboost
 
 
-
-
-
 # END OF LIBRARY IMPORTS #
   
 import os
@@ -153,7 +150,7 @@ def main():
 
             case 'ARIMA':
                 arima = ARIMA_Predictor(args.run_mode, args.target_column, 
-                args.verbose)
+                args.verbose, args.period)
 
             case 'SARIMA':
                 sarima = SARIMA_Predictor(args.run_mode, args.target_column, args.period,
@@ -161,14 +158,14 @@ def main():
 
             case 'LSTM':
                 lstm = LSTM_Predictor(args.run_mode, args.target_column, 
-                args.verbose, args.input_len, args.output_len, args.seasonal_model, args.set_fourier)
+                args.verbose, args.input_len, args.output_len, args.seasonal_model, args.period)
 
             case 'XGB':
                 xgb = XGB_Predictor(args.run_mode, args.target_column, 
-                args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.set_fourier)
+                args.verbose, args.seasonal_model, args.input_len, args.output_len, args.forecast_type, args.period)
 
             case 'HYBRID':
-                hybrid = Hybrid_Predictor(args.run_mode, args.target_column, args.period,
+                hybrid = Hybrid_Predictor(args.run_mode, args.input_len, args.output_len, args.target_column, args.period,
                 args.verbose, args.forecast_type)
 
             case 'NAIVE':
@@ -310,25 +307,30 @@ def main():
                     
                     lstm.prepare_data(train, valid, test)
                     
-                    if args.seasonal_model:
-                        
-                        # LSTM stagionale con decomposizione STL
-                        train_decomposed, valid_decomposed, test_decomposed =  prepare_seasonal_sets(train, valid, test, args.target_column, args.period)
-                        lstm.prepare_data(train_decomposed, valid_decomposed, test_decomposed)
-
-                        X_train, y_train, X_valid, y_valid, X_test, y_test = lstm.data_windowing()
-                        
-
                 case 'XGB':
-                    train, test, valid, exit = data_preprocessor.preprocess_data()
 
+                    train, test, valid, exit = data_preprocessor.preprocess_data()
+                    
+                    #Remove date duplicates in order to avoid error from asfreq call
+                    train = train[~train.index.duplicated(keep='first')]
+                    train = train.asfreq(args.data_freq)
+
+                    train = train.interpolate()
+
+                    valid = valid[~valid.index.duplicated(keep='first')]
+                    valid = valid.asfreq(args.data_freq)
+
+                    valid = valid.interpolate()
+
+                    test = test[~test.index.duplicated(keep='first')]
+                    test = test.asfreq(args.data_freq)
+
+                    test = test.interpolate()
+                    
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
                     
                     xgb.prepare_data(train, valid, test)
-                    X_train, y_train = xgb.create_time_features(train, args.data_freq)
-                    X_valid, y_valid = xgb.create_time_features(valid, args.data_freq)
-                    X_test, y_test = xgb.create_time_features(test, args.data_freq)
 
 
                 case 'HYBRID':
@@ -348,6 +350,9 @@ def main():
                     test = test.asfreq(args.data_freq)
 
                     test = test.interpolate()
+
+                    train = train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+                    test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
                     
                     if exit:
                         raise ValueError("Unable to preprocess dataset.")
@@ -366,109 +371,6 @@ def main():
             if args.run_mode == 'train_test': print(f"Test set dim: {test.shape[0]}")
 
         ########### END OF PREPROCESSING AND DATASET SPLIT ########
-
-        
-        if args.run_mode == "fine_tuning" or args.run_mode == "test":
-
-            #################### MODEL LOADING FOR TEST OR FINE TUNING ####################
- 
-            # NOTE: Using the append() method of statsmodels, the indices for fine tuning must be contiguous to those of the pre-trained model
-                
-            match args.model_type:
-
-                    case 'ARIMA':
-
-                        # Load a pre-trained model
-                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
-                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
-                        train_start_index = last_train_index
-
-                        # Update the indices so that they are contiguous to those of the pre-trained model
-
-                        test_start_index = last_train_index
-                        test_end_index = test_start_index + len(test)
-                        test.index = range(test_start_index, test_end_index)
-
-                        # Create last_index entry for testing function
-                        last_index = test_start_index
-                        
-                        if args.run_mode == "fine_tuning":
-                            
-                            train.index = range(train_start_index, train_start_index + len(train))  
-                            model = pre_trained_model.append(train[args.target_column], refit = False)    
-
-                        elif args.run_mode == "test":
-                            # Load the model 
-                            model = pre_trained_model   
- 
-                    case 'SARIMAX'|'SARIMA': 
-
-                        # Load a pre-trained model
-                        pre_trained_model, best_order = load_trained_model(args.model_type, args.model_path)
-                        last_train_index = pre_trained_model.data.row_labels[-1] + 1
-                        train_start_index = last_train_index
-
-                        # Update the indices so that the the indices are contiguous to those of the pre-trained model
-                        
-                        test_start_index = last_train_index
-                        test_end_index = test_start_index + len(test)
-                        test.index = range(test_start_index, test_end_index)
-                        target_test.index = range(test_start_index, test_end_index)
-                        # Create last_index entry for testing function
-                        last_index = test_start_index
-
-                        if args.model_type == 'SARIMAX':
-                            exog_test.index = range(test_start_index, test_end_index)
-                            
-                        if args.run_mode == "fine_tuning":  
-                            # Update the model with the new data
-                            train.index = range(train_start_index, train_start_index + len(train)) 
-                            exog_train.index = range(train_start_index, train_start_index + len(train))  
-                            if args.model_type == 'SARIMA':
-                                new_data = df[args.target_column][10174:12382]
-                                model = pre_trained_model.append(new_data, refit = False)
-                                save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                    end_index = len(train),  valid_metrics = valid_metrics)
-                                return
-                            elif args.model_type == 'SARIMAX':
-                                model = pre_trained_model.append(train[args.target_column], exog = exog_train, refit = True)
-                        elif args.run_mode == "test":
-                            # Load the model 
-                            model = pre_trained_model
-                    
-                    case 'LSTM':
-                        model = load_model(f"{args.model_path}/model.h5")
-                        if args.run_mode == 'fine_tuning':
-                            history = model.fit(X_train, y_train, epochs=200, validation_data=(X_valid, y_valid),batch_size=1000)
-                            valid_metrics = {}
-                            valid_metrics['valid_loss'] = history.history['val_loss']
-                            valid_metrics['valid_mae'] = history.history['val_mean_absolute_error']
-                            valid_metrics['valid_mape'] = history.history['val_mean_absolute_percentage_error']
-
-                            # Save training data
-                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                end_index = len(train),  valid_metrics = valid_metrics)
-
-                    case 'XGB':
-                        model = xgb.XGBRegressor()
-                        model.load_model(f"{args.model_path}/model.json")
-                        if args.run_mode == 'fine_tuning':
-                            model = model.fit(
-                            X_train,
-                            y_train,
-                            eval_set=[(X_train, y_train), (X_valid, y_valid)],
-                            eval_metric=['rmse', 'mae'],
-                            early_stopping_rounds=100,
-                            verbose=False  # Set to True to see training progress
-                        )
-                            valid_metrics = model.evals_result()
-                            
-                            # Save training data
-                            save_data("training", args.validation, folder_path, args.model_type, model, args.dataset_path, 
-                                    end_index = len(train),  valid_metrics = valid_metrics)
-                            
-
-            ######################## # END OF MODEL LOADING AND FINE TUNING ####################
     
         if args.run_mode == "train" or args.run_mode == "train_test":
 
@@ -503,11 +405,9 @@ def main():
                     
                     case 'XGB':
                         
-                        y_val = pd.concat([y_train, y_valid])
-                        X_val = pd.concat([X_train, X_valid])
+                        model = xgb.train_model()
+                        #model = xgb.hyperparameter_tuning()
 
-                        model = xgb.train_model(X_train, y_train, X_valid, y_valid)
-                        #model = xgb.hyperparameter_tuning(X_val, y_val)
 
                     case 'HYBRID':
                         model, predictions, scaler = hybrid.train_model(args.input_len, args.output_len)
@@ -602,8 +502,7 @@ def main():
 
                     predictions = lstm.test_model(model)
 
-                    
-
+                
                     if args.unscale_predictions:
 
                         if args.run_mode == 'train_test':
@@ -630,16 +529,28 @@ def main():
                 case 'XGB':
 
                     # Model testing
-                    y_data = pd.concat([y_train, y_valid, y_test])
-                    X_data = pd.concat([X_train, X_valid, X_test])
 
-                    predictions = xgb.test_model(model, X_data, y_data)
+                    predictions = xgb.test_model(model)
                      
-                    predictions = predictions['pred'] 
-
-
                     if args.unscale_predictions:
-                        predictions, y_test = xgb.unscale_data(predictions, y_test, folder_path)
+
+                        if args.run_mode == 'train_test':
+                            path = folder_path
+                        else:
+                            path = args.model_path
+
+                        # Load scaler for unscaling data
+                        with open(f"{folder_path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        predictions[args.target_column] = scaler.inverse_transform(predictions[[args.target_column]])
+
+                        # Unscale test data
+                        # Load scaler for unscaling test data
+                        with open(f"{path}/scaler.pkl", "rb") as file:
+                            scaler = pickle.load(file)
+                        test[args.target_column] = scaler.inverse_transform(test[[args.target_column]])
+
+                    predictions = predictions[args.target_column]
 
                     pd.Series(predictions).to_csv('raw_data.csv', index = False)
 
@@ -692,8 +603,7 @@ def main():
                     lstm.plot_predictions(predictions)
 
                 case 'XGB':
-                    time_values = y_test.index   
-                    xgb.plot_predictions(predictions, y_test, time_values)
+                    xgb.plot_predictions(predictions)
 
                 case 'HYBRID':
                     hybrid.plot_predictions(predictions)
@@ -737,7 +647,7 @@ def main():
 
                 case 'XGB':
                     # Compute performance metrics 
-                    metrics = perf_measure.get_performance_metrics(y_test, predictions)
+                    metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions)
                     # Save the index of the last element of the training set
                     end_index = len(train)
                     # Save model data
@@ -753,7 +663,7 @@ def main():
 
                 case 'NAIVE':
                     metrics = None
-                    naive_metrics = perf_measure.get_performance_metrics(test, predictions, naive = True) 
+                    naive_metrics = perf_measure.get_performance_metrics(test[args.target_column], predictions) 
                     save_data("test", args.validation, folder_path, args.model_type, model, args.dataset_path, naive_performance = naive_metrics)
 
             #################### END OF PERFORMANCE MEASUREMENT AND SAVING ####################

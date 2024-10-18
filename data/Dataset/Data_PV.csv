@@ -1,4 +1,4 @@
-﻿Data;Producer 1 (kW);Producer 2 (kW);Producer 3 (kW);Total (kW)
+﻿Data;Producer_1;Producer_2;Producer_3;Total
 01/01/2019 00:15:00;0;0;0;0
 01/01/2019 00:30:00;0;0;0;0
 01/01/2019 00:45:00;0;0;0;0

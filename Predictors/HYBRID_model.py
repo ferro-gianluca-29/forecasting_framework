@@ -21,6 +21,9 @@ from keras.optimizers import Adam
 from keras.losses import MeanSquaredError
 from keras.callbacks import EarlyStopping
 
+from keras.layers import LSTM, Dropout, Dense, Reshape
+
+
 
 from sklearn.preprocessing import MinMaxScaler
 
@@ -38,7 +41,7 @@ class Hybrid_Predictor(Predictor):
     A class used to predict time series data using Seasonal ARIMA (SARIMA) models.
     """
 
-    def __init__(self, run_mode, target_column=None, period = 24,
+    def __init__(self, run_mode, input_len, output_len, target_column=None, period = 24,
                  verbose=False, forecast_type='ol-one'):
         """
         Constructs all the necessary attributes for the SARIMA_Predictor object.
@@ -57,6 +60,8 @@ class Hybrid_Predictor(Predictor):
         self.target_column = target_column
         self.forecast_type = forecast_type
         self.period = period
+        self.input_len = input_len
+        self.output_len = output_len
         self.SARIMA_order = []
         
 
@@ -67,6 +72,9 @@ class Hybrid_Predictor(Predictor):
         :return: A tuple containing the trained model, validation metrics, and the index of the last training/validation timestep
         """
         try:    
+
+
+            # CREATE SARIMA MODEL 
 
             d = 0
             D = 0
@@ -87,16 +95,15 @@ class Hybrid_Predictor(Predictor):
                         error_action='warn',  # Show warnings for troubleshooting
                         suppress_warnings=False,
                         stepwise=True
-                        )"""
+                        )
+            
+            order = model.order
+            seasonal_order = model.seasonal_order"""
 
             period = self.period  
             target_train = self.train[self.target_column]
 
-
-            """order = model.order
-            seasonal_order = model.seasonal_order"""
-
-            # for debug
+            # Select directly the order (Comment if using the AIC search)
             order = (2,1,1)
             seasonal_order = (2,0,1, 24)
             
@@ -117,19 +124,24 @@ class Hybrid_Predictor(Predictor):
             sarima_residuals = pd.DataFrame(sarima_model.sarimax_res.resid, columns=[self.target_column])
    
 
-            model = create_and_compile_model(
-                        series = sarima_residuals[[self.target_column]], # Series used as predictors
-                        levels = self.target_column,                         # Target column to predict
-                        lags = input_len,
-                        steps = output_len,
-                        recurrent_layer = "LSTM",
-                        activation = "tanh",
-                        recurrent_units = [40,40,40],
-                        optimizer = Adam(learning_rate=0.01), 
-                        loss = MeanSquaredError()
-                                            )
-            
-            model.summary()
+            # CREATE LSTM MODEL WITH KERAS FUNCTIONS
+
+            def build_model(input_len, output_len, units=128, dropout_rate=0.2, learning_rate=0.001):
+                
+                optimizer = Adam(learning_rate=learning_rate)
+                loss = 'mean_squared_error'
+                input_shape = (input_len, 1)  
+                
+                model = Sequential()
+                model.add(LSTM(units, activation='tanh', return_sequences=False, input_shape=input_shape))
+                model.add(Dropout(dropout_rate)) 
+                model.add(Dense(output_len, activation='linear'))
+                model.add(Reshape((output_len, 1)))  
+
+                model.compile(optimizer=optimizer, loss=loss)
+                return model
+
+            model = build_model(self.input_len, self.output_len)
 
             lstm_forecaster = ForecasterRnn(
                                 regressor = model,
@@ -222,50 +234,13 @@ class Hybrid_Predictor(Predictor):
         
 
     def test_model(self, forecaster, last_index, forecast_type, output_len, ol_refit = False, period = 24): 
-        """
-        Tests a SARIMAX model by performing one-step or multi-step ahead predictions, optionally using exogenous variables or applying refitting.
-
-        :param model: The SARIMAX model to be tested
-        :param last_index: Index of the last training/validation timestep
-        :param forecast_type: Type of forecasting ('ol-one' for open-loop one-step ahead, 'cl-multi' for closed-loop multi-step)
-        :param ol_refit: Boolean indicating whether to refit the model after each forecast
-        :param period: The period for Fourier terms if set_fourier is true
-        :return: A pandas Series of the predictions
-        """
+        """ METHOD NOT USED FOR HYBRID PREDICTOR"""
         try:    
-            print("\nTesting SARIMA model...\n")
             
-            self.forecast_type = forecast_type
-            test = self.test
-            self.steps_ahead = self.test.shape[0]
-            full_data = pd.concat([self.train, self.test])
             
-
-            if self.forecast_type == 'ol-one':
-                steps = 1
-            elif self.forecast_type == 'ol-multi':
-                steps = output_len
-
-            predictions = []
-                           
-            _, predictions = backtesting_sarimax(
-                    forecaster            = forecaster,
-                    y                     = full_data[self.target_column],
-                    initial_train_size    = len(self.train),
-                    steps                 = steps,
-                    metric                = 'mean_absolute_error',
-                    refit                 = False,
-                    n_jobs                = "auto",
-                    verbose               = True,
-                    show_progress         = True
-                )
-
-            predictions.rename(columns={'pred': self.target_column}, inplace=True)
-            print("Model testing successful.")
-            return predictions
+            return 
                 
-                
-                
+        
         except Exception as e:
             print(f"An error occurred during the model test: {e}")
             return None 

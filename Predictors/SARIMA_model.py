@@ -52,6 +52,8 @@ class SARIMA_Predictor(Predictor):
         """
         try:    
 
+            # CREATE SARIMA MODEL 
+
             d = 0
             D = 0
 
@@ -71,18 +73,17 @@ class SARIMA_Predictor(Predictor):
                         error_action='warn',  # Show warnings for troubleshooting
                         suppress_warnings=False,
                         stepwise=True
-                        )"""
-
-            period = self.period    
-            target_train = self.train[self.target_column]
-
-
-            """order = model.order
+                        )
+            
+            order = model.order
             seasonal_order = model.seasonal_order"""
 
-            # for debug
-            order = (1,0,1)
-            seasonal_order = (1,0,1, 24)
+            period = self.period  
+            target_train = self.train[self.target_column]
+
+            # Select directly the order (Comment if using the AIC search)
+            order = (2,1,1)
+            seasonal_order = (2,0,1, 24)
             
             best_order = (order, seasonal_order)
             print(f"Best order found: {best_order}")
