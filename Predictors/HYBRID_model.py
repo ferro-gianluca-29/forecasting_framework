@@ -246,13 +246,13 @@ class Hybrid_Predictor(Predictor):
             return None 
         
 
-    def plot_predictions(self, predictions):
+    def plot_predictions(self, predictions, test):
         """
         Plots the SARIMA model predictions against the test data.
 
         :param predictions: The predictions made by the SARIMA model
         """
-        test = self.test[self.target_column]
+        test = test[self.target_column]
         plt.plot(test.index, test, 'b-', label='Test Set')
         plt.plot(test.index, predictions, 'k--', label='ARIMA')
         plt.title(f'SARIMA prediction for feature: {self.target_column}')

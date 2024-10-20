@@ -21,7 +21,7 @@ from Predictors.LSTM_model import LSTM_Predictor
 from Predictors.XGB_model import XGB_Predictor
 from Predictors.ARIMA_model import ARIMA_Predictor
 from Predictors.SARIMA_model import SARIMA_Predictor
-from Predictors.Hybrid_2nd_config import Hybrid_Predictor
+from Predictors.HYBRID_model import Hybrid_Predictor
 from Predictors.NAIVE_model import NAIVE_Predictor
 
 from xgboost import XGBRegressor
@@ -412,12 +412,12 @@ def main():
                     case 'HYBRID':
                         model, predictions, scaler = hybrid.train_model(args.input_len, args.output_len)
 
-                        if args.scaling:
+                        # SCALE TEST AND PREDICTIONS
 
-                            predictions[predictions.columns] = scaler.transform(predictions[predictions.columns])
+                        predictions[predictions.columns] = scaler.transform(predictions[predictions.columns])
 
-                            test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
-                            test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
+                        test = test.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+                        test[test.columns[0:test.columns.shape[0] - 1]] = scaler.transform(test[test.columns[0:test.columns.shape[0] - 1]])
                         
 
 
@@ -606,7 +606,7 @@ def main():
                     xgb.plot_predictions(predictions)
 
                 case 'HYBRID':
-                    hybrid.plot_predictions(predictions)
+                    hybrid.plot_predictions(predictions, test)
 
                 case 'NAIVE':
                     naive.plot_predictions(predictions)     

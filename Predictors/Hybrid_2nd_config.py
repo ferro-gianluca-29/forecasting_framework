@@ -21,6 +21,9 @@ from keras.optimizers import Adam
 from keras.losses import MeanSquaredError
 from keras.callbacks import EarlyStopping
 
+
+from OnlineSTL import OnlineSTL
+
 from statsmodels.tsa.seasonal import STL
 
 
@@ -77,27 +80,6 @@ class Hybrid_Predictor(Predictor):
         try:    
 
 
-            # DECOMPOSE THE TRAINING SET
-
-            #select the target column from the training set
-            target_train = self.train[self.target_column]
-
-            stl = STL(target_train, period = self.period)
-            result = stl.fit()
-
-            #result.plot()
-
-            # add trend and seasonal components 
-            train_trend_seasonal = result.trend + result.seasonal
-            train_trend_seasonal = pd.DataFrame(train_trend_seasonal)
-            train_trend_seasonal = train_trend_seasonal.rename(columns={train_trend_seasonal.columns[0]: self.target_column})
-
-            # extract residual component for the LSTM
-            train_resid = result.resid
-            train_resid = pd.DataFrame(train_resid)
-            train_resid = train_resid.rename(columns={train_resid.columns[0]: self.target_column})
-
-
             # CREATE SARIMA MODEL 
 
             d = 0
@@ -124,12 +106,33 @@ class Hybrid_Predictor(Predictor):
             order = sarima_model.order
             seasonal_order = sarima_model.seasonal_order"""
 
+
+            # DECOMPOSE THE TRAINING SET WITH STATSMODELS STL
+
+            #select the target column from the training set
+            target_train = self.train[self.target_column]
+
+            stl = STL(target_train, period = self.period)
+            result = stl.fit()
+
+            #result.plot()
+
+            # add trend and seasonal components 
+            train_trend_seasonal = result.trend + result.seasonal
+            train_trend_seasonal = pd.DataFrame(train_trend_seasonal)
+            train_trend_seasonal = train_trend_seasonal.rename(columns={train_trend_seasonal.columns[0]: self.target_column})
+
+            # extract residual component for the LSTM
+            train_resid = result.resid
+            train_resid = pd.DataFrame(train_resid)
+            train_resid = train_resid.rename(columns={train_resid.columns[0]: self.target_column})
+
             period = self.period  
             target_train = self.train[self.target_column]
 
             # Select directly the order (Comment if using the AIC search)
-            order = (2,1,1)
-            seasonal_order = (2,0,1, 24)
+            order = (4,1,0)
+            seasonal_order = (2,1,0, 24)
             
             best_order = (order, seasonal_order)
             print(f"Best order found: {best_order}")
@@ -170,57 +173,103 @@ class Hybrid_Predictor(Predictor):
             lstm_forecaster = ForecasterRnn(
                                 regressor = lstm_model,
                                 levels = self.target_column,
-                                transformer_series = None,
+                                lags = self.input_len,
+                                transformer_series = MinMaxScaler(),
                                 fit_kwargs={
-                                    "epochs": 1,  # Number of epochs to train the model.
-                                    "batch_size": 100,  # Batch size to train the model.
+                                    "epochs": 300,  # Number of epochs to train the model.
+                                    "batch_size": 32,  # Batch size to train the model.
                                            },
                                     )    
-            
-            # scale residuals before feeding them to the LSTM
-            scaler = MinMaxScaler()
-            # fit the scaler on the training set
+
+            lstm_forecaster.fit(train_resid[[self.target_column]])
+
+            predictions = []
+
+
+            # Instantiate online_stl object
+
+            periods = [self.period]
+
+            online_stl = OnlineSTL(self.train[self.target_column], periods = periods)
+
+            if self.forecast_type == 'ol-one':
+
+                # Prepara l'indice completo da usare durante il ciclo
+                last_dates_full = self.train.index[-self.input_len:].append(self.test.index)
+
+                # Inizializza la lista delle predizioni
+                predictions = []
+
+                # Inizializza test_residuals come DataFrame per mantenere gli indici
+                test_residuals = pd.Series(index=self.test.index, dtype=float)
+
+                # Prima fase: finché non abbiamo abbastanza residui di test
+                for i in tqdm(range(self.input_len), desc="Forecasting: Using last training timesteps..."):
+
+                    # Previsione del componente stagionale e decomposizione del nuovo punto dati
+                    trend, seasonal, residual = online_stl.update(self.test[self.target_column].iloc[i])
+                    test_residuals.iloc[i] = residual
+
+                    # Concatena i dati del train con i residui di test calcolati finora (escludendo l'indice attuale)
+                    last_window_df = pd.concat([
+                    train_resid[self.target_column].iloc[-(self.input_len - i):],
+                    test_residuals.iloc[:i]
+                            ], axis=0).to_frame(name=self.target_column)
+
+                    # Previsione del componente residuale con LSTM per un passo
+                    lstm_pred = lstm_forecaster.predict(steps=1, last_window=last_window_df)
+
+                    # Forecast seasonal trend component with SARIMA for one step
+                    sarima_pred = sarima_model.predict(steps=1)
+
+                    # Combine predictions
+                    combined_pred = sarima_pred.iloc[0, 0] + lstm_pred.iloc[0, 0]
+
+                    # Append combined prediction
+                    predictions.append(combined_pred)
+
+                    # Update history with current trend_seasonal timestep for next iteration
+                    actual_value = seasonal + trend
+                    sarima_model.append([actual_value], refit=False)
+
+
+                # Seconda fase: quando i residui di test sono sufficienti
+                for i in tqdm(range(self.input_len, len(self.test)), desc="Forecasting: Using predicted STL components"):
+
+                    # Previsione del componente stagionale e decomposizione del nuovo punto dati
+                    trend, seasonal, residual = online_stl.update(self.test[self.target_column].iloc[i])
+                    test_residuals.iloc[i] = residual
+
+                    # Usa solo i residui di test recenti
+                    recent_residuals = test_residuals.iloc[i - self.input_len + 1: i + 1]
+
+                    # Converti i residui recenti in un DataFrame
+                    last_window_df = recent_residuals.to_frame(name=self.target_column)
+
+                    # Previsione del componente residuale con LSTM per un passo
+                    lstm_pred = lstm_forecaster.predict(steps=1, last_window=last_window_df)
+
+                    # Forecast seasonal trend component with SARIMA for one step
+                    sarima_pred = sarima_model.predict(steps=1)
+
+                    # Combine predictions
+                    combined_pred = sarima_pred.iloc[0, 0] + lstm_pred.iloc[0, 0]
+
+                    # Append combined prediction
+                    predictions.append(combined_pred)
+
+                    # Update history with current trend_seasonal timestep for next iteration
+                    actual_value = seasonal + trend
+                    sarima_model.append([actual_value], refit=False)
+
+            prediction_index = self.test.index
+            predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)
+
 
             # fit scaler on train data to later scale test and predictions
             scaler = MinMaxScaler()
             temp_train = self.train.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             scaler.fit(temp_train[temp_train.columns[0:temp_train.columns.shape[0] - 1]])
-
-            # scale residual training data for the LSTM  
-            train_resid[train_resid.columns] = scaler.transform(train_resid[train_resid.columns])
-
-            lstm_forecaster.fit(train_resid[[self.target_column]])
-
-
-            predictions = []
-
-
-            if self.forecast_type == 'ol-one':
-
-                # One-step ahead forecasting loop
-
-                for i in tqdm(range(len(self.test)), desc="Forecasting"):
-                    # Forecast seasonal trend component with SARIMA for one step
-                    sarima_pred = sarima_model.predict(steps=1)
-
-                    # Forecast residual component with LSTM for one step
-                    lstm_pred = lstm_forecaster.predict(steps=1)
-
-                    # Inverse scale the residual
-                    lstm_pred = scaler.inverse_transform(lstm_pred.to_numpy().reshape(-1, 1)).flatten()[0]
-
-                    # Combine predictions
-                    combined_pred = sarima_pred.values[0] + lstm_pred
-
-                    # Append combined prediction
-                    predictions.append(combined_pred)
-
-                    # Update history with actual value for next iteration
-                    actual_value = self.test[self.target_column].iloc[i]
-                    sarima_model.append([actual_value], refit=False)
-
-            prediction_index = self.test.index
-            predictions_df = pd.DataFrame({self.target_column: predictions}, index=prediction_index)
 
             return sarima_model, predictions_df, scaler
 
@@ -243,13 +292,13 @@ class Hybrid_Predictor(Predictor):
             return None 
         
 
-    def plot_predictions(self, predictions):
+    def plot_predictions(self, predictions, test):
         """
         Plots the SARIMA model predictions against the test data.
 
         :param predictions: The predictions made by the SARIMA model
         """
-        test = self.test[self.target_column]
+        test = test[self.target_column]
         plt.plot(test.index, test, 'b-', label='Test Set')
         plt.plot(test.index, predictions, 'k--', label='ARIMA')
         plt.title(f'SARIMA prediction for feature: {self.target_column}')
