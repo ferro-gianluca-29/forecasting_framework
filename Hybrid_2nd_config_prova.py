@@ -193,10 +193,11 @@ class Hybrid_Predictor(Predictor):
             lstm_forecaster = ForecasterRnn(
                                 regressor = lstm_model,
                                 levels = self.target_column,
+                                lags = self.input_len,
                                 transformer_series = MinMaxScaler(),
                                 fit_kwargs={
                                     "epochs": 1,  # Number of epochs to train the model.
-                                    "batch_size": 500,  # Batch size to train the model.
+                                    "batch_size": 32,  # Batch size to train the model.
                                            },
                                     )
 
